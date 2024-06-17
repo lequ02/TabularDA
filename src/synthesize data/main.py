@@ -15,15 +15,18 @@ def main():
   categorical_columns = [] # there is no categorical columns in the news dataset
 
   # Load synthesizer
+
+  # Train new synthesizer and synthesize data
   # synthesize_news = synthesize_data(x_original, y_original, categorical_columns,
   #                             sample_size=100_000, target_synthesizer='gaussianNB',
-  #                            target_name='shares', synthesizer_file_name='synthesizer_news_onlyX.pkl',
+  #                            target_name='shares', synthesizer_file_name='news_synthesizer_onlyX.pkl',
   #                            csv_file_name='news_sdv_gaussion_100k.csv')
 
+  # Synthesize data using trained synthesizer
   synthesize_news = synthesize_from_trained_model(x_original, y_original, categorical_columns,
-                              sample_size=100_000, target_synthesizer='gaussianNB',
-                             target_name='shares', synthesizer_file_name='../sdv trained model/synthesizer_news_onlyX.pkl',
-                             csv_file_name='../data/news/news_sdv_gaussion_100k.csv')
+                              sample_size=100_000, target_synthesizer='categoricalNB',
+                             target_name='shares', synthesizer_file_name='../sdv trained model/news_synthesizer_onlyX.pkl',
+                             csv_file_name='../data/news/news_sdv_categorical_100k.csv')
 
 
 if __name__ == '__main__':
