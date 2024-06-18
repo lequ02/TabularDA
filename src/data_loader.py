@@ -1,56 +1,70 @@
-from tqdm import tqdm
 import pandas as pd
-
-import torch
-
-import numpy as np
-import random
-from torch.utils.data import TensorDataset, DataLoader, ConcatDataset
-
-from datasets import MNIST_truncated, CIFAR10_truncated, CIFAR100_truncated, SVHN_custom, FashionMNIST_truncated, CustomTensorDataset, CelebA_custom, FEMNIST, Generated, genData
-from tqdm import tqdm
+# from tqdm import tqdm
 import torch
 import numpy as np
 import random
 from torch.utils.data import TensorDataset, DataLoader, ConcatDataset
-from datasets import MNIST_truncated, CIFAR10_truncated, CIFAR100_truncated, SVHN_custom, FashionMNIST_truncated, CustomTensorDataset, CelebA_custom, FEMNIST, Generated, genData
+from synthesize_data.onehot import onehot
+from datasets import load_adult, load_news, load_census
 
 
 data_DIR = "../data" # run local
 
 
 #in: batch size, dataset name
-#out: train_data,  test_data: in batches
+#out: train_data (in batches), test_data
 class data_loader:
-    def __init__(self, dataset_name, batch_size):
+    def __init__(self, dataset_name, dataset_type, batch_size):
 
-        self.dataset_name = dataset_name # 'mnist' or 'cifar10', .... a folder name in the data_DIR
+        self.dataset_name = dataset_name # 'adult' or 'census', .... a folder name in the data_DIR
         self.batch_size = batch_size
-        
-        self.train_data = self.load_data_in_batches(train=True)
-        self.test_data = self.load_data_in_batches(train=False)
+        self.dataset_type = dataset_type # 'original' or 'sdv' 'sdv_categorical' or 'sdv_gaussian'
+        self.categorical_columns = []         
+        self.train_data = self.load_data_in_batches()
+        self.test_data = self.load_test_data()
+
+    def load_data_in_batches(self):
     
-    def load_data_in_batches(self, train):
-        dataset = self.get_dataset(train=train)
-        X = dataset.data
-        y = dataset.target
+        trainds =  self.get_train_data()
+        xtrain = trainds.iloc[:, :-1] # all columns except the last one
+        ytrain = trainds.iloc[:, -1] # the last column
 
-        return self.distribute_in_batches(X, y)
-        
-    def get_dataset(self, train):
-        
-        if self.dataset_name == "adult":
-            adult_ds = pd.read_csv(f"{data_DIR}/adult/adult_sdv{}_100k.csv")
-            return adult_ds
-        
-        elif self.dataset_name == "census":
-            census_ds = pd.read_csv(f"{data_DIR}/census.csv")
-            return census_ds
-            
-        elif self.dataset_name == "news":
-            cifa100 = CIFAR100_truncated(data_DIR, train=train, download=True)
-            return cifa100
+        return self.distribute_in_batches(xtrain, ytrain)
 
+
+    def load_test_data(self):
+        if self.dataset_name == 'adult':
+            x , y = load_adult()
+            y['income'] = y['income'].map({'<=50K': 0, '>50K': 1})
+            x_onehot, _  = onehot(x, x.copy(), ['workclass', 'education', 'marital-status', 'occupation',
+                                    'relationship', 'race', 'sex', 'native-country'], verbose=False)
+            # sort columns so it matches the training data
+            x_onehot = x_onehot.reindex(sorted(x_onehot.columns), axis=1)
+            # x = pd.concat([x_onehot, y], axis=1)
+            return x_onehot, y
+
+        elif self.dataset_name == 'census':
+            x , y = load_census()
+            y['income'] = y['income'].map({'<=50K': 0, '>50K': 1})
+            x_onehot, _  = onehot(x, x.copy(), ['workclass', 'education', 'marital-status', 'occupation',
+                                    'relationship', 'race', 'sex', 'native-country'], verbose=False)
+            # sort columns so it matches the training data
+            x_onehot = x_onehot.reindex(sorted(x_onehot.columns), axis=1)
+            # x = pd.concat([x_onehot, y], axis=1)
+            return x_onehot, y
+
+
+        elif self.dataset_name == 'news':
+            xtest, ytest = load_news()  
+            return xtest, ytest
+
+        
+    def get_train_data(self):
+        if self.dataset_name=='original':
+            raise Exception("Original dataset is not yet implemented")
+
+        else: ds = pd.read_csv(f"{data_DIR}/{self.dataset_name}/onehot_{self.dataset_name}_{self.dataset_type}_100k.csv", index_col=0)
+        return ds
 
 
     def distribute_in_batches(self, X, y):
@@ -62,8 +76,11 @@ class data_loader:
             start = i * self.batch_size
             end = start + self.batch_size
 
-            batch_X = X[start:end]
-            batch_y = y[start:end]
+            batch_X = torch.tensor(X[start:end].values) # convert to PyTorch tensor
+            batch_y = torch.tensor(y[start:end].values) # convert to PyTorch tensor
+
+            # batch_X = X[start:end]
+            # batch_y = y[start:end]
 
             batch = TensorDataset(batch_X, batch_y)
             batches.append(batch)

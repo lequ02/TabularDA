@@ -18,10 +18,20 @@ def load_dataset(dataset_id, verbose=False):
     return X, y
 
 def load_adult(verbose=False):
-    return load_dataset(2, verbose)
+    x, y = load_dataset(2, verbose)
+    # the y values are <=50K, <=50K., >50K >50K.
+    # We need to remove the '.' from the values
+    y['income'] = y['income'].str.replace('.', '', regex=False)
+    # print(y.income.unique())
+    return x, y
 
 def load_news(verbose=False):
     return load_dataset(332, verbose)
 
 def load_census(verbose=False):
-    return load_dataset(20, verbose)
+    x, y = load_dataset(20, verbose)
+    # the y values are <=50K, <=50K., >50K >50K.
+    # We need to remove the '.' from the values
+    y['income'] = y['income'].str.replace('.', '', regex=False)
+    # print(y.income.unique())
+    return x, y
