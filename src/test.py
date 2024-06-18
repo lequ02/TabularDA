@@ -3,8 +3,11 @@ from datasets import load_news, load_adult, load_census
 import pandas as pd
 from synthesize_data.onehot import onehot
 
-train = data_loader('census', 'sdv_categorical', 100).train_data
-test = data_loader('census', 'sdv_categorical', 100).test_data
+# numerical columns to normalize
+numerical_columns = ['age', 'fnlwgt', 'education-num', 'capital-gain', 'capital-loss', 'hours-per-week']
+
+train = data_loader('census', 'sdv_categorical', 100, numerical_columns = numerical_columns).train_data
+test = data_loader('census', 'sdv_categorical', 100, numerical_columns = numerical_columns).test_data
 
 print(train)
 print(test)

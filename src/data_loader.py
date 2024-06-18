@@ -14,12 +14,12 @@ data_DIR = "../data" # run local
 #in: batch size, dataset name
 #out: train_data (in batches), test_data
 class data_loader:
-    def __init__(self, dataset_name, dataset_type, batch_size):
+    def __init__(self, dataset_name, dataset_type, batch_size, numerical_columns = []):
 
         self.dataset_name = dataset_name # 'adult' or 'census', .... a folder name in the data_DIR
         self.batch_size = batch_size
         self.dataset_type = dataset_type # 'original' or 'sdv' 'sdv_categorical' or 'sdv_gaussian'
-        self.categorical_columns = []         
+        self.numerical_columns = numerical_columns
         self.train_data = self.load_data_in_batches()
         self.test_data = self.load_test_data()
 
@@ -27,6 +27,7 @@ class data_loader:
     
         trainds =  self.get_train_data()
         xtrain = trainds.iloc[:, :-1] # all columns except the last one
+        xtrain = self.normalize(xtrain, self.numerical_columns)
         ytrain = trainds.iloc[:, -1] # the last column
 
         return self.distribute_in_batches(xtrain, ytrain)
@@ -40,6 +41,7 @@ class data_loader:
                                     'relationship', 'race', 'sex', 'native-country'], verbose=False)
             # sort columns so it matches the training data
             x_onehot = x_onehot.reindex(sorted(x_onehot.columns), axis=1)
+            x_onehot = self.normalize(x_onehot, self.numerical_columns)
             # x = pd.concat([x_onehot, y], axis=1)
             return x_onehot, y
 
@@ -50,6 +52,7 @@ class data_loader:
                                     'relationship', 'race', 'sex', 'native-country'], verbose=False)
             # sort columns so it matches the training data
             x_onehot = x_onehot.reindex(sorted(x_onehot.columns), axis=1)
+            x_onehot = self.normalize(x_onehot, self.numerical_columns)
             # x = pd.concat([x_onehot, y], axis=1)
             return x_onehot, y
 
@@ -65,6 +68,14 @@ class data_loader:
 
         else: ds = pd.read_csv(f"{data_DIR}/{self.dataset_name}/onehot_{self.dataset_name}_{self.dataset_type}_100k.csv", index_col=0)
         return ds
+
+
+    def normalize(self, df, numerical_cols):
+        for col in numerical_cols:
+            mean = df[col].mean()
+            std = df[col].std()
+            df[col] = (df[col]-mean)/std
+        return df
 
 
     def distribute_in_batches(self, X, y):
