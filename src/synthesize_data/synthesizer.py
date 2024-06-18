@@ -3,6 +3,7 @@ from sdv.metadata import SingleTableMetadata
 from onehot import onehot
 from naive_bayes import create_label_gaussianNB, create_label_categoricalNB
 import pickle
+import torch
 
 def synthesize_data(x_original, y_original, categorical_columns,
                     sample_size=100_000, verbose=False, 

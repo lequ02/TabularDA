@@ -1,7 +1,9 @@
 from sklearn.preprocessing import OneHotEncoder
+import pandas as pd
 
 def prepend_col_name(df, columns):
     for col in columns:
+        # print(type(col), col)
         df[col] = df[col].apply(lambda x: f"{col}_{x}")
     return df
 
