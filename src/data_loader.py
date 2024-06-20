@@ -80,6 +80,7 @@ class data_loader:
 
         elif self.dataset_name == 'news':
             xtest, ytest = load_news()  
+            xtest = self.normalize(xtest, self.numerical_columns)
             return xtest, ytest
         
     def get_train_data(self):
