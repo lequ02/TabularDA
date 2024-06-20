@@ -4,17 +4,17 @@ import pandas as pd
 from synthesize_data.onehot import onehot
 
 # numerical columns to normalize
-# numerical_columns = ['age', 'fnlwgt', 'education-num', 'capital-gain', 'capital-loss', 'hours-per-week']
+numerical_columns = ['age', 'fnlwgt', 'education-num', 'capital-gain', 'capital-loss', 'hours-per-week']
 
-non_num_cols = [ 'data_channel_is_bus', 'data_channel_is_entertainment', 'data_channel_is_lifestyle', 'data_channel_is_socmed', 'data_channel_is_tech', 'data_channel_is_world',
- 'weekday_is_monday', 'weekday_is_tuesday', 'weekday_is_wednesday', 'weekday_is_thursday', 'weekday_is_friday', 'weekday_is_saturday', 'weekday_is_sunday', 'is_weekend',
- 'shares']
+# non_num_cols = [ 'data_channel_is_bus', 'data_channel_is_entertainment', 'data_channel_is_lifestyle', 'data_channel_is_socmed', 'data_channel_is_tech', 'data_channel_is_world',
+#  'weekday_is_monday', 'weekday_is_tuesday', 'weekday_is_wednesday', 'weekday_is_thursday', 'weekday_is_friday', 'weekday_is_saturday', 'weekday_is_sunday', 'is_weekend',
+#  'shares']
 
-numerical_columns = [col for col in load_news()[0].columns if col not in non_num_cols]
+# numerical_columns = [col for col in load_news()[0].columns if col not in non_num_cols]
 
 
-train = data_loader('news', 'sdv_categorical', 100, numerical_columns = numerical_columns).train_data
-test = data_loader('news', 'sdv_categorical', 100, numerical_columns = numerical_columns).test_data
+train = data_loader('adult', 'sdv', 100, numerical_columns = numerical_columns).train_data
+test = data_loader('adult', 'sdv', 100, numerical_columns = numerical_columns).test_data
 
 # train = data_loader('census', 'original', 100, numerical_columns = numerical_columns).train_data
 # test = data_loader('census', 'original', 100, numerical_columns = numerical_columns).test_data
