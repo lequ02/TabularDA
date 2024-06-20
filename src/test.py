@@ -6,8 +6,11 @@ from synthesize_data.onehot import onehot
 # numerical columns to normalize
 numerical_columns = ['age', 'fnlwgt', 'education-num', 'capital-gain', 'capital-loss', 'hours-per-week']
 
-train = data_loader('census', 'sdv_categorical', 100, numerical_columns = numerical_columns).train_data
-test = data_loader('census', 'sdv_categorical', 100, numerical_columns = numerical_columns).test_data
+# train = data_loader('census', 'sdv_categorical', 100, numerical_columns = numerical_columns).train_data
+# test = data_loader('census', 'sdv_categorical', 100, numerical_columns = numerical_columns).test_data
+
+train = data_loader('census', 'original', 100, numerical_columns = numerical_columns).train_data
+test = data_loader('census', 'original', 100, numerical_columns = numerical_columns).test_data
 
 print(train)
 print(test)
