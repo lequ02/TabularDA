@@ -6,21 +6,31 @@ from synthesize_data.onehot import onehot
 # numerical columns to normalize
 numerical_columns = ['age', 'fnlwgt', 'education-num', 'capital-gain', 'capital-loss', 'hours-per-week']
 
-# train = data_loader('census', 'sdv_categorical', 100, numerical_columns = numerical_columns).train_data
-# test = data_loader('census', 'sdv_categorical', 100, numerical_columns = numerical_columns).test_data
+train = data_loader('census', 'sdv_categorical', 100, numerical_columns = numerical_columns).train_data
+test = data_loader('census', 'sdv_categorical', 100, numerical_columns = numerical_columns).test_data
 
-train = data_loader('census', 'original', 100, numerical_columns = numerical_columns).train_data
-test = data_loader('census', 'original', 100, numerical_columns = numerical_columns).test_data
+# train = data_loader('census', 'original', 100, numerical_columns = numerical_columns).train_data
+# test = data_loader('census', 'original', 100, numerical_columns = numerical_columns).test_data
 
 print(train)
+print("\n convoi")
 print(test)
 
 # Print the first batch of the training data
 for i, (inputs, labels) in enumerate(train):
     print(f"Batch {i+1}:")
-    print("Inputs:", inputs)
-    print("Labels:", labels)
+    print("Inputs:", inputs.shape)
+    print("Labels:", labels.shape)
     break  # We break the loop after the first batch
+
+
+for i, (inputs, labels) in enumerate(test):
+    print(f"Batch {i+1}:")
+    print("Inputs:", inputs.shape)
+    print("Labels:", labels.shape)
+    # print(value.shape)
+
+    break
 
 
 # x , y = load_census()

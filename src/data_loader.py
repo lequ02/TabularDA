@@ -47,10 +47,11 @@ class data_loader:
             test_size = min(int(len(x) * 0.2), 10000)
             x_test = x[:test_size]
             y_test = y[:test_size]
-            return x_test, y_test
+            return self.distribute_in_batches(x_test, y_test, batch_size = x_test.shape[0])
 
-        if self.dataset_type == 'original':
-            xtest, ytest = self.load_clean_ori_data()
+        if self.dataset_type != 'original':
+            x_test, y_test = self.load_clean_ori_data()
+            return self.distribute_in_batches(x_test, y_test, batch_size = x_test.shape[0])
 
 
     def load_clean_ori_data(self):
@@ -102,7 +103,7 @@ class data_loader:
         return df
 
 
-    def distribute_in_batches(self, X, y):
+    def distribute_in_batches(self, X, y, batch_size = 'default'):
         
         num_batch = int(len(X) /self.batch_size)
         batches = []
@@ -119,5 +120,8 @@ class data_loader:
 
             batch = TensorDataset(batch_X, batch_y)
             batches.append(batch)
+
+        if batch_size == 'default':
+            batch_size = self.batch_size
         
-        return DataLoader(ConcatDataset(batches), shuffle=True, batch_size = self.batch_size)
+        return DataLoader(ConcatDataset(batches), shuffle=True, batch_size = batch_size)
