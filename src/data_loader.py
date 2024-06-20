@@ -6,6 +6,8 @@ import random
 from torch.utils.data import TensorDataset, DataLoader, ConcatDataset
 from synthesize_data.onehot import onehot
 from datasets import load_adult, load_news, load_census
+import random
+
 
 
 data_DIR = "../data" # run local
@@ -33,7 +35,25 @@ class data_loader:
         return self.distribute_in_batches(xtrain, ytrain)
 
 
-    def load_test_data(self):
+    def load_test_data(self, random_seed=42):            
+
+        if self.dataset_type == 'original':
+            x, y = self.load_clean_ori_data()
+            random.seed(seed)
+            data = list(zip(x, y))
+            random.shuffle(data)
+            x, y = zip(*data)
+            test_size = min(int(len(x) * 0.2), 10000)
+            x_test = x[:test_size]
+            y_test = y[:test_size]
+            return x_test, y_test
+
+        if self.dataset_type == 'original':
+            xtest, ytest = self.load_clean_ori_data()
+
+
+    def load_clean_ori_data(self):
+
         if self.dataset_name == 'adult':
             x , y = load_adult()
             y['income'] = y['income'].map({'<=50K': 0, '>50K': 1})
@@ -56,15 +76,14 @@ class data_loader:
             # x = pd.concat([x_onehot, y], axis=1)
             return x_onehot, y
 
-
         elif self.dataset_name == 'news':
             xtest, ytest = load_news()  
             return xtest, ytest
-
         
     def get_train_data(self):
-        if self.dataset_name=='original':
-            raise Exception("Original dataset is not yet implemented")
+        if self.dataset_type=='original':
+            ds = load_clean_ori_data() - self.load_test_data()
+
 
         else: ds = pd.read_csv(f"{data_DIR}/{self.dataset_name}/onehot_{self.dataset_name}_{self.dataset_type}_100k.csv", index_col=0)
         return ds
