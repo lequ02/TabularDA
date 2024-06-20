@@ -38,8 +38,9 @@ class data_loader:
     def load_test_data(self, random_seed=42):            
 
         if self.dataset_type == 'original':
+            # load the original data and get 20% (or 10k) of it as test data
             x, y = self.load_clean_ori_data()
-            random.seed(seed)
+            random.seed(random_seed)
             data = list(zip(x, y))
             random.shuffle(data)
             x, y = zip(*data)
@@ -82,8 +83,12 @@ class data_loader:
         
     def get_train_data(self):
         if self.dataset_type=='original':
-            ds = load_clean_ori_data() - self.load_test_data()
-
+            # load the original data and remove the test data to get the training data
+            x, y = self.load_clean_ori_data()
+            xtest, ytest = self.load_test_data()
+            xtrain = x[~x.index.isin(xtest)].dropna(how = 'all')
+            ytrain = y[~y.isin(ytest)].dropna(how = 'all')
+            return pd.concat([xtrain, ytrain], axis=1)
 
         else: ds = pd.read_csv(f"{data_DIR}/{self.dataset_name}/onehot_{self.dataset_name}_{self.dataset_type}_100k.csv", index_col=0)
         return ds
