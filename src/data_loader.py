@@ -16,42 +16,58 @@ data_DIR = "../data" # run local
 #in: batch size, dataset name
 #out: train_data (in batches), test_data
 class data_loader:
-    def __init__(self, dataset_name, dataset_type, batch_size, numerical_columns = []):
+    def __init__(self, file_name, dataset_name, train_option, test_option,
+                        test_ratio, batch_size, numerical_columns = []):
 
         self.dataset_name = dataset_name # 'adult' or 'census', .... a folder name in the data_DIR
         self.batch_size = batch_size
-        self.dataset_type = dataset_type # 'original' or 'sdv' 'sdv_categorical' or 'sdv_gaussian'
+        # self.dataset_type = dataset_type # 'original' or 'sdv' 'sdv_categorical' or 'sdv_gaussian'
         self.numerical_columns = numerical_columns
-        self.train_data = self.load_data_in_batches()
-        self.test_data = self.load_test_data()
+        self.file_name = file_name
+        self.train_option = train_option
+        self.test_option = test_option
+        self.test_ratio = test_ratio
+        self.test_data = self.load_data_in_batches(self.load_test_data())
+        self.train_data = self.load_data_in_batches(self.load_train_data())
 
-    def load_data_in_batches(self):
-    
-        trainds =  self.get_train_data()
-        xtrain = trainds.iloc[:, :-1] # all columns except the last one
-        xtrain = self.normalize(xtrain, self.numerical_columns)
-        ytrain = trainds.iloc[:, -1] # the last column
+    def load_data_in_batches(self, ds):
 
-        return self.distribute_in_batches(xtrain, ytrain)
+        ds = self.normalize(ds, self.numerical_columns)
+        x = ds.iloc[:, :-1] # all columns except the last one
+        y = ds.iloc[:, -1] # the last column
 
+        return self.distribute_in_batches(x, y)
 
-    def load_test_data(self, random_seed=42):            
+    def train_test_split(self, ds, test_size, random_seed=42):
+        random.seed(random_seed)
+        # shuffle the data
+        ds = ds.sample(frac=1, random_state=random_seed)
+        if test_size<1:
+            test_size = int(len(ds) * test_size)
+        ds_train = ds.iloc[test_size:]
+        ds_test = ds.iloc[:test_size]
+        return ds_train, ds_test
 
-        if self.dataset_type == 'original':
-            # load the original data and get 20% (or 10k) of it as test data
+    def load_datasets(self, option):            
+
+        if option == 'original':
             x, y = self.load_clean_ori_data()
-            random.seed(random_seed)
-            data = list(zip(x, y))
-            random.shuffle(data)
-            x, y = zip(*data)
-            test_size = min(int(len(x) * 0.2), 10000)
-            x_test = x[:test_size]
-            y_test = y[:test_size]
-            return self.distribute_in_batches(x_test, y_test, batch_size = x_test.shape[0])
+            ds_ori = pd.concat([x, y], axis=1)
+            ds_train, ds_test = self.train_test_split(ds_ori, self.test_ratio)
+            return ds_train, ds_test
 
-        if self.dataset_type != 'original':
-            x_test, y_test = self.load_clean_ori_data()
-            return self.distribute_in_batches(x_test, y_test, batch_size = x_test.shape[0])
+        elif option == 'synthetic':
+            ds_synth = pd.read_csv(self.file_name, index_col=0)
+            ds_train, ds_test = self.train_test_split(ds_synth, self.test_ratio)
+            return ds_train, ds_test
+
+        elif option == 'mix':
+            x_ori , y_ori = self.load_clean_ori_data()
+            ds_ori = pd.concat([x_ori, y_ori], axis=1)
+            ds_synth = pd.read_csv(self.file_name, index_col=0)
+            ds_concat = pd.concat([ds_ori, ds_synth], axis=0)
+            ds_train, ds_test = self.train_test_split(ds_concat, self.test_ratio)
+            return ds_train, ds_test
 
 
     def load_clean_ori_data(self):
@@ -82,18 +98,41 @@ class data_loader:
             xtest, ytest = load_news()  
             xtest = self.normalize(xtest, self.numerical_columns)
             return xtest, ytest
-        
-    def get_train_data(self):
-        if self.dataset_type=='original':
-            # load the original data and remove the test data to get the training data
-            x, y = self.load_clean_ori_data()
-            xtest, ytest = self.load_test_data()
-            xtrain = x[~x.index.isin(xtest)].dropna(how = 'all')
-            ytrain = y[~y.isin(ytest)].dropna(how = 'all')
-            return pd.concat([xtrain, ytrain], axis=1)
 
-        else: ds = pd.read_csv(f"{data_DIR}/{self.dataset_name}/onehot_{self.dataset_name}_{self.dataset_type}_100k.csv", index_col=0)
-        return ds
+
+    def load_test_data(self):
+        _, ds_test = self.load_datasets(self.test_option)
+        # print("test")
+        # print(ds_test.shape)
+        # print(ds_test)
+        return ds_test
+    
+    def load_train_data(self):
+        if self.train_option == self.test_option:
+            ds_train, _ = self.load_datasets(self.train_option)
+        else:
+            ds1, ds2 = self.load_datasets(self.train_option)
+            ds_train = pd.concat([ds1, ds2], axis=0)
+        # print("train")
+        # print(ds_train.shape)
+        # print(ds_train)
+        return ds_train
+
+    # def get_train_data(self):
+    #     if self.train_option=='original':
+    #         # load the original data and remove the test data to get the training data
+    #         x, y = self.load_clean_ori_data()
+    #         xtest, ytest = self.load_test_data()
+    #         xtrain = x[~x.index.isin(xtest)].dropna(how = 'all')
+    #         ytrain = y[~y.isin(ytest)].dropna(how = 'all')
+    #         return pd.concat([xtrain, ytrain], axis=1)
+
+    #     elif self.train_option=='synthetic':
+    #         ds = pd.read_csv(self.file_name)
+
+    #     elif self.train_option=='mix':
+    #         ds = pd.read_csv(self.file_name)
+    #     return ds
 
 
     def normalize(self, df, numerical_cols):
@@ -115,9 +154,6 @@ class data_loader:
 
             batch_X = torch.tensor(X[start:end].values) # convert to PyTorch tensor
             batch_y = torch.tensor(y[start:end].values) # convert to PyTorch tensor
-
-            # batch_X = X[start:end]
-            # batch_y = y[start:end]
 
             batch = TensorDataset(batch_X, batch_y)
             batches.append(batch)

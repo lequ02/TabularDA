@@ -13,14 +13,21 @@ numerical_columns = ['age', 'fnlwgt', 'education-num', 'capital-gain', 'capital-
 # numerical_columns = [col for col in load_news()[0].columns if col not in non_num_cols]
 
 
-train = data_loader('adult', 'sdv', 100, numerical_columns = numerical_columns).train_data
-test = data_loader('adult', 'sdv', 100, numerical_columns = numerical_columns).test_data
+
+dl = data_loader('../data/adult/onehot_adult_sdv_gaussian_100k.csv', 'adult', test_ratio=10000,
+ train_option='mix', test_option='mix', batch_size = 100, numerical_columns = numerical_columns)
+
+
+train = dl.train_data
+test = dl.test_data
+
+
 
 # train = data_loader('census', 'original', 100, numerical_columns = numerical_columns).train_data
 # test = data_loader('census', 'original', 100, numerical_columns = numerical_columns).test_data
 
-print(train)
-print(test)
+print("train", train)
+print("test", test)
 
 # Print the first batch of the training data
 for i, (inputs, labels) in enumerate(train):
