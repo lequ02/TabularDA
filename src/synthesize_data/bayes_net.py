@@ -1,6 +1,6 @@
 import pandas as pd
 
-def train_BN_BayesEstimator(xtrain, ytrain, target_name, BN_filename=None):
+def train_BN_BE(xtrain, ytrain, target_name, BN_filename=None):
     from pgmpy.estimators import HillClimbSearch, BicScore
     from pgmpy.estimators import BayesianEstimator
     from pgmpy.models import BayesianNetwork
@@ -15,7 +15,7 @@ def train_BN_BayesEstimator(xtrain, ytrain, target_name, BN_filename=None):
 
     # Save the model
     if not BN_filename:
-        BN_filename = f"{target_name}_BN_BayesEstimator_model.pkl"
+        BN_filename = f"{target_name}_BN_BE_model.pkl"
     with open(BN_filename, 'wb') as f:
         pickle.dump(model, f)
     return model
@@ -49,8 +49,8 @@ def create_label_BN(xtrain, ytrain, xtest, target_name, BN_type, BN_filename=Non
     xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
     xtest = xtest.reindex(sorted(xtest.columns), axis=1)
 
-    if BN_type == 'BayesEstimator':
-        model = train_BN_BayesEstimator(xtrain, ytrain, target_name, BN_filename)
+    if BN_type == 'BE':
+        model = train_BN_BE(xtrain, ytrain, target_name, BN_filename)
     elif BN_type == 'MLE':
         model = train_BN_MLE(xtrain, ytrain, target_name, BN_filename)
 
@@ -66,13 +66,16 @@ def create_label_BN(xtrain, ytrain, xtest, target_name, BN_type, BN_filename=Non
         xtest.to_csv(filename)
     return xtest
 
-def create_label_BN_from_trained(xtrain, ytrain, xtest, target_name, BN_filename, filename=None):
+def create_label_BN_from_trained(xtrain, ytrain, xtest, target_name, BN_model, filename=None):
+    """
+    BN_model: file name of the trained BN model
+    """
     from pgmpy.inference import VariableElimination
 
     xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
     xtest = xtest.reindex(sorted(xtest.columns), axis=1)
 
-    with open(BN_filename, 'rb') as f:
+    with open(BN_model, 'rb') as f:
         model = pickle.load(f)
 
     infer = VariableElimination(model)
