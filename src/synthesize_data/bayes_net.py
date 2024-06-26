@@ -1,13 +1,11 @@
 import pandas as pd
 
-def create_label_BN_BayesEstimator(xtrain, ytrain, xtest, target_name, BN_filename=None, filename=None):
+def train_BN_BayesEstimator(xtrain, ytrain, target_name, BN_filename=None):
     from pgmpy.estimators import HillClimbSearch, BicScore
     from pgmpy.estimators import BayesianEstimator
     from pgmpy.models import BayesianNetwork
-    from pgmpy.inference import VariableElimination
 
     xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
-    xtest = xtest.reindex(sorted(xtest.columns), axis=1)
 
     hc = HillClimbSearch(xtrain)
     best_model = hc.estimate(scoring_method=BicScore(xtrain))
@@ -17,9 +15,44 @@ def create_label_BN_BayesEstimator(xtrain, ytrain, xtest, target_name, BN_filena
 
     # Save the model
     if not BN_filename:
-        filename = f"{target_name}_BN_BayesEstimator_model.pkl"
-    with open(filename, 'wb') as f:
+        BN_filename = f"{target_name}_BN_BayesEstimator_model.pkl"
+    with open(BN_filename, 'wb') as f:
         pickle.dump(model, f)
+    return model
+
+def train_BN_MLE(xtrain, ytrain, target_name, BN_filename=None):
+    from pgmpy.estimators import HillClimbSearch, BicScore
+    from pgmpy.estimators import MaximumLikelihoodEstimator
+    from pgmpy.models import BayesianNetwork
+
+    xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
+
+    hc = HillClimbSearch(xtrain)
+    best_model = hc.estimate(scoring_method=BicScore(xtrain))
+
+    model = BayesianNetwork(best_model.edges())
+    model.fit(xtrain, estimator=MaximumLikelihoodEstimator)
+
+    # Save the model
+    if not BN_filename:
+        BN_filename = f"{target_name}_BN_MLE_model.pkl"
+    with open(BN_filename, 'wb') as f:
+        pickle.dump(model, f)
+    return model
+
+def create_label_BN(xtrain, ytrain, xtest, target_name, BN_type, BN_filename=None, filename=None):
+    """
+    BN_filename: filename to save the trained BN model
+    """
+    from pgmpy.inference import VariableElimination
+
+    xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
+    xtest = xtest.reindex(sorted(xtest.columns), axis=1)
+
+    if BN_type == 'BayesEstimator':
+        model = train_BN_BayesEstimator(xtrain, ytrain, target_name, BN_filename)
+    elif BN_type == 'MLE':
+        model = train_BN_MLE(xtrain, ytrain, target_name, BN_filename)
 
     infer = VariableElimination(model)
     predictions = []
@@ -33,26 +66,14 @@ def create_label_BN_BayesEstimator(xtrain, ytrain, xtest, target_name, BN_filena
         xtest.to_csv(filename)
     return xtest
 
-def create_label_BN_MLE(xtrain, ytrain, xtest, target_name, BN_filename=None, filename=None):
-    from pgmpy.estimators import HillClimbSearch, BicScore
-    from pgmpy.estimators import MaximumLikelihoodEstimator
-    from pgmpy.models import BayesianNetwork
+def create_label_BN_from_trained(xtrain, ytrain, xtest, target_name, BN_filename, filename=None):
     from pgmpy.inference import VariableElimination
 
     xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
     xtest = xtest.reindex(sorted(xtest.columns), axis=1)
 
-    hc = HillClimbSearch(xtrain)
-    best_model = hc.estimate(scoring_method=BicScore(xtrain))
-
-    model = BayesianNetwork(best_model.edges())
-    model.fit(xtrain, estimator=MaximumLikelihoodEstimator)
-
-    # Save the model
-    if not BN_filename:
-        filename = f"{target_name}_BN_MLE_model.pkl"
-    with open(filename, 'wb') as f:
-        pickle.dump(model, f)
+    with open(BN_filename, 'rb') as f:
+        model = pickle.load(f)
 
     infer = VariableElimination(model)
     predictions = []
