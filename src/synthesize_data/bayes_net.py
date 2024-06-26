@@ -1,4 +1,5 @@
 import pandas as pd
+import pickle
 
 def train_BN_BE(xtrain, ytrain, target_name, BN_filename=None):
     from pgmpy.estimators import HillClimbSearch, BicScore
