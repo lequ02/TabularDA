@@ -2,7 +2,7 @@ from sdv.single_table import CTGANSynthesizer
 from sdv.metadata import SingleTableMetadata
 from onehot import onehot
 from naive_bayes import create_label_gaussianNB, create_label_categoricalNB
-from bayes_net import create_label_BN_BayesEstimator, create_label_BN_MLE
+from bayes_net import create_label_BN, create_label_BN_from_trained
 import pickle
 import torch
 
@@ -49,7 +49,8 @@ def synthesize_data(x_original, y_original, categorical_columns,
 def synthesize_from_trained_model(x_original, y_original, categorical_columns,
                   sample_size=100_000, verbose=False, 
                   target_synthesizer='gaussianNB', target_name='income',
-                  synthesizer_file_name='synthesizer_onlyX.pkl', csv_file_name=None, BN_filename=None):
+                  synthesizer_file_name='synthesizer_onlyX.pkl', BN_model = None,
+                  BN_filename=None, csv_file_name=None):
   """
   input: original data
   output: synthesized data.
@@ -79,10 +80,15 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns,
   elif target_synthesizer == 'categoricalNB':
     synthesize_data = create_label_categoricalNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
 
+  elif BN_model is not None:
+  # check if user want to create label from a pre-trained BN model
+    synthesize_data = create_label_BN_from_trained(x_original, y_original, x_synthesized, target_name = target_name, BN_model=BN_model, filename=csv_file_name)
+
+  # if not, train a new BN model
   elif target_synthesizer == 'BN_BE':
-    synthesize_data = create_label_BN_BayesEstimator(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
+    synthesize_data = create_label_BN(x_original, y_original, x_synthesized, target_name = target_name, BN_type='BE', filename=csv_file_name, BN_filename=BN_filename)
   elif target_synthesizer == 'BN_MLE':
-    synthesize_data = create_label_BN_MLE(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name, BN_filename=BN_filename)
+    synthesize_data = create_label_BN(x_original, y_original, x_synthesized, target_name = target_name, BN_type='MLE', filename=csv_file_name, BN_filename=BN_filename)
 
   if verbose:
     print(f"Successfully synthesized X and y data with {target_synthesizer}")
