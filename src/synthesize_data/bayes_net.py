@@ -8,10 +8,10 @@ def train_BN_BE(xtrain, ytrain, target_name, BN_filename=None):
 
     xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
     data = pd.concat([xtrain, ytrain], axis=1)
-
+    # structure learning
     hc = HillClimbSearch(xtrain)
     best_model = hc.estimate(scoring_method=BicScore(xtrain))
-
+    # parameter learning
     model = BayesianNetwork(best_model.edges())
     model.fit(data, estimator=BayesianEstimator, prior_type="BDeu")
 
@@ -30,10 +30,10 @@ def train_BN_MLE(xtrain, ytrain, target_name, BN_filename=None):
 
     xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
     data = pd.concat([xtrain, ytrain], axis=1)
-
+    # structure learning
     hc = HillClimbSearch(xtrain)
     best_model = hc.estimate(scoring_method=BicScore(xtrain))
-
+    # parameter learning
     model = BayesianNetwork(best_model.edges())
     model.fit(data, estimator=MaximumLikelihoodEstimator)
 
