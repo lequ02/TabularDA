@@ -80,6 +80,7 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns,
   elif target_synthesizer == 'categoricalNB':
     synthesize_data = create_label_categoricalNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
 
+  # create y' using a Bayesian Network model
   elif BN_model is not None:
   # check if user want to create label from a pre-trained BN model
     synthesize_data = create_label_BN_from_trained(x_original, y_original, x_synthesized, target_name = target_name, BN_model=BN_model, filename=csv_file_name)
