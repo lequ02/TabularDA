@@ -61,12 +61,17 @@ def create_label_BN(xtrain, ytrain, xtest, target_name, BN_type, BN_filename=Non
 
     infer = VariableElimination(model)
     predictions = []
+    # for _, row in xtest.iterrows():
+    #     evidence = row.to_dict()
+    #     query_result = infer.map_query(variables=[target_name], evidence=evidence)
+    #     predictions.append(query_result[target_name])
+
     for _, row in xtest.iterrows():
-        evidence = row.to_dict()
+        evidence = {var: val for var, val in row.to_dict().items() if var in model.nodes()}
         query_result = infer.map_query(variables=[target_name], evidence=evidence)
         predictions.append(query_result[target_name])
-
     xtest[target_name] = predictions
+    
     if filename:
         xtest.to_csv(filename)
     return xtest
