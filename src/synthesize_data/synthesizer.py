@@ -7,7 +7,7 @@ import pickle
 import torch
 
 def synthesize_data(x_original, y_original, categorical_columns,
-                    sample_size=100_000, verbose=False, 
+                    sample_size=100_000, verbose=False, show_network=False,
                     target_synthesizer='gaussianNB', target_name='income',
                     synthesizer_file_name='synthesizer_onlyX.pkl', csv_file_name=None, BN_filename=None):
   """
@@ -47,7 +47,7 @@ def synthesize_data(x_original, y_original, categorical_columns,
 
 
 def synthesize_from_trained_model(x_original, y_original, categorical_columns,
-                  sample_size=100_000, verbose=False, 
+                  sample_size=100_000, verbose=False, show_network=False,
                   target_synthesizer='gaussianNB', target_name='income',
                   synthesizer_file_name='synthesizer_onlyX.pkl', BN_model = None,
                   BN_filename=None, csv_file_name=None):
@@ -83,13 +83,19 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns,
   # create y' using a Bayesian Network model
   elif BN_model is not None:
   # check if user want to create label from a pre-trained BN model
-    synthesize_data = create_label_BN_from_trained(x_original, y_original, x_synthesized, target_name = target_name, BN_model=BN_model, filename=csv_file_name)
+    synthesize_data = create_label_BN_from_trained(x_original, y_original, x_synthesized, target_name = target_name,
+                                                   BN_model=BN_model, filename=csv_file_name, 
+                                                   verbose=show_network)
 
   # if not, train a new BN model
   elif target_synthesizer == 'BN_BE':
-    synthesize_data = create_label_BN(x_original, y_original, x_synthesized, target_name = target_name, BN_type='BE', filename=csv_file_name, BN_filename=BN_filename)
+    synthesize_data = create_label_BN(x_original, y_original, x_synthesized, target_name = target_name,
+                                       BN_type='BE', filename=csv_file_name, BN_filename=BN_filename,
+                                       verbose=show_network)
   elif target_synthesizer == 'BN_MLE':
-    synthesize_data = create_label_BN(x_original, y_original, x_synthesized, target_name = target_name, BN_type='MLE', filename=csv_file_name, BN_filename=BN_filename)
+    synthesize_data = create_label_BN(x_original, y_original, x_synthesized, target_name = target_name,
+                                       BN_type='MLE', filename=csv_file_name, BN_filename=BN_filename, 
+                                       verbose=show_network)
 
   if verbose:
     print(f"Successfully synthesized X and y data with {target_synthesizer}")

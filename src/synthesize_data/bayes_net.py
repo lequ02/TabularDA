@@ -1,17 +1,49 @@
 import pandas as pd
 import pickle
+import matplotlib.pyplot as plt
+from sklearn.ensemble import RandomForestRegressor
+import networkx as nx
+from sklearn.feature_selection import RFE
+
+
+def select_features(df, target_name, corr_threshold=0.05, n_features_rfe=10):
+    """
+    Function to select features based on correlation and RFE:
+    - Filter Method - Correlation Matrix
+    - Wrapper Method - Recursive Feature Elimination (RFE)
+    """
+    corr = df.corr()
+    corr_target = abs(corr[target_name])
+    relevant_features = corr_target[corr_target > corr_threshold].index.drop(target_name)
+    
+    X = df.drop(columns=[target_name])
+    y = df[target_name]
+    model = RandomForestRegressor()
+    rfe = RFE(model, n_features_to_select=n_features_rfe)
+    fit = rfe.fit(X, y)
+    selected_features_rfe = X.columns[fit.support_]
+    
+    combined_features = list(set(relevant_features) | set(selected_features_rfe))
+    combined_features.append(target_name)
+    return combined_features
 
 def train_BN_BE(xtrain, ytrain, target_name, BN_filename=None):
     from pgmpy.estimators import HillClimbSearch, BicScore
     from pgmpy.estimators import BayesianEstimator
     from pgmpy.models import BayesianNetwork
 
+    # Select features based on correlation and RFE
+    selected_features = select_features(pd.concat([xtrain, ytrain], axis=1), target_name)
+    xtrain = xtrain[selected_features]
     xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
     data = pd.concat([xtrain, ytrain], axis=1)
+
     # structure learning
+    print("Starting BN structure learning...")
     hc = HillClimbSearch(xtrain)
     best_model = hc.estimate(scoring_method=BicScore(xtrain))
     # parameter learning
+    print("Starting BN parameter learning...")
     model = BayesianNetwork(best_model.edges())
     model.fit(data, estimator=BayesianEstimator, prior_type="BDeu")
 
@@ -28,12 +60,18 @@ def train_BN_MLE(xtrain, ytrain, target_name, BN_filename=None):
     from pgmpy.estimators import MaximumLikelihoodEstimator
     from pgmpy.models import BayesianNetwork
 
+    # Select features
+    selected_features = select_features(pd.concat([xtrain, ytrain], axis=1), target_name)
+    xtrain = xtrain[selected_features]
     xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
     data = pd.concat([xtrain, ytrain], axis=1)
+
     # structure learning
+    print("Starting BN structure learning...")
     hc = HillClimbSearch(xtrain)
     best_model = hc.estimate(scoring_method=BicScore(xtrain))
     # parameter learning
+    print("Starting BN parameter learning...")
     model = BayesianNetwork(best_model.edges())
     model.fit(data, estimator=MaximumLikelihoodEstimator)
 
@@ -45,7 +83,7 @@ def train_BN_MLE(xtrain, ytrain, target_name, BN_filename=None):
     print(f"BN model saved at {BN_filename}")
     return model
 
-def create_label_BN(xtrain, ytrain, xtest, target_name, BN_type, BN_filename=None, filename=None):
+def create_label_BN(xtrain, ytrain, xtest, target_name, BN_type, BN_filename=None, filename=None, verbose=False):
     """
     BN_filename: filename to save the trained BN model
     """
@@ -54,10 +92,16 @@ def create_label_BN(xtrain, ytrain, xtest, target_name, BN_type, BN_filename=Non
     xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
     xtest = xtest.reindex(sorted(xtest.columns), axis=1)
 
+    print(xtrain.columns)
+    print(xtest.columns)
     if BN_type == 'BE':
         model = train_BN_BE(xtrain, ytrain, target_name, BN_filename)
     elif BN_type == 'MLE':
         model = train_BN_MLE(xtrain, ytrain, target_name, BN_filename)
+
+    if verbose:
+        nx.draw(model, with_labels=True)
+        plt.show()
 
     infer = VariableElimination(model)
     predictions = []
@@ -76,7 +120,7 @@ def create_label_BN(xtrain, ytrain, xtest, target_name, BN_type, BN_filename=Non
         xtest.to_csv(filename)
     return xtest
 
-def create_label_BN_from_trained(xtrain, ytrain, xtest, target_name, BN_model, filename=None):
+def create_label_BN_from_trained(xtrain, ytrain, xtest, target_name, BN_model, filename=None, verbose=False):
     """
     BN_model: file name of the trained BN model
     """
@@ -87,6 +131,10 @@ def create_label_BN_from_trained(xtrain, ytrain, xtest, target_name, BN_model, f
 
     with open(BN_model, 'rb') as f:
         model = pickle.load(f)
+
+    if verbose:
+        nx.draw(model, with_labels=True)
+        plt.show()
 
     print(xtrain.columns)
     print(xtest.columns)
