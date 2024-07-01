@@ -25,7 +25,6 @@ def select_features(df, target_name, corr_threshold=0.05, n_features_rfe=10):
     
     combined_features = list(set(relevant_features) | set(selected_features_rfe))
     combined_features.append(target_name)
-    print(f"Selected features: {combined_features}")
     return combined_features
 
 def train_BN_BE(xtrain, ytrain, target_name, BN_filename=None):
@@ -42,8 +41,8 @@ def train_BN_BE(xtrain, ytrain, target_name, BN_filename=None):
 
     # structure learning
     print("Starting BN structure learning...")
-    hc = HillClimbSearch(data)
-    best_model = hc.estimate(scoring_method=BicScore(data))
+    hc = HillClimbSearch(xtrain)
+    best_model = hc.estimate(scoring_method=BicScore(xtrain))
     # parameter learning
     print("Starting BN parameter learning...")
     model = BayesianNetwork(best_model.edges())
@@ -71,8 +70,8 @@ def train_BN_MLE(xtrain, ytrain, target_name, BN_filename=None):
 
     # structure learning
     print("Starting BN structure learning...")
-    hc = HillClimbSearch(data)
-    best_model = hc.estimate(scoring_method=BicScore(data))
+    hc = HillClimbSearch(xtrain)
+    best_model = hc.estimate(scoring_method=BicScore(xtrain))
     # parameter learning
     print("Starting BN parameter learning...")
     model = BayesianNetwork(best_model.edges())
@@ -102,11 +101,8 @@ def create_label_BN(xtrain, ytrain, xtest, target_name, BN_type, BN_filename=Non
     elif BN_type == 'MLE':
         model = train_BN_MLE(xtrain, ytrain, target_name, BN_filename)
 
-    print('nodes', model.nodes())
-
     if verbose:
         nx.draw(model, with_labels=True)
-        plt.savefig('BN_structure.png')
         plt.show()
 
     infer = VariableElimination(model)
@@ -142,8 +138,8 @@ def create_label_BN_from_trained(xtrain, ytrain, xtest, target_name, BN_model, f
         nx.draw(model, with_labels=True)
         plt.show()
 
-    # print(xtrain.columns)
-    # print(xtest.columns)
+    print(xtrain.columns)
+    print(xtest.columns)
     print(model.nodes)
     infer = VariableElimination(model)
     predictions = []
