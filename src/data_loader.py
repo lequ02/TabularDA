@@ -103,7 +103,7 @@ class data_loader:
     def load_test_data(self):
         _, ds_test = self.load_datasets(self.test_option)
         # print("test")
-        # print(ds_test.shape)
+        print("test shape: ",ds_test.shape)
         # print(ds_test)
         return ds_test
     
@@ -114,7 +114,7 @@ class data_loader:
             ds1, ds2 = self.load_datasets(self.train_option)
             ds_train = pd.concat([ds1, ds2], axis=0)
         # print("train")
-        # print(ds_train.shape)
+        print("train shape: ",ds_train.shape)
         # print(ds_train)
         return ds_train
 
