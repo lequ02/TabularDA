@@ -10,7 +10,7 @@ import random
 
 
 
-data_DIR = "../data" # run local
+data_DIR = "./data" # run local
 
 
 #in: batch size, dataset name
@@ -143,22 +143,59 @@ class data_loader:
         return df
 
 
-    def distribute_in_batches(self, X, y, batch_size = 'default'):
+    # def distribute_in_batches(self, X, y, batch_size = 'default'):
         
-        num_batch = int(len(X) /self.batch_size)
+    #     num_batch = int(len(X) /self.batch_size)
+    #     batches = []
+
+    #     for i in range(num_batch):
+    #         start = i * self.batch_size
+    #         end = start + self.batch_size
+
+    #         batch_X = torch.tensor(X[start:end].values) # convert to PyTorch tensor
+    #         batch_y = torch.tensor(y[start:end].values) # convert to PyTorch tensor
+
+    #         batch = TensorDataset(batch_X, batch_y)
+    #         batches.append(batch)
+
+    #     if batch_size == 'default':
+    #         batch_size = self.batch_size
+        
+    #     return DataLoader(ConcatDataset(batches), shuffle=True, batch_size = batch_size)
+    
+    def distribute_in_batches(self, X, y, batch_size='default'):
+        num_batch = int(len(X) / self.batch_size)
         batches = []
 
         for i in range(num_batch):
             start = i * self.batch_size
             end = start + self.batch_size
 
-            batch_X = torch.tensor(X[start:end].values) # convert to PyTorch tensor
-            batch_y = torch.tensor(y[start:end].values) # convert to PyTorch tensor
+            batch_X = torch.tensor(X[start:end].values, dtype=torch.float)  # Ensure tensor is float
+            batch_y = torch.tensor(y[start:end].values, dtype=torch.float)  # Ensure tensor is float
 
             batch = TensorDataset(batch_X, batch_y)
             batches.append(batch)
 
         if batch_size == 'default':
             batch_size = self.batch_size
-        
-        return DataLoader(ConcatDataset(batches), shuffle=True, batch_size = batch_size)
+
+        return DataLoader(ConcatDataset(batches), shuffle=True, batch_size=batch_size)
+    
+    
+    ################ Printing 5 samples from the training and testing batch ##################
+    
+    def print_sample_data(self):
+        print("\nFirst 5 samples from training set:")
+        for i, (inputs, labels) in enumerate(self.train_data):
+            if i < 5:
+                print(f"Sample {i+1}: Input shape: {inputs.shape}, Label: {labels[0].item()}")
+            else:
+                break
+
+        print("\nFirst 5 samples from test set:")
+        for i, (inputs, labels) in enumerate(self.test_data):
+            if i < 5:
+                print(f"Sample {i+1}: Input shape: {inputs.shape}, Label: {labels[0].item()}")
+            else:
+                break
