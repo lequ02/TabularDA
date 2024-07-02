@@ -31,3 +31,5 @@ class DNN_Adult(nn.Module):
         if self.sigmoid:
             x = self.sigmoid(x)
         return x
+
+

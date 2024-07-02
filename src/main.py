@@ -13,7 +13,6 @@ def parse_args():
 
     parser.add_argument('--batchsize', dest='batchsize', help='Batch size (default 64)', type=int, default=64)
     parser.add_argument('--lr', dest='lr', help='LEARNING RATE', type=float, default=0.001)
-    parser.add_argument('--lr-decay', dest='lr_decay', help='LEARNING RATE DECAY', type=float, default=0.995)
     parser.add_argument('--global-round', dest='global_round', help='Number of epochs to train the model (default 10)', type=int, default=10)
     parser.add_argument('--data-path', dest='data_path', help='Path to the dataset CSV file', type=str, default='./data/adult/onehot_adult_sdv_gaussian_100k.csv')
     parser.add_argument('--test-ratio', dest='test_ratio', help='Number of samples for test set', type=int, default=10000)
@@ -29,7 +28,6 @@ def main(args):
         data_path=args.data_path,
         batch_size=args.batchsize,
         learning_rate=args.lr,
-        lr_decay=args.lr_decay,
         num_epochs=args.global_round,
         w_dir=W_DIR,
         acc_dir=ACC_DIR,
@@ -43,9 +41,3 @@ def main(args):
 
 if __name__ == '__main__':
     main(parse_args())
-    
-    
-    #running the code in the command line:
-    #python ./src/main.py --batchsize 64 --lr 0.001 --lr-decay 0.995 --global-round 10 --data-path './data/adult/onehot_adult_sdv_categorical_100k.csv' --test-ratio 10000 --train-option 'mix' --test-option 'original'
-    
-    
