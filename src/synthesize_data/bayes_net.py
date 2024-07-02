@@ -34,9 +34,10 @@ def train_BN_BE(xtrain, ytrain, target_name, BN_filename=None):
 
     # Select features based on correlation and RFE
     selected_features = select_features(pd.concat([xtrain, ytrain], axis=1), target_name)
-    xtrain = xtrain[selected_features]
+    # xtrain = xtrain[selected_features]
     xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
     data = pd.concat([xtrain, ytrain], axis=1)
+    data = data[selected_features]
 
     # structure learning
     print("Starting BN structure learning...")
@@ -62,9 +63,10 @@ def train_BN_MLE(xtrain, ytrain, target_name, BN_filename=None):
 
     # Select features
     selected_features = select_features(pd.concat([xtrain, ytrain], axis=1), target_name)
-    xtrain = xtrain[selected_features]
+    # xtrain = xtrain[selected_features]
     xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
     data = pd.concat([xtrain, ytrain], axis=1)
+    data = data[selected_features]
 
     # structure learning
     print("Starting BN structure learning...")
@@ -92,8 +94,8 @@ def create_label_BN(xtrain, ytrain, xtest, target_name, BN_type, BN_filename=Non
     xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
     xtest = xtest.reindex(sorted(xtest.columns), axis=1)
 
-    print(xtrain.columns)
-    print(xtest.columns)
+    # print(xtrain.columns)
+    # print(xtest.columns)
     if BN_type == 'BE':
         model = train_BN_BE(xtrain, ytrain, target_name, BN_filename)
     elif BN_type == 'MLE':
