@@ -15,7 +15,7 @@ numerical_columns = ['age', 'fnlwgt', 'education-num', 'capital-gain', 'capital-
 
 
 dl = data_loader('./data/adult/onehot_adult_sdv_gaussian_100k.csv', 'adult', test_ratio=10000,
- train_option='mix', test_option='mix', batch_size = 100, numerical_columns = numerical_columns)
+ train_option='original', test_option='original', batch_size = 100, numerical_columns = numerical_columns)
 
 
 train = dl.train_data
@@ -132,6 +132,8 @@ for i, (inputs, labels) in enumerate(test):
 # print(df1.income.unique())
 # print(df1.head())
 # df1.to_csv('../data/census/old/onehot_census_sdv_100k.csv')
+
+
 
 
 
