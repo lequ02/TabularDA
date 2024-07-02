@@ -37,24 +37,36 @@ def train_BN_BE(xtrain, ytrain, target_name, BN_filename=None, verbose=False):
     from pgmpy.models import BayesianNetwork
 
     # Select features based on correlation and RFE
-    selected_features = select_features(pd.concat([xtrain, ytrain], axis=1), target_name)
+    # selected_features = select_features(pd.concat([xtrain, ytrain], axis=1), target_name)
+    selected_features = [' shares', ' LDA_03', ' weekday_is_saturday', ' is_weekend']
     # xtrain = xtrain[selected_features]
     xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
     data = pd.concat([xtrain, ytrain], axis=1)
     data = data[selected_features]
     print("data columns: ", data.columns)
+    print(data.head())
 
     # structure learning
     print("Starting BN structure learning...")
     hc = HillClimbSearch(data)
     best_model = hc.estimate(scoring_method=BicScore(data))
+    print(type(best_model), best_model)
+    print("best model nodes", best_model.nodes())
+    print("best model edges", best_model.edges())
     # parameter learning
     print("Starting BN parameter learning...")
-    model = BayesianNetwork(best_model.edges())
+    model = BayesianNetwork(best_model)
+    print(type(model), model)
+    print("model nodes", model.nodes())
+    print('model edges', model.edges())
     if verbose:
-        print("Nodes in BN: ", model.nodes)
-        nx.draw(model, with_labels=True)
-        plt.show()
+        pass
+        # print("Nodes in BN: ", model.nodes)
+        # nx.draw(best_model, with_labels=True)
+        # plt.show()
+        # plt.savefig('BN.png')
+        # print('model structured saved as BN.png')
+    print('fitting data to model')
     model.fit(data, estimator=BayesianEstimator, prior_type="BDeu")
 
     # Save the model
@@ -89,6 +101,8 @@ def train_BN_MLE(xtrain, ytrain, target_name, BN_filename=None, verbose=False):
         print("Nodes in BN: ", model.nodes)
         nx.draw(model, with_labels=True)
         plt.show()
+        plt.savefig('BN.png')
+        print('model structured saved as BN.png')
     model.fit(data, estimator=MaximumLikelihoodEstimator)
 
     # Save the model
@@ -149,19 +163,22 @@ def create_label_BN_from_trained(xtrain, ytrain, xtest, target_name, BN_model, f
         model = pickle.load(f)
 
     if verbose:
+        print("drawing BN structure")
         nx.draw(model, with_labels=True)
         plt.show()
+        plt.savefig('BN.png')
+        print('model structured saved as BN.png')
 
-    print(xtrain.columns)
-    print(xtest.columns)
-    print(model.nodes)
+    # print(xtrain.columns)
+    # print(xtest.columns)
+    print("model nodes: ",model.nodes())
     infer = VariableElimination(model)
     predictions = []
     # for _, row in xtest.iterrows():
     #     evidence = row.to_dict()
     #     query_result = infer.map_query(variables=[target_name], evidence=evidence)
     #     predictions.append(query_result[target_name])
-
+    print("starting inference for rows")
     for _, row in xtest.iterrows():
         evidence = {var: val for var, val in row.to_dict().items() if var in model.nodes()}
         query_result = infer.map_query(variables=[target_name], evidence=evidence)

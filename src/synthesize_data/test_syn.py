@@ -33,7 +33,11 @@ def main():
   #                           target_name=' shares', synthesizer_file_name='../sdv trained model/news/news_synthesizer_onlyX.pkl',
   #                           csv_file_name='../data/news/news_BN_BE.csv', BN_model='../data/news/news_BN_BE_model.pkl', verbose=True)
 
-
+  # synthesize_adult = synthesize_from_trained_model(x_original, y_original, categorical_columns,
+  #                             sample_size=100_000, target_synthesizer='BN_BE',
+  #                            target_name=target_name, synthesizer_file_name='../sdv trained model/news/news_synthesizer_onlyX.pkl',
+  #                            csv_file_name='../data/news/adult_BN_BE.csv', BN_model='../data/news/adult_BN_BE_model.pkl', verbose=True,
+  #                            show_network=True)
 if __name__ == '__main__':
   main()
 
