@@ -12,10 +12,13 @@ def select_features(df, target_name, corr_threshold=0.05, n_features_rfe=10):
     - Filter Method - Correlation Matrix
     - Wrapper Method - Recursive Feature Elimination (RFE)
     """
+    print(f"Selecting features for target: {target_name}")
+    print(f"Correlation threshold: {corr_threshold}")
     corr = df.corr()
     corr_target = abs(corr[target_name])
     relevant_features = corr_target[corr_target > corr_threshold].index.drop(target_name)
     
+    print('Starting RFE...')
     X = df.drop(columns=[target_name])
     y = df[target_name]
     model = RandomForestRegressor()
@@ -25,9 +28,10 @@ def select_features(df, target_name, corr_threshold=0.05, n_features_rfe=10):
     
     combined_features = list(set(relevant_features) | set(selected_features_rfe))
     combined_features.append(target_name)
+    print(f"Selected features: {combined_features}")
     return combined_features
 
-def train_BN_BE(xtrain, ytrain, target_name, BN_filename=None):
+def train_BN_BE(xtrain, ytrain, target_name, BN_filename=None, verbose=False):
     from pgmpy.estimators import HillClimbSearch, BicScore
     from pgmpy.estimators import BayesianEstimator
     from pgmpy.models import BayesianNetwork
@@ -38,14 +42,19 @@ def train_BN_BE(xtrain, ytrain, target_name, BN_filename=None):
     xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
     data = pd.concat([xtrain, ytrain], axis=1)
     data = data[selected_features]
+    print("data columns: ", data.columns)
 
     # structure learning
     print("Starting BN structure learning...")
-    hc = HillClimbSearch(xtrain)
-    best_model = hc.estimate(scoring_method=BicScore(xtrain))
+    hc = HillClimbSearch(data)
+    best_model = hc.estimate(scoring_method=BicScore(data))
     # parameter learning
     print("Starting BN parameter learning...")
     model = BayesianNetwork(best_model.edges())
+    if verbose:
+        print("Nodes in BN: ", model.nodes)
+        nx.draw(model, with_labels=True)
+        plt.show()
     model.fit(data, estimator=BayesianEstimator, prior_type="BDeu")
 
     # Save the model
@@ -56,7 +65,7 @@ def train_BN_BE(xtrain, ytrain, target_name, BN_filename=None):
     print(f"BN model saved at {BN_filename}")
     return model
 
-def train_BN_MLE(xtrain, ytrain, target_name, BN_filename=None):
+def train_BN_MLE(xtrain, ytrain, target_name, BN_filename=None, verbose=False):
     from pgmpy.estimators import HillClimbSearch, BicScore
     from pgmpy.estimators import MaximumLikelihoodEstimator
     from pgmpy.models import BayesianNetwork
@@ -67,14 +76,19 @@ def train_BN_MLE(xtrain, ytrain, target_name, BN_filename=None):
     xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
     data = pd.concat([xtrain, ytrain], axis=1)
     data = data[selected_features]
+    print("data columns: ", data.columns)
 
     # structure learning
     print("Starting BN structure learning...")
-    hc = HillClimbSearch(xtrain)
-    best_model = hc.estimate(scoring_method=BicScore(xtrain))
+    hc = HillClimbSearch(data)
+    best_model = hc.estimate(scoring_method=BicScore(data))
     # parameter learning
     print("Starting BN parameter learning...")
     model = BayesianNetwork(best_model.edges())
+    if verbose:
+        print("Nodes in BN: ", model.nodes)
+        nx.draw(model, with_labels=True)
+        plt.show()
     model.fit(data, estimator=MaximumLikelihoodEstimator)
 
     # Save the model
@@ -97,13 +111,13 @@ def create_label_BN(xtrain, ytrain, xtest, target_name, BN_type, BN_filename=Non
     # print(xtrain.columns)
     # print(xtest.columns)
     if BN_type == 'BE':
-        model = train_BN_BE(xtrain, ytrain, target_name, BN_filename)
+        model = train_BN_BE(xtrain, ytrain, target_name, BN_filename, verbose=verbose)
     elif BN_type == 'MLE':
-        model = train_BN_MLE(xtrain, ytrain, target_name, BN_filename)
+        model = train_BN_MLE(xtrain, ytrain, target_name, BN_filename, verbose=verbose)
 
-    if verbose:
-        nx.draw(model, with_labels=True)
-        plt.show()
+    # if verbose:
+    #     nx.draw(model, with_labels=True)
+    #     plt.show()
 
     infer = VariableElimination(model)
     predictions = []
