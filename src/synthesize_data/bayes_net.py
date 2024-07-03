@@ -86,30 +86,37 @@ def train_BN_BE(xtrain, ytrain, target_name, BN_filename=None, verbose=False):
     from pgmpy.models import BayesianNetwork
 
     # Select features based on correlation and RFE
-    # selected_features = select_features(pd.concat([xtrain, ytrain], axis=1), target_name)
-    selected_features = [' shares', ' LDA_03', ' weekday_is_saturday', ' is_weekend', ' LDA_02']
+    selected_features = select_features(pd.concat([xtrain, ytrain], axis=1), target_name)
+    # selected_features = [' shares', ' LDA_03', ' weekday_is_saturday', ' is_weekend', ' LDA_02']
     # xtrain = xtrain[selected_features]
     xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
     data = pd.concat([xtrain, ytrain], axis=1)
     data = data[selected_features]
 
-    print("data columns: ", data.columns)
-    print(data.head())
+    # print("data columns: ", data.columns)
+    # print(data.head())
 
 
     # structure learning
     print("Starting BN structure learning...")
     hc = HillClimbSearch(data)
     best_model = hc.estimate(scoring_method=BicScore(data))
-    print(type(best_model), best_model)
-    print("best model nodes", best_model.nodes())
-    print("best model edges", best_model.edges())
+
+    # print(type(best_model), best_model)
+    # print("best model nodes", best_model.nodes())
+    # print("best model edges", best_model.edges())
     # parameter learning
     print("Starting BN parameter learning...")
     model = BayesianNetwork(best_model)
-    print(type(model), model)
-    print("model nodes", model.nodes())
-    print('model edges', model.edges())
+
+    # ensure that all feature nodes are connected to the target node
+    for node in data:
+        if node!=target_name:
+            model.add_edge(node, target_name)
+
+    # print(type(model), model)
+    # print("model nodes", model.nodes())
+    # print('model edges', model.edges())
     if verbose:
         # pass
         print("Nodes in BN: ", model.nodes)
@@ -120,10 +127,10 @@ def train_BN_BE(xtrain, ytrain, target_name, BN_filename=None, verbose=False):
 
         nx.draw(G, with_labels=True)
         # plt.show(block=False) # do NOT hold the execution of your program until you close the plot window.
-        plt.savefig('BN.png')
-        print('model structured saved as BN.png')
+        plt.savefig('BN_BE.png')
+        print('model structured saved as BN_BE.png')
         # Display image file
-        img = Image.open('BN.png')
+        img = Image.open('BN_BE.png')
         img.show()
     print('fitting data to model')
     model.fit(data, estimator=BayesianEstimator, prior_type="BDeu")
@@ -143,7 +150,8 @@ def train_BN_MLE(xtrain, ytrain, target_name, BN_filename=None, verbose=False):
 
     # Select features
     selected_features = select_features(pd.concat([xtrain, ytrain], axis=1), target_name)
-    # xtrain = xtrain[selected_features]
+    # selected_features = [' shares', ' LDA_03', ' weekday_is_saturday', ' is_weekend', ' LDA_02']
+
     xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
     data = pd.concat([xtrain, ytrain], axis=1)
     data = data[selected_features]
@@ -153,9 +161,16 @@ def train_BN_MLE(xtrain, ytrain, target_name, BN_filename=None, verbose=False):
     print("Starting BN structure learning...")
     hc = HillClimbSearch(data)
     best_model = hc.estimate(scoring_method=BicScore(data))
+
     # parameter learning
     print("Starting BN parameter learning...")
     model = BayesianNetwork(best_model)
+    
+    # ensure that all feature nodes are connected to the target node
+    for node in data:
+        if node!=target_name:
+            model.add_edge(node, target_name)
+
     if verbose:
         print("Nodes in BN: ", model.nodes)
         G = nx.DiGraph()
@@ -163,11 +178,11 @@ def train_BN_MLE(xtrain, ytrain, target_name, BN_filename=None, verbose=False):
         G.add_edges_from(model.edges())
         nx.draw(G, with_labels=True)
         # plt.show(block=False)
-        plt.savefig('BN.png')
+        plt.savefig('BN_MLE.png')
         # Display image file
-        img = Image.open('BN.png')
+        img = Image.open('BN_MLE.png')
         img.show()
-        print('model structured saved as BN.png')
+        print('model structured saved as BN_MLE.png')
 
     model.fit(data, estimator=MaximumLikelihoodEstimator)
 
