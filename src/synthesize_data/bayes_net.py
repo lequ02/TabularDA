@@ -210,7 +210,7 @@ def create_label_BN(xtrain, ytrain, xtest, target_name, BN_type, BN_filename=Non
             print(f"Discretizing column {col}")
             xtrain[col], xtest[col] = binning_simple(xtrain[col], xtest[col], num_bins=10)
 
-    xtest = xtest[:1000]
+    # xtest = xtest[:1000]
 
     if BN_type == 'BE':
         model = train_BN_BE(xtrain, ytrain, target_name, BN_filename, verbose=verbose)
