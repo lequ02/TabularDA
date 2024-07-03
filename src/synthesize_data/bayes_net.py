@@ -4,6 +4,55 @@ import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestRegressor
 import networkx as nx
 from sklearn.feature_selection import RFE
+from sklearn.tree import DecisionTreeRegressor
+import numpy as np
+from PIL import Image
+
+def binning_simple(xtrain:pd.Series, xtest:pd.Series, num_bins:int):
+    """
+    Function to discretize a continuous variable into bins.
+    
+    Parameters:
+    xtrain (pandas.Series): The continuous variable to be discretized.
+    num_bins (int): The number of bins to split the data into.
+
+    Returns:
+    pandas.Series: The discretized variable.
+    """
+    discretized_xtrain = pd.cut(xtrain, bins=num_bins, labels=False)
+    discretized_xtest = pd.cut(xtest, bins=num_bins, labels=False)
+    return discretized_xtrain, discretized_xtest
+
+
+def binning_optimal(xtrain_col:pd.Series, ytrain:pd.Series, xtest_col:pd.Series, max_leaf_nodes:int):
+    """
+    Function to discretize a continuous variable into optimal bins using decision trees.
+    
+    Parameters:
+    xtrain_col (pandas.Series): The continuous variable to be discretized.
+    ytrain (pandas.Series): The ytrain variable.
+    max_leaf_nodes (int): The maximum number of leaf nodes for the decision tree.
+
+    Returns:
+    pandas.Series: The discretized variable.
+    """
+    # Reshape xtrain_col for sklearn
+    xtrain_col = xtrain_col.values.reshape(-1, 1)
+    ytrain = ytrain.values
+    
+    # Fit decision tree
+    tree = DecisionTreeRegressor(max_leaf_nodes=max_leaf_nodes)
+    tree.fit(xtrain_col, ytrain)
+    
+    # Create bins using decision tree boundaries
+    bins = tree.tree_.threshold[tree.tree_.children_left != tree.tree_.children_right]
+    bins = np.sort(bins)
+    
+    # Discretize column
+    discretized_xtrain_col = np.digitize(xtrain_col, bins)
+    discretized_xtest_col = np.digitize(xtest_col, bins)
+    
+    return discretized_xtrain_col, discretized_xtest_col
 
 
 def select_features(df, target_name, corr_threshold=0.05, n_features_rfe=10):
@@ -38,13 +87,15 @@ def train_BN_BE(xtrain, ytrain, target_name, BN_filename=None, verbose=False):
 
     # Select features based on correlation and RFE
     # selected_features = select_features(pd.concat([xtrain, ytrain], axis=1), target_name)
-    selected_features = [' shares', ' LDA_03', ' weekday_is_saturday', ' is_weekend']
+    selected_features = [' shares', ' LDA_03', ' weekday_is_saturday', ' is_weekend', ' LDA_02']
     # xtrain = xtrain[selected_features]
     xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
     data = pd.concat([xtrain, ytrain], axis=1)
     data = data[selected_features]
+
     print("data columns: ", data.columns)
     print(data.head())
+
 
     # structure learning
     print("Starting BN structure learning...")
@@ -60,12 +111,20 @@ def train_BN_BE(xtrain, ytrain, target_name, BN_filename=None, verbose=False):
     print("model nodes", model.nodes())
     print('model edges', model.edges())
     if verbose:
-        pass
-        # print("Nodes in BN: ", model.nodes)
-        # nx.draw(best_model, with_labels=True)
-        # plt.show()
-        # plt.savefig('BN.png')
-        # print('model structured saved as BN.png')
+        # pass
+        print("Nodes in BN: ", model.nodes)
+
+        G = nx.DiGraph()
+        G.add_nodes_from(model.nodes())
+        G.add_edges_from(model.edges())
+
+        nx.draw(G, with_labels=True)
+        # plt.show(block=False) # do NOT hold the execution of your program until you close the plot window.
+        plt.savefig('BN.png')
+        print('model structured saved as BN.png')
+        # Display image file
+        img = Image.open('BN.png')
+        img.show()
     print('fitting data to model')
     model.fit(data, estimator=BayesianEstimator, prior_type="BDeu")
 
@@ -88,7 +147,7 @@ def train_BN_MLE(xtrain, ytrain, target_name, BN_filename=None, verbose=False):
     xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
     data = pd.concat([xtrain, ytrain], axis=1)
     data = data[selected_features]
-    print("data columns: ", data.columns)
+    # print("data columns: ", data.columns)
 
     # structure learning
     print("Starting BN structure learning...")
@@ -96,13 +155,20 @@ def train_BN_MLE(xtrain, ytrain, target_name, BN_filename=None, verbose=False):
     best_model = hc.estimate(scoring_method=BicScore(data))
     # parameter learning
     print("Starting BN parameter learning...")
-    model = BayesianNetwork(best_model.edges())
+    model = BayesianNetwork(best_model)
     if verbose:
         print("Nodes in BN: ", model.nodes)
-        nx.draw(model, with_labels=True)
-        plt.show()
+        G = nx.DiGraph()
+        G.add_nodes_from(model.nodes())
+        G.add_edges_from(model.edges())
+        nx.draw(G, with_labels=True)
+        # plt.show(block=False)
         plt.savefig('BN.png')
+        # Display image file
+        img = Image.open('BN.png')
+        img.show()
         print('model structured saved as BN.png')
+
     model.fit(data, estimator=MaximumLikelihoodEstimator)
 
     # Save the model
@@ -122,32 +188,34 @@ def create_label_BN(xtrain, ytrain, xtest, target_name, BN_type, BN_filename=Non
     xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
     xtest = xtest.reindex(sorted(xtest.columns), axis=1)
 
-    # print(xtrain.columns)
-    # print(xtest.columns)
+    for col in xtrain.columns:
+        # all the categorical columns are already one-hot encoded
+        # so the columns with more than 2 special values are continuous
+        if len(set(xtrain[col].values))>2:
+            print(f"Discretizing column {col}")
+            xtrain[col], xtest[col] = binning_simple(xtrain[col], xtest[col], num_bins=10)
+
+    xtest = xtest[:1000]
+
     if BN_type == 'BE':
         model = train_BN_BE(xtrain, ytrain, target_name, BN_filename, verbose=verbose)
     elif BN_type == 'MLE':
         model = train_BN_MLE(xtrain, ytrain, target_name, BN_filename, verbose=verbose)
 
-    # if verbose:
-    #     nx.draw(model, with_labels=True)
-    #     plt.show()
 
     infer = VariableElimination(model)
     predictions = []
-    # for _, row in xtest.iterrows():
-    #     evidence = row.to_dict()
-    #     query_result = infer.map_query(variables=[target_name], evidence=evidence)
-    #     predictions.append(query_result[target_name])
 
     for _, row in xtest.iterrows():
         evidence = {var: val for var, val in row.to_dict().items() if var in model.nodes()}
+        print(evidence)
         query_result = infer.map_query(variables=[target_name], evidence=evidence)
         predictions.append(query_result[target_name])
     xtest[target_name] = predictions
     
     if filename:
         xtest.to_csv(filename)
+
     return xtest
 
 def create_label_BN_from_trained(xtrain, ytrain, xtest, target_name, BN_model, filename=None, verbose=False):
@@ -159,14 +227,27 @@ def create_label_BN_from_trained(xtrain, ytrain, xtest, target_name, BN_model, f
     xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
     xtest = xtest.reindex(sorted(xtest.columns), axis=1)
 
+    for col in xtrain.columns:
+        # all the categorical columns are already one-hot encoded
+        # so the columns with more than 2 special values are continuous
+        if len(set(xtrain[col].values))>2:
+            print(f"Discretizing column {col}")
+            xtrain[col], xtest[col] = binning_simple(xtrain[col], xtest[col], num_bins=10)
+
     with open(BN_model, 'rb') as f:
         model = pickle.load(f)
 
     if verbose:
-        print("drawing BN structure")
-        nx.draw(model, with_labels=True)
-        plt.show()
+        G = nx.DiGraph()
+        G.add_nodes_from(model.nodes())
+        G.add_edges_from(model.edges())
+
+        nx.draw(G, with_labels=True)
+        # plt.show(block=False)
         plt.savefig('BN.png')
+        # Display image file
+        img = Image.open('BN.png')
+        img.show()
         print('model structured saved as BN.png')
 
     # print(xtrain.columns)
