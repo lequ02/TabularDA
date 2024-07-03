@@ -7,22 +7,23 @@ from sklearn.feature_selection import RFE
 from sklearn.tree import DecisionTreeRegressor
 import numpy as np
 
-def discretize_simple(data, num_bins):
+def binning_simple(xtrain:pd.Series, xtest:pd.Series, num_bins:int):
     """
     Function to discretize a continuous variable into bins.
     
     Parameters:
-    data (pandas.Series): The continuous variable to be discretized.
+    xtrain (pandas.Series): The continuous variable to be discretized.
     num_bins (int): The number of bins to split the data into.
 
     Returns:
     pandas.Series: The discretized variable.
     """
-    discretized_data = pd.cut(data, bins=num_bins, labels=False)
-    return discretized_data
+    discretized_xtrain = pd.cut(xtrain, bins=num_bins, labels=False)
+    discretized_xtest = pd.cut(xtest, bins=num_bins, labels=False)
+    return discretized_xtrain, discretized_xtest
 
 
-def optimal_binning(xtrain_col, ytrain, xtest_col, max_leaf_nodes):
+def binning_optimal(xtrain_col:pd.Series, ytrain:pd.Series, xtest_col:pd.Series, max_leaf_nodes:int):
     """
     Function to discretize a continuous variable into optimal bins using decision trees.
     
@@ -86,18 +87,12 @@ def train_BN_BE(xtrain, ytrain, target_name, BN_filename=None, verbose=False):
 
     # Select features based on correlation and RFE
     # selected_features = select_features(pd.concat([xtrain, ytrain], axis=1), target_name)
-    selected_features = [' shares', ' LDA_03', ' weekday_is_saturday', ' is_weekend']
+    selected_features = [' shares', ' LDA_03', ' weekday_is_saturday', ' is_weekend', ' LDA_02']
     # xtrain = xtrain[selected_features]
     xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
     data = pd.concat([xtrain, ytrain], axis=1)
     data = data[selected_features]
 
-    # discretized_cols = discretize_simple(data[' LDA_03'], num_bins=10)
-    # print(discretized_cols)
-
-    # discretized_cols = optimal_binning(data[' LDA_03'], data[target_name], max_leaf_nodes=10)
-
-    # data[' LDA_03'] = discretized_cols
     print("data columns: ", data.columns)
     print(data.head())
 
@@ -116,12 +111,12 @@ def train_BN_BE(xtrain, ytrain, target_name, BN_filename=None, verbose=False):
     print("model nodes", model.nodes())
     print('model edges', model.edges())
     if verbose:
-        pass
-        # print("Nodes in BN: ", model.nodes)
-        # nx.draw(best_model, with_labels=True)
-        # plt.show()
-        # plt.savefig('BN.png')
-        # print('model structured saved as BN.png')
+        # pass
+        print("Nodes in BN: ", model.nodes)
+        nx.draw(best_model, with_labels=True)
+        plt.show()
+        plt.savefig('BN.png')
+        print('model structured saved as BN.png')
     print('fitting data to model')
     model.fit(data, estimator=BayesianEstimator, prior_type="BDeu")
 
@@ -169,7 +164,7 @@ def train_BN_MLE(xtrain, ytrain, target_name, BN_filename=None, verbose=False):
     print(f"BN model saved at {BN_filename}")
     return model
 
-def create_label_BN(xtrain, ytrain, xtest, target_name, BN_type, continuous_cols=[], BN_filename=None, filename=None, verbose=False):
+def create_label_BN(xtrain, ytrain, xtest, target_name, BN_type, BN_filename=None, filename=None, verbose=False):
     """
     BN_filename: filename to save the trained BN model
     """
@@ -178,14 +173,15 @@ def create_label_BN(xtrain, ytrain, xtest, target_name, BN_type, continuous_cols
     xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
     xtest = xtest.reindex(sorted(xtest.columns), axis=1)
 
-    for col in continuous_cols:
-        xtrain_discretized_cols, xtest_discretized_cols = optimal_binning(xtrain[col], ytrain, xtest[col], max_leaf_nodes=10)
-        xtrain[col] = xtrain_discretized_cols
-        xtest[col] = xtest_discretized_cols
+    for col in xtrain.columns:
+        # all the categorical columns are already one-hot encoded
+        # so the columns with more than 2 special values are continuous
+        if len(set(xtrain[col].values))>2:
+            print(f"Discretizing column {col}")
+            xtrain[col], xtest[col] = binning_simple(xtrain[col], xtest[col], num_bins=10)
+
     xtest = xtest[:1000]
 
-    # print(xtrain.columns)
-    # print(xtest.columns)
     if BN_type == 'BE':
         model = train_BN_BE(xtrain, ytrain, target_name, BN_filename, verbose=verbose)
     elif BN_type == 'MLE':
@@ -197,13 +193,6 @@ def create_label_BN(xtrain, ytrain, xtest, target_name, BN_type, continuous_cols
 
     infer = VariableElimination(model)
     predictions = []
-
-    # discretized_cols = discretize_simple(xtest[' LDA_03'], num_bins=10)
-
-    # for _, row in xtest.iterrows():
-    #     evidence = row.to_dict()
-    #     query_result = infer.map_query(variables=[target_name], evidence=evidence)
-    #     predictions.append(query_result[target_name])
 
     for _, row in xtest.iterrows():
         evidence = {var: val for var, val in row.to_dict().items() if var in model.nodes()}
@@ -224,6 +213,13 @@ def create_label_BN_from_trained(xtrain, ytrain, xtest, target_name, BN_model, f
 
     xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
     xtest = xtest.reindex(sorted(xtest.columns), axis=1)
+
+    for col in xtrain.columns:
+        # all the categorical columns are already one-hot encoded
+        # so the columns with more than 2 special values are continuous
+        if len(set(xtrain[col].values))>2:
+            print(f"Discretizing column {col}")
+            xtrain[col], xtest[col] = binning_simple(xtrain[col], xtest[col], num_bins=10)
 
     with open(BN_model, 'rb') as f:
         model = pickle.load(f)
