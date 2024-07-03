@@ -16,19 +16,27 @@ class trainer:
         del self.model["model"]
         self.model["model"] = None
 
-    def train(self, device, lr):
+    def train(self, device, lr, epochs):
         self.model["optim"] = optim.Adam(self.model["model"].parameters(), lr=lr)  # Using Adam optimizer
+        scheduler = optim.lr_scheduler.StepLR(self.model["optim"], step_size=10, gamma=0.1)  # Learning rate scheduler
         self.model["model"].train()
-        for batch_idx, (X, y) in enumerate(self.data):
-            X, y = X.to(device), y.to(device).float().unsqueeze(1)  # Ensure y is float and has correct shape
+        
+        for epoch in range(epochs):
+            epoch_loss = 0
+            for batch_idx, (X, y) in enumerate(self.data):
+                X, y = X.to(device), y.to(device).float().unsqueeze(1)  # Ensure y is float and has correct shape
 
-            self.model["optim"].zero_grad()
-            output = self.model["model"].forward(X)
+                self.model["optim"].zero_grad()
+                output = self.model["model"].forward(X)
 
-            loss = self.model["criterion"](output, y)
+                loss = self.model["criterion"](output, y)
+                epoch_loss += loss.item()
 
-            loss.backward()
-            self.model["optim"].step()
+                loss.backward()
+                self.model["optim"].step()
+            
+            scheduler.step()
+            print(f'Epoch {epoch+1}/{epochs}, Loss: {epoch_loss/len(self.data)}')
 
     def train_stats(self, device):
         self.model["model"].eval()
