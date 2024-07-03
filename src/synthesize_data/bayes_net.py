@@ -55,7 +55,7 @@ def binning_optimal(xtrain_col:pd.Series, ytrain:pd.Series, xtest_col:pd.Series,
     return discretized_xtrain_col, discretized_xtest_col
 
 
-def select_features(df, target_name, corr_threshold=0.05, n_features_rfe=10):
+def select_features(df, target_name, corr_threshold=0.1, n_features_rfe=7):
     """
     Function to select features based on correlation and RFE:
     - Filter Method - Correlation Matrix
@@ -87,7 +87,8 @@ def train_BN_BE(xtrain, ytrain, target_name, BN_filename=None, verbose=False):
 
     # Select features based on correlation and RFE
     selected_features = select_features(pd.concat([xtrain, ytrain], axis=1), target_name)
-    # selected_features = [' shares', ' LDA_03', ' weekday_is_saturday', ' is_weekend', ' LDA_02']
+    # selected_features = [' shares', ' LDA_03', ' kw_avg_max', ' min_negative_polarity', ' title_subjectivity',
+    #                  ' LDA_02', ' n_tokens_title', ' kw_min_avg']
     # xtrain = xtrain[selected_features]
     xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
     data = pd.concat([xtrain, ytrain], axis=1)
