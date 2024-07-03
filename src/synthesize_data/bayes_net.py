@@ -6,6 +6,7 @@ import networkx as nx
 from sklearn.feature_selection import RFE
 from sklearn.tree import DecisionTreeRegressor
 import numpy as np
+from PIL import Image
 
 def binning_simple(xtrain:pd.Series, xtest:pd.Series, num_bins:int):
     """
@@ -52,7 +53,6 @@ def binning_optimal(xtrain_col:pd.Series, ytrain:pd.Series, xtest_col:pd.Series,
     discretized_xtest_col = np.digitize(xtest_col, bins)
     
     return discretized_xtrain_col, discretized_xtest_col
-
 
 
 def select_features(df, target_name, corr_threshold=0.05, n_features_rfe=10):
@@ -113,10 +113,18 @@ def train_BN_BE(xtrain, ytrain, target_name, BN_filename=None, verbose=False):
     if verbose:
         # pass
         print("Nodes in BN: ", model.nodes)
-        nx.draw(best_model, with_labels=True)
-        plt.show()
+
+        G = nx.DiGraph()
+        G.add_nodes_from(model.nodes())
+        G.add_edges_from(model.edges())
+
+        nx.draw(G, with_labels=True)
+        # plt.show(block=False) # do NOT hold the execution of your program until you close the plot window.
         plt.savefig('BN.png')
         print('model structured saved as BN.png')
+        # Display image file
+        img = Image.open('BN.png')
+        img.show()
     print('fitting data to model')
     model.fit(data, estimator=BayesianEstimator, prior_type="BDeu")
 
@@ -139,7 +147,7 @@ def train_BN_MLE(xtrain, ytrain, target_name, BN_filename=None, verbose=False):
     xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
     data = pd.concat([xtrain, ytrain], axis=1)
     data = data[selected_features]
-    print("data columns: ", data.columns)
+    # print("data columns: ", data.columns)
 
     # structure learning
     print("Starting BN structure learning...")
@@ -147,13 +155,20 @@ def train_BN_MLE(xtrain, ytrain, target_name, BN_filename=None, verbose=False):
     best_model = hc.estimate(scoring_method=BicScore(data))
     # parameter learning
     print("Starting BN parameter learning...")
-    model = BayesianNetwork(best_model.edges())
+    model = BayesianNetwork(best_model)
     if verbose:
         print("Nodes in BN: ", model.nodes)
-        nx.draw(model, with_labels=True)
-        plt.show()
+        G = nx.DiGraph()
+        G.add_nodes_from(model.nodes())
+        G.add_edges_from(model.edges())
+        nx.draw(G, with_labels=True)
+        # plt.show(block=False)
         plt.savefig('BN.png')
+        # Display image file
+        img = Image.open('BN.png')
+        img.show()
         print('model structured saved as BN.png')
+
     model.fit(data, estimator=MaximumLikelihoodEstimator)
 
     # Save the model
@@ -187,9 +202,6 @@ def create_label_BN(xtrain, ytrain, xtest, target_name, BN_type, BN_filename=Non
     elif BN_type == 'MLE':
         model = train_BN_MLE(xtrain, ytrain, target_name, BN_filename, verbose=verbose)
 
-    # if verbose:
-    #     nx.draw(model, with_labels=True)
-    #     plt.show()
 
     infer = VariableElimination(model)
     predictions = []
@@ -203,6 +215,7 @@ def create_label_BN(xtrain, ytrain, xtest, target_name, BN_type, BN_filename=Non
     
     if filename:
         xtest.to_csv(filename)
+
     return xtest
 
 def create_label_BN_from_trained(xtrain, ytrain, xtest, target_name, BN_model, filename=None, verbose=False):
@@ -225,10 +238,16 @@ def create_label_BN_from_trained(xtrain, ytrain, xtest, target_name, BN_model, f
         model = pickle.load(f)
 
     if verbose:
-        print("drawing BN structure")
-        nx.draw(model, with_labels=True)
-        plt.show()
+        G = nx.DiGraph()
+        G.add_nodes_from(model.nodes())
+        G.add_edges_from(model.edges())
+
+        nx.draw(G, with_labels=True)
+        # plt.show(block=False)
         plt.savefig('BN.png')
+        # Display image file
+        img = Image.open('BN.png')
+        img.show()
         print('model structured saved as BN.png')
 
     # print(xtrain.columns)
