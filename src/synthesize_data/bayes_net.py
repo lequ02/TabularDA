@@ -55,7 +55,7 @@ def binning_optimal(xtrain_col:pd.Series, ytrain:pd.Series, xtest_col:pd.Series,
     return discretized_xtrain_col, discretized_xtest_col
 
 
-def select_features(df, target_name, corr_threshold=0.1, n_features_rfe=7):
+def select_features(df, target_name, corr_threshold=0.1, n_features_rfe=6):
     """
     Function to select features based on correlation and RFE:
     - Filter Method - Correlation Matrix
@@ -86,9 +86,8 @@ def train_BN_BE(xtrain, ytrain, target_name, BN_filename=None, verbose=False):
     from pgmpy.models import BayesianNetwork
 
     # Select features based on correlation and RFE
-    selected_features = select_features(pd.concat([xtrain, ytrain], axis=1), target_name)
-    # selected_features = [' shares', ' LDA_03', ' kw_avg_max', ' min_negative_polarity', ' title_subjectivity',
-    #                  ' LDA_02', ' n_tokens_title', ' kw_min_avg']
+    # selected_features = select_features(pd.concat([xtrain, ytrain], axis=1), target_name)
+    selected_features = [' global_rate_positive_words', ' kw_min_avg', ' rate_positive_words', ' min_negative_polarity', ' n_tokens_title', ' LDA_03', ' shares']
     # xtrain = xtrain[selected_features]
     xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
     data = pd.concat([xtrain, ytrain], axis=1)
@@ -119,20 +118,28 @@ def train_BN_BE(xtrain, ytrain, target_name, BN_filename=None, verbose=False):
     # print("model nodes", model.nodes())
     # print('model edges', model.edges())
     if verbose:
-        # pass
-        print("Nodes in BN: ", model.nodes)
+        # # pass
+        # print("Nodes in BN: ", model.nodes)
 
-        G = nx.DiGraph()
-        G.add_nodes_from(model.nodes())
-        G.add_edges_from(model.edges())
+        # G = nx.DiGraph()
+        # G.add_nodes_from(model.nodes())
+        # G.add_edges_from(model.edges())
 
-        nx.draw(G, with_labels=True)
-        # plt.show(block=False) # do NOT hold the execution of your program until you close the plot window.
-        plt.savefig('BN_BE.png')
-        print('model structured saved as BN_BE.png')
-        # Display image file
-        img = Image.open('BN_BE.png')
-        img.show()
+        # nx.draw(G, with_labels=True)
+        # # plt.show(block=False) # do NOT hold the execution of your program until you close the plot window.
+        # plt.savefig('BN_BE.png')
+        # print('model structured saved as BN_BE.png')
+        # # Display image file
+        # img = Image.open('BN_BE.png')
+        # img.show()
+
+        try: 
+            draw_BN_graphviz(model, 'BN.png')
+        except:
+            print("Error in drawing BN with graphviz")
+            print("Drawing with networkx instead")
+            draw_BN_nx(model, 'BN.png')
+
     print('fitting data to model')
     model.fit(data, estimator=BayesianEstimator, prior_type="BDeu")
 
@@ -173,18 +180,26 @@ def train_BN_MLE(xtrain, ytrain, target_name, BN_filename=None, verbose=False):
             model.add_edge(node, target_name)
 
     if verbose:
-        print("Nodes in BN: ", model.nodes)
-        G = nx.DiGraph()
-        G.add_nodes_from(model.nodes())
-        G.add_edges_from(model.edges())
-        nx.draw(G, with_labels=True)
-        # plt.show(block=False)
-        plt.savefig('BN_MLE.png')
-        # Display image file
-        img = Image.open('BN_MLE.png')
-        img.show()
-        print('model structured saved as BN_MLE.png')
+        # print("Nodes in BN: ", model.nodes)
+        # G = nx.DiGraph()
+        # G.add_nodes_from(model.nodes())
+        # G.add_edges_from(model.edges())
+        # nx.draw(G, with_labels=True)
+        # # plt.show(block=False)
+        # plt.savefig('BN_MLE.png')
+        # # Display image file
+        # img = Image.open('BN_MLE.png')
+        # img.show()
+        # print('model structured saved as BN_MLE.png')
 
+        try: 
+            draw_BN_graphviz(model, 'BN.png')
+        except:
+            print("Error in drawing BN with graphviz")
+            print("Drawing with networkx instead")
+            draw_BN_nx(model, 'BN.png')
+
+            
     model.fit(data, estimator=MaximumLikelihoodEstimator)
 
     # Save the model
@@ -254,21 +269,27 @@ def create_label_BN_from_trained(xtrain, ytrain, xtest, target_name, BN_model, f
         model = pickle.load(f)
 
     if verbose:
-        G = nx.DiGraph()
-        G.add_nodes_from(model.nodes())
-        G.add_edges_from(model.edges())
+        # G = nx.DiGraph()
+        # G.add_nodes_from(model.nodes())
+        # G.add_edges_from(model.edges())
 
-        nx.draw(G, with_labels=True)
-        # plt.show(block=False)
-        plt.savefig('BN.png')
-        # Display image file
-        img = Image.open('BN.png')
-        img.show()
-        print('model structured saved as BN.png')
+        # nx.draw(G, with_labels=True)
+        # # plt.show(block=False)
+        # plt.savefig('BN.png')
+        # # Display image file
+        # img = Image.open('BN.png')
+        # img.show()
+        # print('model structured saved as BN.png')
+        try: 
+            draw_BN_graphviz(model, 'BN.png')
+        except:
+            print("Error in drawing BN with graphviz")
+            print("Drawing with networkx instead")
+            draw_BN_nx(model, 'BN.png')
 
     # print(xtrain.columns)
     # print(xtest.columns)
-    print("model nodes: ",model.nodes())
+    # print("model nodes: ",model.nodes())
     infer = VariableElimination(model)
     predictions = []
     # for _, row in xtest.iterrows():
@@ -285,3 +306,74 @@ def create_label_BN_from_trained(xtrain, ytrain, xtest, target_name, BN_model, f
     if filename:
         xtest.to_csv(filename)
     return xtest
+
+
+def draw_BN_nx(model, filename=None):
+    G = nx.DiGraph()
+    G.add_nodes_from(model.nodes())
+    G.add_edges_from(model.edges())
+    pos = nx.spring_layout(G)  # generates a layout that positions the nodes in a way that minimizes the number of crossing edges.
+
+    plt.figure(figsize=(15,10))  # You may need to adjust the figure size depending on your graph
+
+    nx.draw_networkx_nodes(G, pos)
+    nx.draw_networkx_edges(G, pos)
+
+    # Shift the labels so they do not overlap the nodes and stay in the plot
+    pos_labels = {}
+    for node, coords in pos.items():
+        # Calculate a shift value based on the length of the label
+        # shift_value = len(node) * 0.005  # Adjust the multiplier value based on your specific graph
+        pos_labels[node] = (coords[0], coords[1] + 0.05)
+
+    nx.draw_networkx_labels(G, pos_labels)
+
+    plt.axis('off')
+    plt.title('Network Graph')
+    plt.tight_layout() # adjusts the margins so that all nodes & labels displayed in plot
+    plt.savefig(filename)
+
+    # Display image file
+    img = Image.open(filename)
+    img.show()
+    print(f'Network structure saved as {filename}')
+
+    # plt.show()
+
+# import bnlearn as bn
+
+# def draw_BN(model, filename=None):
+#     # Plot the Bayesian Network and save it as a PNG file
+#     G = bn.plot(model)
+
+#     # Display the saved image file
+#     if filename:
+#         plt.savefig(filename)
+#         img = Image.open(filename)
+#         img.show()
+#         print(f'Network structure saved as {filename}')
+
+
+
+from graphviz import Digraph
+
+def draw_BN_graphviz(model, filename=None):
+    # Create a new directed graph
+    dot = Digraph()
+
+    # Add nodes and edges to the graph
+    for node in model.nodes():
+        dot.node(node)
+
+    for edge in model.edges():
+        dot.edge(*edge)
+
+    # Save the graph to a file if a filename is provided
+    if filename is not None:
+        dot.render(filename, view=True)
+        print(f'Network structure saved as {filename}')
+    else:
+        # Else, just display the graph
+        dot.view()
+
+    return dot
