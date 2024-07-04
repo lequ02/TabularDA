@@ -86,8 +86,8 @@ def train_BN_BE(xtrain, ytrain, target_name, BN_filename=None, verbose=False):
     from pgmpy.models import BayesianNetwork
 
     # Select features based on correlation and RFE
-    # selected_features = select_features(pd.concat([xtrain, ytrain], axis=1), target_name)
-    selected_features = [' global_rate_positive_words', ' kw_min_avg', ' rate_positive_words', ' min_negative_polarity', ' n_tokens_title', ' LDA_03', ' shares']
+    selected_features = select_features(pd.concat([xtrain, ytrain], axis=1), target_name)
+    # selected_features = [' global_rate_positive_words', ' kw_min_avg', ' rate_positive_words', ' min_negative_polarity', ' n_tokens_title', ' LDA_03', ' shares']
     # xtrain = xtrain[selected_features]
     xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
     data = pd.concat([xtrain, ytrain], axis=1)
