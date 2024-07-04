@@ -67,7 +67,7 @@ def select_features(df, target_name, corr_threshold=0.1, n_features_rfe=6):
     corr_target = abs(corr[target_name])
     relevant_features = corr_target[corr_target > corr_threshold].index.drop(target_name)
     
-    print('Starting RFE...')
+    print(f'Starting RFE with {n_features_rfe} features...')
     X = df.drop(columns=[target_name])
     y = df[target_name]
     model = RandomForestRegressor()
