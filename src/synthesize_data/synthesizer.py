@@ -5,18 +5,31 @@ from naive_bayes import create_label_gaussianNB, create_label_categoricalNB
 from bayes_net import create_label_BN, create_label_BN_from_trained
 import pickle
 import torch
+import pandas as pd
 
-def synthesize_data(x_original, y_original, categorical_columns,
-                    sample_size=100_000, verbose=False, show_network=False,
-                    target_synthesizer='gaussianNB', target_name='income',
-                    synthesizer_file_name='synthesizer_onlyX.pkl', csv_file_name=None, BN_filename=None):
+def synthesize_data(x_original, y_original, categorical_columns, target_name,
+                    sample_size=100_000, return_onehot=True,
+                    verbose=False, show_network=False,
+                    target_synthesizer=None,
+                    synthesizer_file_name='synthesizer_onlyX.pkl', 
+                    csv_file_name=None, BN_filename=None):
   """
   input: original data
   output: synthesized data.
-  X' and y' are concatenated. X' created by CTGAN (SDV), y' created by GaussianNB or CategoricalNB
+  X' and y' are concatenated. X' created by CTGAN (SDV), y' created by GaussianNB, CategoricalNB or Bayesian Network
   """
   if csv_file_name is None:
     csv_file_name = f'synthesized_data_{target_synthesizer}.csv'
+
+
+  # if a target synthesizer is not specified, assume that the user wants to synthesize X' and y' using CTGAN only
+  # check if target_name is passed as a part of x_original, if not raise an error
+  if not target_synthesizer:
+    print("Target synthesizer not specified")
+    print("Synthesizing data using SDV only")
+    print("Assume x_original contains both X and y")
+    if target_name not in x_original.columns:
+      raise ValueError("Target name is not in x_original.")
 
   # train synthesizer & create x'
   synthesizer = train_synthesizer(x_original, verbose)
@@ -31,14 +44,50 @@ def synthesize_data(x_original, y_original, categorical_columns,
   if verbose:
     print(f"Synthesizer saved at {synthesizer_file_name}")
 
+  # pre-encode backups
+  x_original_backup = x_original.copy()
+  x_synthesized_backup = x_synthesized.copy()
   # one-hot encode
   x_original, x_synthesized = onehot(x_original, x_synthesized, categorical_columns, verbose=verbose)
 
+
+  # if a target synthesizer is not specified, assume that the user wants to synthesize X' and y' using CTGAN only
+  if not target_synthesizer:
+    # print("Target synthesizer not specified")
+    # print("Synthesizing data using SDV only")
+    # print("Assume x_original contains both X and y")
+    synthesized_data = x_synthesized.reindex(sorted(x_synthesized.columns), axis=1)
+    x_synthesized_backup.drop(columns=[target_name], inplace=True)
+    # ensure that the target column is the last column
+    y = synthesized_data[target_name]
+    synthesized_data.drop(columns=[target_name], inplace=True)
+    synthesized_data = pd.concat([synthesized_data, y], axis=1)
+    target_synthesizer = 'SDV'
+
   # create y' using GaussianNB or CategoricalNB
-  if target_synthesizer == 'gaussianNB':
-    synthesize_data = create_label_gaussianNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
+  elif target_synthesizer == 'gaussianNB':
+    synthesized_data = create_label_gaussianNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
   elif target_synthesizer == 'categoricalNB':
-    synthesize_data = create_label_categoricalNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
+    synthesized_data = create_label_categoricalNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
+
+  # create y' using a Bayesian Network model
+  # train a new BN model
+  elif target_synthesizer == 'BN_BE':
+    synthesized_data = create_label_BN(x_original, y_original, x_synthesized, target_name = target_name,
+                                       BN_type='BE', filename=csv_file_name, BN_filename=BN_filename,
+                                       verbose=show_network)
+  elif target_synthesizer == 'BN_MLE':
+    synthesized_data = create_label_BN(x_original, y_original, x_synthesized, target_name = target_name,
+                                       BN_type='MLE', filename=csv_file_name, BN_filename=BN_filename, 
+                                       verbose=show_network)
+
+  # check if user want to return one-hot encoded X'
+  if return_onehot == False:
+    x_synthesized_backup = x_synthesized_backup.reindex(sorted(x_synthesized_backup.columns), axis=1)
+    synthesized_data = pd.concat([x_synthesized_backup, synthesized_data[target_name]], axis=1)
+  
+  # save synthesized data to csv
+  synthesized_data.to_csv(csv_file_name)
 
   if verbose:
     print(f"Successfully synthesized X and y data with {target_synthesizer}")
@@ -46,9 +95,10 @@ def synthesize_data(x_original, y_original, categorical_columns,
   return synthesized_data
 
 
-def synthesize_from_trained_model(x_original, y_original, categorical_columns,
-                  sample_size=100_000, verbose=False, show_network=False,
-                  target_synthesizer='gaussianNB', target_name='income',
+def synthesize_from_trained_model(x_original, y_original, categorical_columns, target_name,
+                  sample_size=100_000, return_onehot=True,
+                  verbose=False, show_network=False,
+                  target_synthesizer=None, 
                   synthesizer_file_name='synthesizer_onlyX.pkl', BN_model = None,
                   BN_filename=None, csv_file_name=None):
   """
@@ -58,6 +108,16 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns,
   """
   if csv_file_name is None:
     csv_file_name = f'synthesized_data_{target_synthesizer}.csv'
+
+
+  # if a target synthesizer is not specified, assume that the user wants to synthesize X' and y' using CTGAN only
+  # check if target_name is passed as a part of x_original, if not raise an error
+  if not target_synthesizer:
+    print("Target synthesizer not specified")
+    print("Synthesizing data using SDV only")
+    print("Assume x_original contains both X and y")
+    if target_name not in x_original.columns:
+      raise ValueError("Target name is not in x_original.")
 
   # load synthesizer
   synthesizer_file_name = '../sdv trained model/' + synthesizer_file_name
@@ -71,36 +131,66 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns,
     print(f"Successfully synthesized X data with shape {x_synthesized.shape}. Here are the first 5 rows:")
     print(x_synthesized.head())
 
+  # pre-encode backups
+  x_original_backup = x_original.copy()
+  x_synthesized_backup = x_synthesized.copy()
   # one-hot encode
   x_original, x_synthesized = onehot(x_original, x_synthesized, categorical_columns, verbose=verbose)
 
+  # for i in x_synthesized.columns:
+  #   print(i)
+
+  # if a target synthesizer is not specified, assume that the user wants to synthesize X' and y' using CTGAN only
+  if not target_synthesizer:
+    # print("Target synthesizer not specified")
+    # print("Synthesizing data using SDV only")
+    # print("Assume x_original contains both X and y")
+    synthesized_data = x_synthesized.reindex(sorted(x_synthesized.columns), axis=1)
+    x_synthesized_backup.drop(columns=[target_name], inplace=True)
+    y = synthesized_data[target_name]
+    synthesized_data.drop(columns=[target_name], inplace=True)
+    synthesized_data = pd.concat([synthesized_data, y], axis=1)
+    # print(set(synthesize_data.columns))
+    target_synthesizer = 'SDV'
+    # synthesized_data.to_csv(csv_file_name)
+
   # create y' using GaussianNB or CategoricalNB
-  if target_synthesizer == 'gaussianNB':
-    synthesize_data = create_label_gaussianNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
+  elif target_synthesizer == 'gaussianNB':
+    synthesized_data = create_label_gaussianNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
   elif target_synthesizer == 'categoricalNB':
-    synthesize_data = create_label_categoricalNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
+    synthesized_data = create_label_categoricalNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
 
   # create y' using a Bayesian Network model
   elif BN_model is not None:
   # check if user want to create label from a pre-trained BN model
-    synthesize_data = create_label_BN_from_trained(x_original, y_original, x_synthesized, target_name = target_name,
+    synthesized_data = create_label_BN_from_trained(x_original, y_original, x_synthesized, target_name = target_name,
                                                    BN_model=BN_model, filename=csv_file_name, 
                                                    verbose=show_network)
 
   # if not, train a new BN model
   elif target_synthesizer == 'BN_BE':
-    synthesize_data = create_label_BN(x_original, y_original, x_synthesized, target_name = target_name,
+    synthesized_data = create_label_BN(x_original, y_original, x_synthesized, target_name = target_name,
                                        BN_type='BE', filename=csv_file_name, BN_filename=BN_filename,
                                        verbose=show_network)
   elif target_synthesizer == 'BN_MLE':
-    synthesize_data = create_label_BN(x_original, y_original, x_synthesized, target_name = target_name,
+    synthesized_data = create_label_BN(x_original, y_original, x_synthesized, target_name = target_name,
                                        BN_type='MLE', filename=csv_file_name, BN_filename=BN_filename, 
                                        verbose=show_network)
+
+  # check if user want to return one-hot encoded X'
+  if return_onehot == False:
+    # for i in synthesized_data.columns:
+    #   print(i)
+    x_synthesized_backup = x_synthesized_backup.reindex(sorted(x_synthesized_backup.columns), axis=1)
+    synthesized_data = pd.concat([x_synthesized_backup, synthesized_data[target_name]], axis=1)
+  
+  # save synthesized data to csv
+  synthesized_data.to_csv(csv_file_name)
 
   if verbose:
     print(f"Successfully synthesized X and y data with {target_synthesizer}")
     print(f'Data is saved at {csv_file_name}')
-  return synthesize_data
+  return synthesized_data
 
 
 def load_synthesizer(link):

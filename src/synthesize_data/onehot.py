@@ -14,6 +14,8 @@ def onehot(xtrain, xtest, categorical_columns, verbose=False):
 
   # Automatically determine the numerical columns
   numerical_cols = list(set(xtrain.columns) - set(categorical_columns))
+  if verbose:
+    print("Numerical columns: ", numerical_cols)
 
   # Prepare train_prep and test_prep
   xtrain_prep = xtrain[numerical_cols]
@@ -37,8 +39,9 @@ def onehot(xtrain, xtest, categorical_columns, verbose=False):
 
       # Check differences between xtrain and xtest
       if verbose:
+        print(f"Differences between xtrain and xtest in column: {col}")
         dif1 = set(xtest[col].unique()) - set(xtrain[col].unique())
-        print(col)
+        # print(col)
         print(len(dif1), dif1)
 
   return xtrain_prep, xtest_prep

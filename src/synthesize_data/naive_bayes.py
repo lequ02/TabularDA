@@ -22,6 +22,9 @@ def create_label_categoricalNB(xtrain, ytrain, xtest, target_name, filename=None
   # xtrain and ytrain are one hot encoded
   # normalize data to [0,1] because CategoricalNB only accepts non negative values
   scaler = MinMaxScaler()
+  xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
+  xtest = xtest.reindex(sorted(xtest.columns), axis=1)
+
   xtrain_scaled = scaler.fit_transform(xtrain)
   xtest_scaled = scaler.transform(xtest)
 
@@ -29,8 +32,8 @@ def create_label_categoricalNB(xtrain, ytrain, xtest, target_name, filename=None
   # xtest = xtest.reindex(sorted(xtest.columns), axis=1)
   xtrain_scaled = pd.DataFrame(xtrain_scaled, columns = xtrain.columns)
   xtest_scaled = pd.DataFrame(xtest_scaled, columns = xtest.columns)
-  xtrain_scaled = xtrain_scaled.reindex(sorted(xtrain_scaled.columns), axis=1)
-  xtest_scaled = xtest_scaled.reindex(sorted(xtest_scaled.columns), axis=1)
+  # xtrain_scaled = xtrain_scaled.reindex(sorted(xtrain_scaled.columns), axis=1)
+  # xtest_scaled = xtest_scaled.reindex(sorted(xtest_scaled.columns), axis=1)
 
   cnb = CategoricalNB().fit(xtrain_scaled, ytrain)
   ytest = cnb.predict(xtest_scaled)
