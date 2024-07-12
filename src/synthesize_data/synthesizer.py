@@ -120,8 +120,8 @@ def synthesize_data(x_original, y_original, categorical_columns, target_name,
     synthesized_data = pd.concat([x_synthesized_backup, synthesized_data[target_name]], axis=1)
   
   # save synthesized data to csv
-  synthesized_data.to_csv(csv_file_name)
-    synthesized_data = create_label_categoricalNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
+  # synthesized_data.to_csv(csv_file_name)
+  # synthesized_data = create_label_categoricalNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
 
   # create y' using a Bayesian Network model
   # train a new BN model
@@ -149,9 +149,12 @@ def synthesize_data(x_original, y_original, categorical_columns, target_name,
 
   if npz_file_name is not None:
     # kwargs_dict = synthesized_data.to_dict('list')
-    # save to npz file
-    np.savez(npz_file_name, syn=synthesized_data)
+    # save to npz file, exclude index column
+    synthesized_data_np = synthesized_data.to_numpy()
+    np.savez(npz_file_name, syn=synthesized_data_np)
+    synthesized_data.to_csv(csv_file_name, index=False)
     print(f'Data is saved at {npz_file_name}')
+    print(f'Data is saved at {csv_file_name}, excluding index column')
 
   return synthesized_data
 
@@ -278,8 +281,8 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns, t
     synthesized_data = pd.concat([x_synthesized_backup, synthesized_data[target_name]], axis=1)
   
   # save synthesized data to csv
-  synthesized_data.to_csv(csv_file_name)
-    synthesized_data = create_label_categoricalNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
+  # synthesized_data.to_csv(csv_file_name)
+  #   synthesized_data = create_label_categoricalNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
 
   # create y' using a Bayesian Network model
   elif BN_model is not None:
@@ -316,9 +319,13 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns, t
     # kwargs_dict = synthesized_data.to_dict('list')
     # save to npz file
     # np.savez(npz_file_name, **kwargs_dict)
-    np.savez(npz_file_name, syn=synthesized_data)
 
+    # save to npz file, exclude index column
+    synthesized_data_np = synthesized_data.to_numpy()
+    np.savez(npz_file_name, syn=synthesized_data_np)
+    synthesized_data.to_csv(csv_file_name, index=False)
     print(f'Data is saved at {npz_file_name}')
+    print(f'Data is saved at {csv_file_name}, excluding index column')
 
   return synthesized_data
 
