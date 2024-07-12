@@ -328,10 +328,10 @@ if __name__ == "__main__":
         synthetic_file = synthetic_file.replace("\\", "/")
 
         # print("synthetic file:", synthetic_file)
-        # print(np.load(synthetic_file))
+        print("load syn file", np.load(synthetic_file))
 
-        # syn = np.load(synthetic_file)['syn']
-        syn = np.load(synthetic_file)['train']
+        syn = np.load(synthetic_file)['syn']
+        # syn = np.load(synthetic_file)['train']
         if np.any(np.isnan(syn)):
             continue
 

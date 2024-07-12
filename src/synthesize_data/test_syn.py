@@ -13,7 +13,7 @@ def main():
 # D:\SummerResearch\SDGym-research\data\simulated\grid.csv
 
 
-  simulated_names = ['grid']
+  simulated_names = ['grid', 'gridr', 'ring']
   for name in simulated_names:
 
     data = pd.read_csv(f'../SDGym-research/data/simulated/{name}.csv')
@@ -27,6 +27,8 @@ def main():
                               target_name=target_name, synthesizer_file_name=f'../sdv trained model/simulated/{name}_synthesizer_onlyX.pkl',
                               csv_file_name=f'../SDGym-research/data/SDV_gaussian/{name}_SDV_gaussian_100k.csv', verbose=True,
                               npz_file_name=f'../SDGym-research/data/SDV_gaussian/{name}_300_300.npz')
+
+    print("gaussian columns:", synthesized_data.columns)
 
 
     data = pd.read_csv(f'../SDGym-research/data/simulated/{name}.csv')
@@ -42,33 +44,7 @@ def main():
                               npz_file_name=f'../SDGym-research/data/SDV_categorical/{name}_300_300.npz')
 
 
-  simulated_names = ['gridr', 'ring']
-  for name in simulated_names:
-
-    data = pd.read_csv(f'../SDGym-research/data/simulated/{name}.csv')
-    target_name = 'label'
-    x_original = data.drop(columns=[target_name])
-    y_original = data[target_name]
-    categorical_columns = []
-
-    synthesized_data = synthesize_data(x_original, y_original, categorical_columns,
-                              sample_size=100_000, target_synthesizer='gaussianNB',
-                              target_name=target_name, synthesizer_file_name=f'../sdv trained model/simulated/{name}_synthesizer_onlyX.pkl',
-                              csv_file_name=f'../SDGym-research/data/SDV_gaussian/{name}_SDV_gaussian_100k.csv', verbose=True,
-                              npz_file_name=f'../SDGym-research/data/SDV_gaussian/{name}_300_300.npz')
-
-
-    data = pd.read_csv(f'../SDGym-research/data/simulated/{name}.csv')
-    target_name = 'label'
-    x_original = data.drop(columns=[target_name])
-    y_original = data[target_name]
-    categorical_columns = []
-
-    synthesized_data = synthesize_from_trained_model(x_original, y_original, categorical_columns,
-                              sample_size=100_000, target_synthesizer='categoricalNB',
-                              target_name=target_name, synthesizer_file_name=f'../sdv trained model/simulated/{name}_synthesizer_onlyX.pkl',
-                              csv_file_name=f'../SDGym-research/data/SDV_categorical/{name}_SDV_categorical_100k.csv', verbose=True,
-                              npz_file_name=f'../SDGym-research/data/SDV_categorical/{name}_300_300.npz')
+    print("categorical columns:", synthesized_data.columns)
 
 
 if __name__ == '__main__':

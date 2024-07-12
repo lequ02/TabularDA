@@ -97,9 +97,9 @@ def synthesize_data(x_original, y_original, categorical_columns, target_name,
 
 
   if npz_file_name is not None:
-    kwargs_dict = synthesized_data.to_dict('list')
+    # kwargs_dict = synthesized_data.to_dict('list')
     # save to npz file
-    np.savez(npz_file_name, **kwargs_dict)
+    np.savez(npz_file_name, syn=synthesized_data)
     print(f'Data is saved at {npz_file_name}')
 
   return synthesized_data
@@ -202,9 +202,11 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns, t
     print(f'Data is saved at {csv_file_name}')
 
   if npz_file_name is not None:
-    kwargs_dict = synthesized_data.to_dict('list')
+    # kwargs_dict = synthesized_data.to_dict('list')
     # save to npz file
-    np.savez(npz_file_name, **kwargs_dict)
+    # np.savez(npz_file_name, **kwargs_dict)
+    np.savez(npz_file_name, syn=synthesized_data)
+
     print(f'Data is saved at {npz_file_name}')
 
   return synthesized_data
