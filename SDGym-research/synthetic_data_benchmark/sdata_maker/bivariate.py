@@ -4,23 +4,30 @@ import json
 import math
 import os
 import sys
+import pandas as pd
 
 import numpy as np
 from sklearn.datasets import make_circles
+import matplotlib.pyplot as plt
 
 from .. import utils
 
 np.random.seed(0)
 
-def create_distribution(dist_type, num_samples):
+def create_distribution(dist_type, num_samples, a, b):
     if dist_type in ["grid", "gridr"]:
-        return make_gaussian_mixture(dist_type, num_samples)
+        samples, mus = make_gaussian_mixture(dist_type, num_samples)
     elif dist_type == "ring":
-        return make_gaussian_mixture(dist_type, num_samples, num_components = 8)
+        samples, mus = make_gaussian_mixture(dist_type, num_samples, num_components=8)
     elif dist_type == "2rings":
-        return make_two_rings(num_samples)
+        samples = make_two_rings(num_samples)
+        mus = np.array([])  # No specific centers for 2rings
+    
+    # Add the new column based on the boundary line
+    labels = np.where(samples[:, 1] > a * samples[:, 0] + b, 1, 0)
+    return np.column_stack((samples, labels)), mus
 
-def make_gaussian_mixture(dist_type, num_samples, num_components = 25, s = 0.05, n_dim = 2):
+def make_gaussian_mixture(dist_type, num_samples, num_components=25, s=0.05, n_dim=2):
     """ Generate from Gaussian mixture models arranged in grid or ring
     """
     sigmas = np.zeros((n_dim,n_dim))
@@ -31,7 +38,7 @@ def make_gaussian_mixture(dist_type, num_samples, num_components = 25, s = 0.05,
     if dist_type == "grid":
         mus = np.array([np.array([i, j]) for i, j in itertools.product(range(-4, 5, 2),
                                                         range(-4, 5, 2))],dtype=np.float32)
-    elif dist_type =="gridr":
+    elif dist_type == "gridr":
         mus = np.array([np.array([i, j]) + (np.random.rand(2) - 0.5)
                         for i, j in itertools.product(range(-4, 5, 2),
                             range(-4, 5, 2))],dtype=np.float32)
@@ -40,27 +47,56 @@ def make_gaussian_mixture(dist_type, num_samples, num_components = 25, s = 0.05,
 
     for i in range(num_components):
         if (i+1)*bsize >= num_samples:
-            samples[i*bsize:num_samples,:] = np.random.multivariate_normal(mus[i],sigmas,size = num_samples-i*bsize)
+            samples[i*bsize:num_samples,:] = np.random.multivariate_normal(mus[i],sigmas,size=num_samples-i*bsize)
         else:
-            samples[i*bsize:(i+1)*bsize,:] = np.random.multivariate_normal(mus[i],sigmas,size = bsize)
-    
-    print(type(samples), samples.shape)
-    print(samples)
-    return samples
+            samples[i*bsize:(i+1)*bsize,:] = np.random.multivariate_normal(mus[i],sigmas,size=bsize)
+    return samples, mus
 
 def make_two_rings(num_samples):
-    samples, labels = make_circles(num_samples, shuffle=True, noise=None, random_state=None, factor=0.6)
+    samples, _ = make_circles(num_samples, shuffle=True, noise=None, random_state=None, factor=0.6)
     return samples
+
+def visualize_data(samples, mus, dist, a, b):
+    plt.figure(figsize=(12, 10))
+    
+    # Plot the data points
+    scatter = plt.scatter(samples[:, 0], samples[:, 1], c=samples[:, 2], cmap='cividis', alpha=0.6)
+    
+    # Add a color bar
+    plt.colorbar(scatter)
+
+    # Plot the boundary line
+    x_range = np.array([samples[:, 0].min(), samples[:, 0].max()])
+    plt.plot(x_range, a * x_range + b, 'g--', label=f'Boundary: y = {a}x + {b}')
+
+    # Plot the 'mus' values
+    if len(mus) > 0:
+        plt.scatter(mus[:, 0], mus[:, 1], color='red', marker='x', s=100, label='Gaussian centers')
+
+    plt.title(f'Visualization of {dist.capitalize()} Distribution')
+    plt.xlabel('X')
+    plt.ylabel('Y')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    
+    plt.savefig(f"data/simulated/{dist}_visualization.png")
+    plt.close()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Generate simulated Data for a distribution')
-    parser.add_argument('distribution', type = str, help = 'specify type of distributions to sample from')
+    parser.add_argument('distribution', type=str, help='specify type of distributions to sample from')
     parser.add_argument('--sample', type=int, default=10000,
                     help='maximum samples in the simulated data.')
+    parser.add_argument('--a', type=float, default=1.5,
+                    help='slope of the boundary line y = ax + b')
+    parser.add_argument('--b', type=float, default=.8,
+                    help='y-intercept of the boundary line y = ax + b')
     args = parser.parse_args()
     dist = args.distribution
     num_sample = args.sample
-    samples = create_distribution(dist, num_sample*2)
+    a = args.a
+    b = args.b
+    samples, mus = create_distribution(dist, num_sample*2, a, b)
     np.random.shuffle(samples)
 
     output_dir = "data/simulated"
@@ -69,21 +105,42 @@ if __name__ == "__main__":
     except:
         pass
 
-
-
     # Store Meta Files
     meta = []
-    for i in range(2):
-        meta.append({
-                "name": str(i),
+    for i in range(3):  # Now we have 3 columns
+        if i < 2:
+            meta.append({
+                "name": f"feature_{i}",
                 "type": "continuous",
-                "min": int(np.min(samples[:,i].astype('float'))) - 1,
-                "max": int(np.max(samples[:,i].astype('float'))) + 1
-        })
+                "min": float(np.min(samples[:,i])) - 1,
+                "max": float(np.max(samples[:,i])) + 1
+            })
+        else:
+            meta.append({
+                "name": "label",
+                "type": "categorical",
+                "size": 2,
+                "i2s": ["0", "1"]
+            })
+
     # Store simulated data
     with open("{}/{}.json".format(output_dir, dist), 'w') as f:
         json.dump(meta, f, sort_keys=True, indent=4, separators=(',', ': '))
     np.savez("{}/{}.npz".format(output_dir, dist), train=samples[:len(samples)//2], test=samples[len(samples)//2:])
 
+    df = pd.DataFrame(samples, columns=[meta[0]['name'], meta[1]['name'], meta[2]['name']])
+    df.to_csv(f"{output_dir}/{dist}.csv", index=False)
+
     utils.verify("{}/{}.npz".format(output_dir, dist),
         "{}/{}.json".format(output_dir, dist))
+
+    # Visualize the data
+    visualize_data(samples, mus, dist, a, b)
+
+    print(f"Array shape: {samples.shape}")
+    print(f"First few rows:\n{samples[:5]}")
+    print(f"Last few rows:\n{samples[-5:]}")
+    print(f"Visualization saved as {dist}_visualization.png in {output_dir}")
+
+
+# (summer_research) PS D:\SummerResearch\SDGym-research> python -m synthetic_data_benchmark.sdata_maker.bivariate "gridr"

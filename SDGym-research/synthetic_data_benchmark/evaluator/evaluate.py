@@ -26,7 +26,7 @@ from ..utils import CATEGORICAL, CONTINUOUS, ORDINAL
 from scipy.stats import multivariate_normal
 import itertools
 
-from pomegranate import BayesianNetwork
+# from pomegranate import BayesianNetwork
 
 logging.basicConfig(level=logging.INFO)
 
@@ -304,6 +304,8 @@ if __name__ == "__main__":
 
     result_file = "{}/{}.json".format(args.result,
                                       args.synthetic.replace('/', '\t').split()[-1])
+    # print("result_file:",result_file)
+
     if os.path.exists(result_file):
         logging.warning("result file {} exists.".format(result_file))
         if args.force:
@@ -314,7 +316,8 @@ if __name__ == "__main__":
     logging.info("use result file {}.".format(result_file))
 
     synthetic_folder = args.synthetic
-    synthetic_files = glob.glob("{}/*.npz".format(synthetic_folder))
+    synthetic_files = glob.glob("{}/*.npz".format(synthetic_folder)) # uses the glob module to find all files with the .npz extension in the specified folder. This returns a list of file paths.
+    # print("synthetic_files:",synthetic_files)
 
     results = []
 
@@ -322,21 +325,35 @@ if __name__ == "__main__":
         # synthetic_file is like xxx/xxx/dataset_iter_step.npz
         # iter is the iteration of experiment
         # step is the learning steps of some synthesizer, 0 if no learning
-        syn = np.load(synthetic_file)['syn']
+        synthetic_file = synthetic_file.replace("\\", "/")
+
+        # print("synthetic file:", synthetic_file)
+        # print(np.load(synthetic_file))
+
+        # syn = np.load(synthetic_file)['syn']
+        syn = np.load(synthetic_file)['train']
         if np.any(np.isnan(syn)):
             continue
 
         dataset_iter_step = synthetic_file.split('/')[-1]
+        # print("split:", dataset_iter_step)
+
         assert dataset_iter_step[-4:] == '.npz'
         dataset_iter_step = dataset_iter_step[:-4].split('_')
+        # print("dataset_iter_step",dataset_iter_step)
 
         dataset = dataset_iter_step[0]
+        # print("dataset", dataset)
         iter = int(dataset_iter_step[1])
         step = int(dataset_iter_step[2])
+        # iter = 5
+        # step = 10
 
         data_filename = glob.glob("data/*/{}.npz".format(dataset))
         meta_filename = glob.glob("data/*/{}.json".format(dataset))
 
+        # print("data_filename", data_filename)
+        # print("meta_filename", meta_filename)
         if len(data_filename) != 1:
             logging.warning("Skip. Can't find dataset {}. ".format(dataset))
             continue
@@ -366,3 +383,5 @@ if __name__ == "__main__":
 
     with open(result_file, "w") as f:
         json.dump(results, f, sort_keys=True, indent=4, separators=(',', ': '))
+
+# PS D:\SummerResearch\SDGym-research> python -m synthetic_data_benchmark.evaluator.evaluate "data/synthetic" --force

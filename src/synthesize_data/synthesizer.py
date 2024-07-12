@@ -6,13 +6,15 @@ from bayes_net import create_label_BN, create_label_BN_from_trained
 import pickle
 import torch
 import pandas as pd
+import numpy as np
 
 def synthesize_data(x_original, y_original, categorical_columns, target_name,
                     sample_size=100_000, return_onehot=True,
                     verbose=False, show_network=False,
                     target_synthesizer=None,
                     synthesizer_file_name='synthesizer_onlyX.pkl', 
-                    csv_file_name=None, BN_filename=None):
+                    csv_file_name=None, BN_filename=None,
+                    npz_file_name=None):
   """
   input: original data
   output: synthesized data.
@@ -92,6 +94,14 @@ def synthesize_data(x_original, y_original, categorical_columns, target_name,
   if verbose:
     print(f"Successfully synthesized X and y data with {target_synthesizer}")
     print(f'Data is saved at {csv_file_name}')
+
+
+  if npz_file_name is not None:
+    kwargs_dict = synthesized_data.to_dict('list')
+    # save to npz file
+    np.savez(npz_file_name, **kwargs_dict)
+    print(f'Data is saved at {npz_file_name}')
+
   return synthesized_data
 
 
@@ -100,7 +110,7 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns, t
                   verbose=False, show_network=False,
                   target_synthesizer=None, 
                   synthesizer_file_name='synthesizer_onlyX.pkl', BN_model = None,
-                  BN_filename=None, csv_file_name=None):
+                  BN_filename=None, csv_file_name=None, npz_file_name=None):
   """
   input: original data
   output: synthesized data.
@@ -190,6 +200,13 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns, t
   if verbose:
     print(f"Successfully synthesized X and y data with {target_synthesizer}")
     print(f'Data is saved at {csv_file_name}')
+
+  if npz_file_name is not None:
+    kwargs_dict = synthesized_data.to_dict('list')
+    # save to npz file
+    np.savez(npz_file_name, **kwargs_dict)
+    print(f'Data is saved at {npz_file_name}')
+
   return synthesized_data
 
 
