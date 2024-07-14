@@ -295,3 +295,5 @@ class TableganSynthesizer(SynthesizerBase):
 
 if __name__ == "__main__":
     run(TableganSynthesizer())
+
+# python -m synthetic_data_benchmark.synthesizer.tablegan_synthesizer

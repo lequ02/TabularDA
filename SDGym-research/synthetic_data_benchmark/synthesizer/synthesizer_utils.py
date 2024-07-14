@@ -211,7 +211,7 @@ class BGMTransformer(object):
         self.components = []
         for id_, info in enumerate(self.meta):
             if info['type'] == CONTINUOUS:
-                gm = BayesianGaussianMixture(self.n_clusters,
+                gm = BayesianGaussianMixture(n_components=self.n_clusters,
                         weight_concentration_prior_type='dirichlet_process',
                         weight_concentration_prior = 0.001,
                         n_init=1)

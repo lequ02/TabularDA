@@ -456,3 +456,5 @@ class TGANSynthesizer(SynthesizerBase):
 
 if __name__ == "__main__":
     run(TGANSynthesizer())
+
+#  python -m synthetic_data_benchmark.synthesizer.tgan_synthesizer
