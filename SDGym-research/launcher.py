@@ -39,15 +39,15 @@ if __name__ == "__main__":
             shutil.rmtree(output_folder)
             logging.warning("remove existing results {}".format(output_folder))
 
-    subprocess.call(["python3", "-m",
+    subprocess.call(["python", "-m",
         "synthetic_data_benchmark.synthesizer.{}_synthesizer".format(args.synthesizer.lower()),
         "--repeat", str(args.repeat)] + args.datasets)
 
     pattern = case_insensitive(args.synthesizer)
     output_folder = glob.glob("output/{}Synthesizer".format(pattern))
     if args.force:
-        subprocess.call(["python3", "-m", "synthetic_data_benchmark.evaluator.evaluate", output_folder[0], "--force"])
+        subprocess.call(["python", "-m", "synthetic_data_benchmark.evaluator.evaluate", output_folder[0], "--force"])
     else:
-        subprocess.call(["python3", "-m", "synthetic_data_benchmark.evaluator.evaluate", output_folder[0]])
+        subprocess.call(["python", "-m", "synthetic_data_benchmark.evaluator.evaluate", output_folder[0]])
 
-    subprocess.call(["python3", "-m", "synthetic_data_benchmark.evaluator.summary"])
+    subprocess.call(["python", "-m", "synthetic_data_benchmark.evaluator.summary"])

@@ -10,19 +10,25 @@ def load_data(dist):
         meta = json.load(f)
     return data, meta
 
-def plot_data(data, meta, dist, a, b):
+def plot_data(data, meta, dist, a, b, label=False):
     plt.figure(figsize=(12, 10))
     
-    # Plot the data points
-    scatter = plt.scatter(data['train'][:, 0], data['train'][:, 1], 
-                          c=data['train'][:, 2], cmap='coolwarm', alpha=0.6)
-    
-    # Add a color bar
-    plt.colorbar(scatter)
+    if label:
+        # Plot the data points
+        scatter = plt.scatter(data['train'][:, 0], data['train'][:, 1], 
+                            c=data['train'][:, 2], cmap='coolwarm', alpha=0.6)
+        
+        # Add a color bar
+        plt.colorbar(scatter)
 
-    # Plot the boundary line
-    x_range = np.array([data['train'][:, 0].min(), data['train'][:, 0].max()])
-    plt.plot(x_range, a * x_range + b, 'g--', label=f'Boundary: y = {a}x + {b}')
+        # Plot the boundary line
+        x_range = np.array([data['train'][:, 0].min(), data['train'][:, 0].max()])
+        plt.plot(x_range, a * x_range + b, 'g--', label=f'Boundary: y = {a}x + {b}')
+
+    else:
+        # Plot the data points
+        plt.scatter(data['train'][:, 0], data['train'][:, 1], c='blue', alpha=0.6, label='Train data')
+        plt.scatter(data['test'][:, 0], data['test'][:, 1], c='green', alpha=0.6, label='Test data')
 
     # Plot the 'mus' values
     if dist in ["grid", "gridr"]:

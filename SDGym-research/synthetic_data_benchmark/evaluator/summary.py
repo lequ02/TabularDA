@@ -164,6 +164,7 @@ if __name__ == "__main__":
         os.makedirs(summary_dir)
 
     datasets = glob.glob("data/*/*.npz")
+    print("datasets", datasets)
     datasets = [re.search('.*/([^/]*).npz', item).group(1) for item in datasets]
 
     results = []

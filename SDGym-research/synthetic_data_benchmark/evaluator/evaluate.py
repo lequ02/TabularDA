@@ -304,7 +304,7 @@ if __name__ == "__main__":
 
     result_file = "{}/{}.json".format(args.result,
                                       args.synthetic.replace('/', '\t').split()[-1])
-    # print("result_file:",result_file)
+    print("result_file:",result_file)
 
     if os.path.exists(result_file):
         logging.warning("result file {} exists.".format(result_file))
@@ -349,8 +349,8 @@ if __name__ == "__main__":
         # iter = 5
         # step = 10
 
-        data_filename = glob.glob("data/*/{}.npz".format(dataset))
-        meta_filename = glob.glob("data/*/{}.json".format(dataset))
+        data_filename = glob.glob("data/simulated_label/{}.npz".format(dataset))
+        meta_filename = glob.glob("data/simulated_label/{}.json".format(dataset))
 
         # print("data_filename", data_filename)
         # print("meta_filename", meta_filename)

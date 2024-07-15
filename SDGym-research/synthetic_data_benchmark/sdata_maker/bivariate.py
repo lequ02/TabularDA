@@ -14,7 +14,7 @@ from .. import utils
 
 np.random.seed(0)
 
-def create_distribution(dist_type, num_samples, a, b):
+def create_distribution(dist_type, num_samples, a, b, label=False):
     if dist_type in ["grid", "gridr"]:
         samples, mus = make_gaussian_mixture(dist_type, num_samples)
     elif dist_type == "ring":
@@ -23,9 +23,12 @@ def create_distribution(dist_type, num_samples, a, b):
         samples = make_two_rings(num_samples)
         mus = np.array([])  # No specific centers for 2rings
     
-    # Add the new column based on the boundary line
-    labels = np.where(samples[:, 1] > a * samples[:, 0] + b, 1, 0)
-    return np.column_stack((samples, labels)), mus
+    if label:
+        # Add the new column based on the boundary line
+        labels = np.where(samples[:, 1] > a * samples[:, 0] + b, 1, 0)
+        return np.column_stack((samples, labels)), mus
+
+    return samples, mus
 
 def make_gaussian_mixture(dist_type, num_samples, num_components=25, s=0.05, n_dim=2):
     """ Generate from Gaussian mixture models arranged in grid or ring
@@ -56,18 +59,22 @@ def make_two_rings(num_samples):
     samples, _ = make_circles(num_samples, shuffle=True, noise=None, random_state=None, factor=0.6)
     return samples
 
-def visualize_data(samples, mus, dist, a, b):
+def visualize_data(samples, mus, dist, a, b, label=False):
     plt.figure(figsize=(12, 10))
     
     # Plot the data points
-    scatter = plt.scatter(samples[:, 0], samples[:, 1], c=samples[:, 2], cmap='cividis', alpha=0.6)
-    
-    # Add a color bar
-    plt.colorbar(scatter)
+    if label:
+        scatter = plt.scatter(samples[:, 0], samples[:, 1], c=samples[:, 2], cmap='cividis', alpha=0.6)
+        # Add a color bar
+        plt.colorbar(scatter)
 
-    # Plot the boundary line
-    x_range = np.array([samples[:, 0].min(), samples[:, 0].max()])
-    plt.plot(x_range, a * x_range + b, 'g--', label=f'Boundary: y = {a}x + {b}')
+        # Plot the boundary line
+        x_range = np.array([samples[:, 0].min(), samples[:, 0].max()])
+        plt.plot(x_range, a * x_range + b, 'g--', label=f'Boundary: y = {a}x + {b}')
+    else:
+        scatter = plt.scatter(samples[:, 0], samples[:, 1], c='blue', alpha=0.6, label='Train data')
+
+
 
     # Plot the 'mus' values
     if len(mus) > 0:
@@ -96,7 +103,8 @@ if __name__ == "__main__":
     num_sample = args.sample
     a = args.a
     b = args.b
-    samples, mus = create_distribution(dist, num_sample*2, a, b)
+    label = False
+    samples, mus = create_distribution(dist, num_sample*2, a, b, label=label)
     np.random.shuffle(samples)
 
     output_dir = "data/simulated"
@@ -115,7 +123,7 @@ if __name__ == "__main__":
                 "min": float(np.min(samples[:,i])) - 1,
                 "max": float(np.max(samples[:,i])) + 1
             })
-        else:
+        elif label:
             meta.append({
                 "name": "label",
                 "type": "categorical",
@@ -128,7 +136,10 @@ if __name__ == "__main__":
         json.dump(meta, f, sort_keys=True, indent=4, separators=(',', ': '))
     np.savez("{}/{}.npz".format(output_dir, dist), train=samples[:len(samples)//2], test=samples[len(samples)//2:])
 
-    df = pd.DataFrame(samples, columns=[meta[0]['name'], meta[1]['name'], meta[2]['name']])
+    if label:
+        df = pd.DataFrame(samples, columns=[meta[0]['name'], meta[1]['name'], meta[2]['name']])
+    else:
+        df = pd.DataFrame(samples, columns=[meta[0]['name'], meta[1]['name']])
     df.to_csv(f"{output_dir}/{dist}.csv", index=False)
 
     utils.verify("{}/{}.npz".format(output_dir, dist),
