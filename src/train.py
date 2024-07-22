@@ -1,4 +1,3 @@
-
 import random
 import pandas as pd
 import math
@@ -12,7 +11,7 @@ from models import DNN_Adult, DNN_Census, DNN_News
 from trainer import trainer  
 from data_loader import data_loader 
 from torchsummary import summary
-from sklearn.metrics import f1_score, classification_report, mean_squared_error
+from sklearn.metrics import f1_score, classification_report, mean_squared_error, r2_score
 import matplotlib.pyplot as plt
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -126,7 +125,10 @@ class train:
       save_at = [(i + 1) * 500 for i in range(int(self.num_epochs / 500))]
 
       with open(self.acc_dir + self.acc_file_name, 'w') as acc_file:
-          acc_file.write("global_round,train_loss,train_acc,train_f1,test_loss,test_acc,test_f1\n")
+          if self.dataset_name.lower() in ["adult", "census"]:
+              acc_file.write("global_round,train_loss,train_acc,train_f1,test_loss,test_acc,test_f1\n")
+          else:
+              acc_file.write("global_round,train_mse,train_r2,test_mse,test_r2\n")
 
       lr = self.learning_rate
 
@@ -134,6 +136,10 @@ class train:
       test_losses = []
       train_f1_scores = []
       test_f1_scores = []
+      train_mse_scores = []
+      test_mse_scores = []
+      train_r2_scores = []
+      test_r2_scores = []
 
       best_val_loss = float('inf')
       patience = 10  # Number of epochs to wait for improvement before stopping
@@ -144,23 +150,39 @@ class train:
 
           self.trainer.train(device, lr, epochs=1)  # Train for 1 epoch at a time
 
-          train_loss, train_acc, train_f1 = self.train_stats(device)
-          train_losses.append(train_loss)
-          train_f1_scores.append(train_f1)
+          if self.dataset_name.lower() in ["adult", "census"]:
+              train_loss, train_acc, train_f1 = self.train_stats_classification(device)
+              train_losses.append(train_loss)
+              train_f1_scores.append(train_f1)
 
-          if train_acc is not None:
-              print(f"Training statistic: Accuracy {train_acc:.4f}%, Loss: {train_loss:.4f}, F1: {train_f1:.4f}")
+              if train_acc is not None:
+                  print(f"Training statistic: Accuracy {train_acc:.4f}%, Loss: {train_loss:.4f}, F1: {train_f1:.4f}")
+              else:
+                  print(f"Training statistic: Loss: {train_loss:.4f}, MSE: {train_f1:.4f}")
+
+              test_loss, test_acc, test_f1 = self.validate_classification(load_weight=False)
+              test_losses.append(test_loss)
+              test_f1_scores.append(test_f1)
+
+              with open(self.acc_dir + self.acc_file_name, 'a') as acc_file:
+                  acc_file.write(f"{epoch+1},{train_loss},{train_acc},{train_f1},{test_loss},{test_acc},{test_f1}\n")
           else:
-              print(f"Training statistic: Loss: {train_loss:.4f}, MSE: {train_f1:.4f}")
+              train_loss, train_mse, train_r2 = self.train_stats_regression(device)
+              train_losses.append(train_loss)
+              train_mse_scores.append(train_mse)
+              train_r2_scores.append(train_r2)
 
-          test_loss, test_acc, test_f1 = self.validate(load_weight=False)
-          test_losses.append(test_loss)
-          test_f1_scores.append(test_f1)
+              print(f"Training statistic: Loss: {train_loss:.4f}, MSE: {train_mse:.4f}, R2: {train_r2:.4f}")
+
+              test_loss, test_mse, test_r2 = self.validate_regression(load_weight=False)
+              test_losses.append(test_loss)
+              test_mse_scores.append(test_mse)
+              test_r2_scores.append(test_r2)
+
+              with open(self.acc_dir + self.acc_file_name, 'a') as acc_file:
+                  acc_file.write(f"{epoch+1},{train_mse},{train_r2},{test_mse},{test_r2}\n")
 
           print(f"lr: {lr}")
-
-          with open(self.acc_dir + self.acc_file_name, 'a') as acc_file:
-              acc_file.write(f"{epoch+1},{train_loss},{train_acc},{train_f1},{test_loss},{test_acc},{test_f1}\n")
 
           # Saving the model only if the current test loss is better
           if test_loss < best_val_loss:
@@ -180,10 +202,14 @@ class train:
       print("Finish training!")
 
       self.plot_losses(train_losses, test_losses)
-      self.plot_f1_scores(train_f1_scores, test_f1_scores)
+      if self.dataset_name.lower() in ["adult", "census"]:
+          self.plot_f1_scores(train_f1_scores, test_f1_scores)
+      else:
+          self.plot_mse_scores(train_mse_scores, test_mse_scores)
+          self.plot_r2_scores(train_r2_scores, test_r2_scores)
       self.save_classification_report()
 
-  def train_stats(self, device):
+  def train_stats_classification(self, device):
       self.trainer.model['model'].eval()
       corrects, loss, total = 0, 0, 0
       all_preds, all_labels = [], []
@@ -192,28 +218,40 @@ class train:
               X, y = X.to(device), y.to(device).float().unsqueeze(1)
               
               output = self.trainer.model['model'](X)
-              if self.dataset_name.lower() in ["adult", "census"]:
-                  pred = (output > 0.5).float()
-                  corrects += pred.eq(y).sum().item()
-                  all_preds.extend(pred.cpu().numpy())
-              else:
-                  pred = output
-                  all_preds.extend(pred.cpu().numpy())
+              pred = (output > 0.5).float()
+              corrects += pred.eq(y).sum().item()
+              all_preds.extend(pred.cpu().numpy())
               loss += self.trainer.model["criterion"](output, y).item() * len(y)
               total += len(y)
               all_labels.extend(y.cpu().numpy())
       
       loss = loss / total
-      if self.dataset_name.lower() in ["adult", "census"]:
-          accuracy = 100 * corrects / total
-          f1 = f1_score(all_labels, all_preds)
-      else:
-          accuracy = None
-          f1 = mean_squared_error(all_labels, all_preds)  # MSE for regression
+      accuracy = 100 * corrects / total
+      f1 = f1_score(all_labels, all_preds)
 
       return loss, accuracy, f1
 
-  def validate(self, load_weight=False):
+  def train_stats_regression(self, device):
+      self.trainer.model['model'].eval()
+      loss, total = 0, 0
+      all_preds, all_labels = [], []
+      with torch.no_grad():
+          for batch_idx, (X, y) in enumerate(self.data.train_data):
+              X, y = X.to(device), y.to(device).float().unsqueeze(1)
+              
+              output = self.trainer.model['model'](X)
+              all_preds.extend(output.cpu().numpy())
+              loss += self.trainer.model["criterion"](output, y).item() * len(y)
+              total += len(y)
+              all_labels.extend(y.cpu().numpy())
+      
+      loss = loss / total
+      mse = mean_squared_error(all_labels, all_preds)
+      r2 = r2_score(all_labels, all_preds)
+
+      return loss, mse, r2
+
+  def validate_classification(self, load_weight=False):
       print("Validation statistic...")
 
       if load_weight:
@@ -227,32 +265,49 @@ class train:
               X, y = X.to(device), y.to(device).float().unsqueeze(1)
               
               output = self.trainer.model['model'](X)
-              if self.dataset_name.lower() in ["adult", "census"]:
-                  pred = (output > 0.5).float()
-                  corrects += pred.eq(y).sum().item()
-                  all_preds.extend(pred.cpu().numpy())
-              else:
-                  pred = output
-                  all_preds.extend(pred.cpu().numpy())
+              pred = (output > 0.5).float()
+              corrects += pred.eq(y).sum().item()
+              all_preds.extend(pred.cpu().numpy())
               loss += self.trainer.model["criterion"](output, y).item() * len(y)
               total += len(y)
               all_labels.extend(y.cpu().numpy())
       
       loss = loss / total
-      if self.dataset_name.lower() in ["adult", "census"]:
-          accuracy = 100 * corrects / total
-          f1 = f1_score(all_labels, all_preds)
-      else:
-          accuracy = None
-          f1 = mean_squared_error(all_labels, all_preds)  # MSE for regression
+      accuracy = 100 * corrects / total
+      f1 = f1_score(all_labels, all_preds)
 
-      if accuracy is not None:
-          print(f"Accuracy: {accuracy:.4f}%, Loss: {loss:.4f}, F1: {f1:.4f}")
-      else:
-          print(f"Loss: {loss:.4f}, MSE: {f1:.4f}")
+      print(f"Accuracy: {accuracy:.4f}%, Loss: {loss:.4f}, F1: {f1:.4f}")
       print("-------------------------------------------")
 
       return loss, accuracy, f1
+
+  def validate_regression(self, load_weight=False):
+      print("Validation statistic...")
+
+      if load_weight:
+          self.trainer.model['model'].load_state_dict(torch.load(self.w_dir + self.w_file_name))
+
+      self.trainer.model['model'].eval()
+      loss, total = 0, 0
+      all_preds, all_labels = [], []
+      with torch.no_grad():
+          for batch_idx, (X, y) in enumerate(self.data.test_data):
+              X, y = X.to(device), y.to(device).float().unsqueeze(1)
+              
+              output = self.trainer.model['model'](X)
+              all_preds.extend(output.cpu().numpy())
+              loss += self.trainer.model["criterion"](output, y).item() * len(y)
+              total += len(y)
+              all_labels.extend(y.cpu().numpy())
+      
+      loss = loss / total
+      mse = mean_squared_error(all_labels, all_preds)
+      r2 = r2_score(all_labels, all_preds)
+
+      print(f"Loss: {loss:.4f}, MSE: {mse:.4f}, R2: {r2:.4f}")
+      print("-------------------------------------------")
+
+      return loss, mse, r2
 
   def save_model(self, fmodel):
       print("Saving model...")
@@ -272,13 +327,35 @@ class train:
 
   def plot_f1_scores(self, train_f1_scores, test_f1_scores):
       plt.figure()
-      plt.plot(train_f1_scores, label='Training F1 Score' if self.dataset_name.lower() in ["adult", "census"] else 'Training MSE')
-      plt.plot(test_f1_scores, label='Test F1 Score' if self.dataset_name.lower() in ["adult", "census"] else 'Test MSE')
+      plt.plot(train_f1_scores, label='Training F1 Score')
+      plt.plot(test_f1_scores, label='Test F1 Score')
       plt.xlabel('Epoch')
-      plt.ylabel('F1 Score' if self.dataset_name.lower() in ["adult", "census"] else 'MSE')
-      plt.title('Training and Test F1 Score' if self.dataset_name.lower() in ["adult", "census"] else 'Training and Test MSE')
+      plt.ylabel('F1 Score')
+      plt.title('Training and Test F1 Score')
       plt.legend()
       plt.savefig(self.acc_dir + self.w_file_name.replace('.weight.pth', '_f1_score_plot.png'))
+      plt.close()
+
+  def plot_mse_scores(self, train_mse_scores, test_mse_scores):
+      plt.figure()
+      plt.plot(train_mse_scores, label='Training MSE')
+      plt.plot(test_mse_scores, label='Test MSE')
+      plt.xlabel('Epoch')
+      plt.ylabel('MSE')
+      plt.title('Training and Test MSE')
+      plt.legend()
+      plt.savefig(self.acc_dir + self.w_file_name.replace('.weight.pth', '_mse_plot.png'))
+      plt.close()
+
+  def plot_r2_scores(self, train_r2_scores, test_r2_scores):
+      plt.figure()
+      plt.plot(train_r2_scores, label='Training R2 Score')
+      plt.plot(test_r2_scores, label='Test R2 Score')
+      plt.xlabel('Epoch')
+      plt.ylabel('R2 Score')
+      plt.title('Training and Test R2 Score')
+      plt.legend()
+      plt.savefig(self.acc_dir + self.w_file_name.replace('.weight.pth', '_r2_plot.png'))
       plt.close()
 
   def save_classification_report(self):
@@ -298,7 +375,7 @@ class train:
       if self.dataset_name.lower() in ["adult", "census"]:
           report = classification_report(all_labels, all_preds, target_names=['class 0', 'class 1'])
       else:
-          report = f"MSE: {mean_squared_error(all_labels, all_preds)}"
+          report = f"MSE: {mean_squared_error(all_labels, all_preds)}\nR2: {r2_score(all_labels, all_preds)}"
       
       with open(self.acc_dir + self.report_file_name, 'w') as report_file:
           report_file.write(report)
