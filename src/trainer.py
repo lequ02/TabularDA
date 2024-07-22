@@ -4,9 +4,8 @@ import copy
 import torch
 from torch import nn, optim
 from models import DNN_Adult, DNN_Census, DNN_News 
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, r2_score
 import math
-
 
 random.seed(1)
 
@@ -43,7 +42,6 @@ class trainer:
         self.model["model"].train()
         
         for epoch in range(epochs):
-            epoch_loss = 0
             for batch_idx, (X, y) in enumerate(self.data):
                 X, y = X.to(device), y.to(device).float().unsqueeze(1)  # Ensure y is float and has correct shape
 
@@ -51,15 +49,15 @@ class trainer:
                 output = self.model["model"].forward(X)
 
                 loss = self.model["criterion"](output, y)
-                epoch_loss += loss.item()
-
                 loss.backward()
                 self.model["optim"].step()
+                
 
     def train_stats(self, device):
         # Evaluating the model and return statistics
         self.model["model"].eval()
-        corrects, loss, total = 0, 0, 0
+        corrects, total = 0, 0
+        all_preds, all_labels = [], []
 
         with torch.no_grad():
             for batch_idx, (X, y) in enumerate(self.data):
@@ -69,17 +67,18 @@ class trainer:
                 if self.model_type in ["adult", "census"]:
                     pred = (output > 0.5).float()  # Threshold at 0.5 for binary classification
                     corrects += pred.eq(y).sum().item()
+                    all_preds.extend(pred.cpu().numpy())
                 else:
                     pred = output  # For regression, no thresholding
+                    all_preds.extend(pred.cpu().numpy())
 
-                loss += self.model["criterion"](output, y).item() * len(y)
                 total += len(y)
+                all_labels.extend(y.cpu().numpy())
 
         if self.model_type in ["adult", "census"]:
             accuracy = 100 * corrects / total
-            loss = loss / total
-            return loss, accuracy
+            return accuracy, None  # Return None for MSE and R2 in classification
         else:
-            loss = loss / total  # For regression
-            return loss, None  # Return None for accuracy in regression
-
+            mse = mean_squared_error(all_labels, all_preds)
+            r2 = r2_score(all_labels, all_preds)
+            return mse, r2  # Return MSE and R2 for regression
