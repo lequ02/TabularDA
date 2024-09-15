@@ -43,6 +43,22 @@ def load_census(verbose=False):
     return x, y
 
 
+def load_covertype(verbose=False):
+
+    # dummy = load_dataset(31, verbose)
+    # print(dummy)
+    # print(dummy[0].shape)
+    # print(dummy[1].shape)
+    # print(dummy[0].columns)
+    # print(dummy[1].columns)
+    # print(type(dummy[0]))
+    # print(type(dummy[1]))
+    # print(dummy[0].head())
+    # print(dummy[1].head())
+
+    return load_dataset(31, verbose)
+
+
 
 
 
