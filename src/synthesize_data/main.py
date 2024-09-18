@@ -54,9 +54,9 @@ def create_synthetic_data_census():
   categorical_columns = ['workclass', 'education', 'marital-status', 'occupation',
                             'relationship', 'race', 'sex', 'native-country']
   synthesize_census_sdv = synthesize_data(x_original, y_original, categorical_columns,
-                            sample_size=1000_000, target_synthesizer='',
+                            sample_size=100_000, target_synthesizer='',
                             target_name=target_name, synthesizer_file_name='../sdv trained model/census/census_synthesizer.pkl',
-                            csv_file_name='../data/census/onehot_census_sdv_1mil.csv', verbose=True,
+                            csv_file_name='../data/covertype/onehot_covertype_sdv_100k.csv', verbose=True,
                             show_network=True)
 
 
@@ -67,9 +67,9 @@ def create_synthetic_data_census():
   categorical_columns = ['workclass', 'education', 'marital-status', 'occupation',
                             'relationship', 'race', 'sex', 'native-country']
   synthesize_census_sdv_gaussian_1mil = synthesize_data(x_original, y_original, categorical_columns,
-                            sample_size=1000_000, target_synthesizer='gaussianNB',
+                            sample_size=100_000, target_synthesizer='gaussianNB',
                             target_name=target_name, synthesizer_file_name='../sdv trained model/census/census_synthesizer_onlyX.pkl',
-                            csv_file_name='../data/census/onehot_census_sdv_gaussian_1mil.csv', verbose=True,
+                            csv_file_name='../data/covertype/onehot_covertype_sdv_gaussian_100k.csv', verbose=True,
                             show_network=True)
 
 
@@ -80,9 +80,9 @@ def create_synthetic_data_census():
   categorical_columns = ['workclass', 'education', 'marital-status', 'occupation',
                             'relationship', 'race', 'sex', 'native-country']
   synthesize_census_sdv_categorical_1mil = synthesize_from_trained_model(x_original, y_original, categorical_columns,
-                            sample_size=1000_000, target_synthesizer='categoricalNB',
+                            sample_size=100_000, target_synthesizer='categoricalNB',
                             target_name=target_name, synthesizer_file_name='../sdv trained model/census/census_synthesizer_onlyX.pkl',
-                            csv_file_name='../data/census/onehot_census_sdv_categorical_1mil.csv', verbose=True,
+                            csv_file_name='../data/covertype/onehot_covertype_sdv_categorical_100k.csv', verbose=True,
                             show_network=True)
 
 def create_synthetic_data_adult():
