@@ -8,6 +8,8 @@ import pickle
 import torch
 import pandas as pd
 import numpy as np
+import os
+
 
 def synthesize_data(x_original, y_original, categorical_columns, target_name,
                     sample_size=100_000, return_onehot=True,
@@ -54,6 +56,7 @@ def synthesize_data(x_original, y_original, categorical_columns, target_name,
 
   # save synthesizer
   synthesizer_file_name = '../sdv trained model/' + synthesizer_file_name
+  check_directory(synthesizer_file_name) # create directory if not exist
   synthesizer.save(synthesizer_file_name)
   if verbose:
     print(f"Synthesizer saved at {synthesizer_file_name}")
@@ -140,6 +143,7 @@ def synthesize_data(x_original, y_original, categorical_columns, target_name,
     synthesized_data = pd.concat([x_synthesized_backup, synthesized_data[target_name]], axis=1)
   
   # save synthesized data to csv
+  check_directory(csv_file_name) # create directory if not exist
   synthesized_data.to_csv(csv_file_name)
 
   if verbose:
@@ -151,6 +155,7 @@ def synthesize_data(x_original, y_original, categorical_columns, target_name,
     # kwargs_dict = synthesized_data.to_dict('list')
     # save to npz file, exclude index column
     synthesized_data_np = synthesized_data.to_numpy()
+    check_directory(npz_file_name) # create directory if not exist
     np.savez(npz_file_name, syn=synthesized_data_np)
     synthesized_data.to_csv(csv_file_name, index=False)
     print(f'Data is saved at {npz_file_name}')
@@ -366,3 +371,10 @@ def create_synthesizer(metadata):
       cuda=True
   )
   return synthesizer
+
+
+def check_directory(file_path):
+    directory_path = os.path.dirname(file_path)
+    if not os.path.exists(directory_path):
+        os.makedirs(directory_path)
+        print(f"Directory {directory_path} created.")
