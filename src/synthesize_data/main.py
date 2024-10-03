@@ -18,41 +18,6 @@ def main():
   create_synthetic_data_adult()
   create_synthetic_data_news()
 
-def create_synthetic_data_covertype():
-  target_name = 'Cover_Type'
-  categorical_columns = []
-
-  x_original, y_original = load_covertype()
-  x_original = pd.concat([x_original, y_original], axis=1)
-  synthesize_covertype_sdv = synthesize_data(x_original, y_original, categorical_columns,
-                            sample_size=100_000, target_synthesizer='',
-                            target_name=target_name, synthesizer_file_name='../sdv trained model/covertype/covertype_synthesizer.pkl',
-                            csv_file_name='../data/covertype/covertype_sdv_100k.csv', verbose=True,
-                            # show_network=True
-                            )
-
-  x_original, y_original = load_covertype()
-  synthesize_data(x_original, y_original, categorical_columns,
-                            sample_size=100_000, target_synthesizer='gaussianNB',
-                            target_name=target_name, synthesizer_file_name='../sdv trained model/covertype/covertype_synthesizer_onlyX.pkl',
-                            csv_file_name='../data/covertype/covertype_sdv_gaussian_100k.csv', verbose=True,
-                            # show_network=True
-                            )
-
-  x_original, y_original = load_covertype()
-  synthesize_from_trained_model(x_original, y_original, categorical_columns,
-                            sample_size=100_000, target_synthesizer='categoricalNB',
-                            target_name=target_name, synthesizer_file_name='../sdv trained model/covertype/covertype_synthesizer_onlyX.pkl',
-                            csv_file_name='../data/covertype/covertype_sdv_categorical_100k.csv', verbose=True,
-                            # show_network=True
-                            )
-
-
-
-
-
-
-
 
 def create_synthetic_simulated():
   simulated_names = ['grid', 'gridr', 'ring']

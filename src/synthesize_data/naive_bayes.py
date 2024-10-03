@@ -5,6 +5,14 @@ from sklearn.naive_bayes import CategoricalNB
 from sklearn.preprocessing import MinMaxScaler
 
 def create_label_gaussianNB(xtrain, ytrain, xtest, target_name, filename=None):
+
+
+  x_null = xtrain.isnull().sum()
+  print("\n\nNull values in xtrain: ", x_null)
+
+  x_null = xtest.isnull().sum()
+  print("\n\nNull values in xtest: ", x_null)
+
   # xtrain and ytrain are one hot encoded
   xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
   xtest = xtest.reindex(sorted(xtest.columns), axis=1)

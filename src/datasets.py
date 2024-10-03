@@ -20,10 +20,26 @@ def load_dataset(dataset_id, verbose=False):
 
 def load_adult(verbose=False):
     x, y = load_dataset(2, verbose)
-    # the y values are <=50K, <=50K., >50K >50K.
-    # We need to remove the '.' from the values
-    y['income'] = y['income'].str.replace('.', '', regex=False)
     # print(y.income.unique())
+    # the y values are "<=50K", "<=50K."", "">50K", ">50K."
+    # We need to remove the '.' from the values
+    y['income'] = y['income'].str.replace('.', '', regex=False)\
+
+    # handle missing values
+    xy = pd.concat([x, y], axis=1)
+    xy.dropna(inplace=True)
+    xy.reset_index(drop=True, inplace=True) # must always reset index
+    y = pd.DataFrame(xy['income'])
+    x = xy.drop(columns=['income'])
+    print(x.shape, y.shape)
+    print(x.isnull().sum())
+
+# missing values
+# (48842, 14)
+# workclass         963 ~ 5%
+# occupation        966 ~ 5%
+# native-country    274 ~ 1%
+
     return x, y
 
 def load_news(verbose=False):

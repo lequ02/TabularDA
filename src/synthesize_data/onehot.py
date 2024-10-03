@@ -15,11 +15,15 @@ def onehot(xtrain, xtest, categorical_columns, verbose=False):
   # Automatically determine the numerical columns
   numerical_cols = list(set(xtrain.columns) - set(categorical_columns))
   if verbose:
+    print("xtrain shape: ", xtrain.shape)
+    print("xtest shape: ", xtest.shape)
     print("Numerical columns: ", numerical_cols)
 
   # Prepare train_prep and test_prep
   xtrain_prep = xtrain[numerical_cols]
   xtest_prep = xtest[numerical_cols]
+
+  xtrain_prep.to_csv("xtrain_prep_ori.csv")
 
     # One-Hot Encoding with modified categorical values
   for col in categorical_columns:
@@ -28,7 +32,14 @@ def onehot(xtrain, xtest, categorical_columns, verbose=False):
       xtrain_onehot = OneHotEncoder().fit_transform(xtrain[col].values.reshape(-1,1))
       xtrain_onehot = xtrain_onehot.toarray()
       xtrain_onehot = pd.DataFrame(xtrain_onehot, columns = xtrain[col].unique())
-      xtrain_prep = pd.concat([xtrain_prep, xtrain_onehot], axis=1)
+
+
+      print("xtrain_onehot", xtrain_onehot)
+      print("xtrain_prep: ", xtrain_prep)
+      print("xtrain_onehot shape: ", xtrain_onehot.shape)
+      print("xtrain_prep shape: ", xtrain_prep.shape)
+
+      xtrain_prep = pd.concat([xtrain_prep, xtrain_onehot], axis=1) # when dropping missing values, index won't be continuous, so concat (xtrain_prep, xtrain_onehot, axis=1) will not match
 
       # One-Hot Encoding for xtest
       xtest_onehot = OneHotEncoder().fit_transform(xtest[col].values.reshape(-1,1))
@@ -39,9 +50,16 @@ def onehot(xtrain, xtest, categorical_columns, verbose=False):
 
       # Check differences between xtrain and xtest
       if verbose:
-        print(f"Differences between xtrain and xtest in column: {col}")
+        print(f"Differences between xtest and xtrain in column: {col}")
         dif1 = set(xtest[col].unique()) - set(xtrain[col].unique())
         # print(col)
         print(len(dif1), dif1)
 
+
+      print("xtrain_prep:", xtrain_prep.shape)
+      print("xtest_prep:", xtest_prep.shape)
+
+
+
+      xtrain_prep.to_csv("xtrain_prep.csv")
   return xtrain_prep, xtest_prep
