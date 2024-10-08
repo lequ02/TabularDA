@@ -25,14 +25,14 @@ def load_adult(verbose=False):
     # We need to remove the '.' from the values
     y['income'] = y['income'].str.replace('.', '', regex=False)\
 
-    # handle missing values
-    xy = pd.concat([x, y], axis=1)
-    xy.dropna(inplace=True)
-    xy.reset_index(drop=True, inplace=True) # must always reset index
-    y = pd.DataFrame(xy['income'])
-    x = xy.drop(columns=['income'])
-    print(x.shape, y.shape)
-    print(x.isnull().sum())
+    # # handle missing values
+    # xy = pd.concat([x, y], axis=1)
+    # xy.dropna(inplace=True)
+    # xy.reset_index(drop=True, inplace=True) # must always reset index
+    # y = pd.DataFrame(xy['income'])
+    # x = xy.drop(columns=['income'])
+    # print(x.shape, y.shape)
+    # print(x.isnull().sum())
 
 # missing values
 # (48842, 14)
