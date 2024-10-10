@@ -1,7 +1,9 @@
 from data_loader import data_loader
 from datasets import load_news, load_adult, load_census
 import pandas as pd
-from synthesize_data.onehot import onehot
+# from synthesize_data.onehot import onehot
+from commons.onehot import onehot
+
 
 # numerical columns to normalize
 numerical_columns = ['age', 'fnlwgt', 'education-num', 'capital-gain', 'capital-loss', 'hours-per-week']

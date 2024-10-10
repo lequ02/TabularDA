@@ -2,7 +2,8 @@ import pandas as pd
 import torch
 import random
 from torch.utils.data import TensorDataset, DataLoader, ConcatDataset
-from synthesize_data.onehot import onehot
+# from synthesize_data.onehot import onehot
+from commons.onehot import onehot
 from datasets import load_adult, load_news, load_census
 from sklearn.preprocessing import StandardScaler
 

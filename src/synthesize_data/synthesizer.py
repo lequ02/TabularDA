@@ -1,6 +1,6 @@
 from sdv.single_table import CTGANSynthesizer
 from sdv.metadata import SingleTableMetadata
-from onehot import onehot
+# from onehot import onehot
 from naive_bayes import create_label_gaussianNB, create_label_categoricalNB
 from bayes_net import create_label_BN, create_label_BN_from_trained
 from bayes_net import create_label_BN, create_label_BN_from_trained
@@ -10,6 +10,8 @@ import pandas as pd
 import numpy as np
 import os
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+from commons.onehot import onehot
 
 def synthesize_data(x_original, y_original, categorical_columns, target_name,
                     sample_size=100_000, return_onehot=True,
