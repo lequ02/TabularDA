@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 
-def read_adult_data(train_csv, test_csv,
+def read_train_test_csv(train_csv, test_csv,
                     target_name,
                     categorical_columns):
   """

@@ -10,7 +10,9 @@ import pandas as pd
 import numpy as np
 import os
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
+print(sys.path)
 from commons.onehot import onehot
 
 def synthesize_data(x_original, y_original, categorical_columns, target_name,

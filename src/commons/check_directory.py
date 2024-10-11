@@ -1,3 +1,5 @@
+import os
+
 def check_directory(file_path):
     directory_path = os.path.dirname(file_path)
     if not os.path.exists(directory_path):
