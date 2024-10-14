@@ -16,22 +16,24 @@ def create_synthetic_data_adult():
   synthesize data using SDV only, SDV with GaussianNB, and SDV with CategoricalNB
   """
 
-  # synthesize data for the adult dataset
-  paths = {'synthesizer_dir': '../sdv trained model/adult/',
-            'data_dir': '../data/adult/',
+  ds_name = 'adult'
+  # synthesize data for the census dataset
+  paths = {'synthesizer_dir': f'../sdv trained model/{ds_name}/',
+            'data_dir': f'../data/{ds_name}/',
 
-            'train_csv': 'adult_train.csv',
-            'test_csv': 'adult_test.csv',
+            'train_csv': f'{ds_name}_train.csv',
+            'test_csv': f'{ds_name}_test.csv',
 
-            'sdv_only_synthesizer': 'adult_synthesizer.pkl',
-            'sdv_only_csv': 'onehot_adult_sdv_100k.csv',
+            'sdv_only_synthesizer': f'{ds_name}_synthesizer.pkl',
+            'sdv_only_csv': f'onehot_{ds_name}_sdv_100k.csv',
 
-            'sdv_gaussian_synthesizer': 'adult_synthesizer_onlyX.pkl',
-            'sdv_gaussian_csv': 'onehot_adult_sdv_gaussian_100k.csv',
+            'sdv_gaussian_synthesizer': f'{ds_name}_synthesizer_onlyX.pkl',
+            'sdv_gaussian_csv': f'onehot_{ds_name}_sdv_gaussian_100k.csv',
 
-            'sdv_categorical_synthesizer': 'adult_synthesizer_onlyX.pkl',
-            'sdv_categorical_csv': 'onehot_adult_sdv_categorical_100k.csv'
+            'sdv_categorical_synthesizer': f'{ds_name}_synthesizer_onlyX.pkl',
+            'sdv_categorical_csv': f'onehot_{ds_name}_sdv_categorical_100k.csv'
             }
+
 
   # save train-test data to csv files
   xtrain, xtest, ytrain, ytest, target_name, categorical_columns = prepare_train_test_adult(paths['data_dir']+paths['train_csv'], paths['data_dir']+paths['test_csv'])
@@ -46,7 +48,8 @@ def create_synthetic_data_adult():
                             )
 
   # sdv gaussian
-  xtrain, xtest, ytrain, ytest, target_name, categorical_columns = read_adult_data()
+  xtrain, xtest, ytrain, ytest, target_name, categorical_columns = read_adult_data(paths['data_dir']+paths['train_csv'], paths['data_dir']+paths['test_csv'],
+                                                                                      target_name=target_name, categorical_columns=categorical_columns)
   synthesize_adult_sdv_gaussian_100k = synthesize_data(xtrain, ytrain, categorical_columns,
                             sample_size=100_000, target_synthesizer='gaussianNB',
                             target_name=target_name, synthesizer_file_name= paths['synthesizer_dir']+paths['sdv_gaussian_synthesizer'],
@@ -55,7 +58,8 @@ def create_synthetic_data_adult():
                             )
 
   # sdv categorical
-  xtrain, xtest, ytrain, ytest, target_name, categorical_columns = read_adult_data()
+  xtrain, xtest, ytrain, ytest, target_name, categorical_columns = read_adult_data(paths['data_dir']+paths['train_csv'], paths['data_dir']+paths['test_csv'],
+                                                                                      target_name=target_name, categorical_columns=categorical_columns)
   synthesize_adult_sdv_categorical_100k = synthesize_from_trained_model(xtrain, ytrain, categorical_columns,
                             sample_size=100_000, target_synthesizer='categoricalNB',
                             target_name=target_name, synthesizer_file_name= paths['synthesizer_dir']+paths['sdv_categorical_synthesizer'],
@@ -98,15 +102,15 @@ def prepare_train_test_adult(save_train_as, save_test_as):
   return xtrain, xtest, ytrain, ytest, target_name, categorical_columns
 
 
-def read_adult_data():
+def read_adult_data(train_csv, test_csv, target_name, categorical_columns):
   """
   read train and test data from csv files
   """
-  train_csv="..\\data\\adult\\adult_train.csv"
-  test_csv="..\\data\\adult\\adult_test.csv"
-  target_name='income'
-  categorical_columns=['workclass', 'education', 'marital-status', 'occupation',
-                      'relationship', 'race', 'sex', 'native-country']
+  # train_csv="..\\data\\adult\\adult_train.csv"
+  # test_csv="..\\data\\adult\\adult_test.csv"
+  # target_name='income'
+  # categorical_columns=['workclass', 'education', 'marital-status', 'occupation',
+  #                     'relationship', 'race', 'sex', 'native-country']
 
   xtrain, xtest, ytrain, ytest, target_name, categorical_columns = read_train_test_csv.read_train_test_csv(train_csv, test_csv,
    target_name=target_name, categorical_columns=categorical_columns)

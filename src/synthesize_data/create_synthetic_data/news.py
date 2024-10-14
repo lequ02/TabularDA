@@ -32,20 +32,21 @@ def create_synthetic_data_news():
             'sdv_categorical_csv': f'onehot_{ds_name}_sdv_categorical_100k.csv'
             }
 
-  # # save train-test data to csv files
-  # xtrain, xtest, ytrain, ytest, target_name, categorical_columns = prepare_train_test_news(paths['data_dir']+paths['train_csv'], paths['data_dir']+paths['test_csv'])
+  # save train-test data to csv files
+  xtrain, xtest, ytrain, ytest, target_name, categorical_columns = prepare_train_test_news(paths['data_dir']+paths['train_csv'], paths['data_dir']+paths['test_csv'])
 
-  # # sdv only
-  # xytrain = pd.concat([xtrain, ytrain], axis=1)
-  # synthesize_news_sdv = synthesize_data(xytrain, ytrain, categorical_columns,
-  #                           sample_size=100_000, target_synthesizer='',
-  #                           target_name=target_name, synthesizer_file_name= paths['synthesizer_dir']+paths['sdv_only_synthesizer'],
-  #                           csv_file_name= paths['data_dir']+paths['sdv_only_csv'], verbose=True,
-  #                           # show_network=True
-  #                           )
+  # sdv only
+  xytrain = pd.concat([xtrain, ytrain], axis=1)
+  synthesize_news_sdv = synthesize_data(xytrain, ytrain, categorical_columns,
+                            sample_size=100_000, target_synthesizer='',
+                            target_name=target_name, synthesizer_file_name= paths['synthesizer_dir']+paths['sdv_only_synthesizer'],
+                            csv_file_name= paths['data_dir']+paths['sdv_only_csv'], verbose=True,
+                            # show_network=True
+                            )
 
   # sdv gaussian
-  xtrain, xtest, ytrain, ytest, target_name, categorical_columns = read_news_data()
+  xtrain, xtest, ytrain, ytest, target_name, categorical_columns = read_news_data(paths['data_dir']+paths['train_csv'], paths['data_dir']+paths['test_csv'],
+                                                                                    target_name=target_name, categorical_columns=categorical_columns)
   synthesize_news_sdv_gaussian_100k = synthesize_data(xtrain, ytrain, categorical_columns,
                             sample_size=100_000, target_synthesizer='gaussianNB',
                             target_name=target_name, synthesizer_file_name= paths['synthesizer_dir']+paths['sdv_gaussian_synthesizer'],
@@ -54,7 +55,8 @@ def create_synthetic_data_news():
                             )
 
   # sdv categorical
-  xtrain, xtest, ytrain, ytest, target_name, categorical_columns = read_news_data()
+  xtrain, xtest, ytrain, ytest, target_name, categorical_columns = read_news_data(paths['data_dir']+paths['train_csv'], paths['data_dir']+paths['test_csv'],
+                                                                                    target_name=target_name, categorical_columns=categorical_columns)
   synthesize_news_sdv_categorical_100k = synthesize_from_trained_model(xtrain, ytrain, categorical_columns,
                             sample_size=100_000, target_synthesizer='categoricalNB',
                             target_name=target_name, synthesizer_file_name= paths['synthesizer_dir']+paths['sdv_categorical_synthesizer'],
@@ -95,14 +97,14 @@ def prepare_train_test_news(save_train_as, save_test_as):
   return xtrain, xtest, ytrain, ytest, target_name, categorical_columns
 
 
-def read_news_data():
+def read_news_data(train_csv, test_csv, target_name, categorical_columns):
   """
   read train and test data from csv files
   """
-  train_csv="..\\data\\news\\news_train.csv"
-  test_csv="..\\data\\news\\news_test.csv"
-  target_name=' shares'
-  categorical_columns=[]
+  # train_csv="..\\data\\news\\news_train.csv"
+  # test_csv="..\\data\\news\\news_test.csv"
+  # target_name=' shares'
+  # categorical_columns=[]
 
   xtrain, xtest, ytrain, ytest, target_name, categorical_columns = read_train_test_csv.read_train_test_csv(train_csv, test_csv,
    target_name=target_name, categorical_columns=categorical_columns)
