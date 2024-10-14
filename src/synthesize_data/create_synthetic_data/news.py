@@ -101,7 +101,7 @@ def read_news_data():
   """
   train_csv="..\\data\\news\\news_train.csv"
   test_csv="..\\data\\news\\news_test.csv"
-  target_name='income'
+  target_name=' shares'
   categorical_columns=[]
 
   xtrain, xtest, ytrain, ytest, target_name, categorical_columns = read_train_test_csv.read_train_test_csv(train_csv, test_csv,
