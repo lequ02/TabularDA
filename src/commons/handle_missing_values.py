@@ -8,8 +8,6 @@ set_config(transform_output = "pandas")
 def handle_missing_values(x, y, target_name, strategy):
     data = pd.concat([x, y], axis=1)
 
-
-
     # handle missing values
     if strategy == 'drop':
         data.dropna(inplace=True)

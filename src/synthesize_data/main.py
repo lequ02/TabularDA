@@ -2,7 +2,7 @@ from synthesizer import *
 import sys
 import os
 import pandas as pd
-from create_synthetic_data import adult, news
+from create_synthetic_data import adult, news, census, covertype
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -10,11 +10,14 @@ from datasets import load_adult, load_news, load_census, load_covertype
 
 def single_run():
   # adult.create_synthetic_data_adult()
-  news.create_synthetic_data_news()
+  # news.create_synthetic_data_news()
+  census.create_synthetic_data_census()
 
 def main():
-  adult.create_synthetic_data_adult()
-  news.create_synthetic_data_news()
+  # adult.create_synthetic_data_adult()
+  # news.create_synthetic_data_news()
+  # census.create_synthetic_data_census()
+  pass
 
 
 def create_synthetic_simulated():

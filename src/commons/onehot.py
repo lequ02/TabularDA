@@ -29,7 +29,9 @@ def onehot(xtrain, xtest, categorical_columns, verbose=False):
   for col in categorical_columns:
 
       # One-Hot Encoding for xtrain
-      xtrain_onehot = OneHotEncoder().fit_transform(xtrain[col].values.reshape(-1,1))
+      train_ohe = OneHotEncoder()
+      train_ohe.set_output(transform="default") # Disable the pandas output to return an array because Pandas output does not support sparse data
+      xtrain_onehot = train_ohe.fit_transform(xtrain[col].values.reshape(-1,1))
       xtrain_onehot = xtrain_onehot.toarray()
       xtrain_onehot = pd.DataFrame(xtrain_onehot, columns = xtrain[col].unique())
 
@@ -42,7 +44,9 @@ def onehot(xtrain, xtest, categorical_columns, verbose=False):
       xtrain_prep = pd.concat([xtrain_prep, xtrain_onehot], axis=1) # when dropping missing values, index won't be continuous, so concat (xtrain_prep, xtrain_onehot, axis=1) will not match
 
       # One-Hot Encoding for xtest
-      xtest_onehot = OneHotEncoder().fit_transform(xtest[col].values.reshape(-1,1))
+      test_ohe = OneHotEncoder()
+      test_ohe.set_output(transform="default") # Disable the pandas output to return an array because Pandas output does not support sparse data
+      xtest_onehot = test_ohe.fit_transform(xtest[col].values.reshape(-1,1))
       xtest_onehot = xtest_onehot.toarray()
       xtest_onehot = pd.DataFrame(xtest_onehot, columns = xtest[col].unique())
       xtest_onehot = xtest_onehot.set_index(xtest.index)
