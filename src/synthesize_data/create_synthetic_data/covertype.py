@@ -67,7 +67,6 @@ def create_synthetic_data_covertype():
 
 def prepare_train_test_covertype(save_train_as, save_test_as):
   """
-  map the y value to 0 and 1
   train-test split the covertype data
   handle missing values
   save the train-test data to csv
