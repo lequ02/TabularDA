@@ -8,33 +8,28 @@ from sklearn.preprocessing import StandardScaler
 
 class data_loader:
     def __init__(self, dataset_name, train_option, test_option,
-                 test_ratio, batch_size, numerical_columns=[]):
+                batch_size, numerical_columns=[]):
         self.dataset_name = dataset_name
         self.batch_size = batch_size
         self.numerical_columns = numerical_columns
         self.train_option = train_option
         self.test_option = test_option
-        self.test_ratio = test_ratio
+  
 
         # Load and print shapes before batching
         train_data, test_data = self.load_datasets(self.train_option)
         print(f"Total train samples: {train_data.shape[0]}")
         print(f"Total test samples: {test_data.shape[0]}")
 
-        self.test_data = self.load_data_in_batches(test_data, is_test=True)
+        self.test_data = self.load_data_in_batches(test_data)
         self.train_data = self.load_data_in_batches(train_data)
 
-    def load_data_in_batches(self, ds, is_test=False):
+    def load_data_in_batches(self, ds):
         ds = self.standardize(ds, self.numerical_columns)
         x = ds.iloc[:, :-1]  # all columns except the last one
         y = ds.iloc[:, -1]  # the last column
         
-        if is_test:
-            ds_sampled = ds.sample(n=self.test_ratio, random_state=42).reset_index(drop=True)
-        else:
-            ds_sampled = ds
-        
-        return self.distribute_in_batches(ds_sampled.iloc[:, :-1], ds_sampled.iloc[:, -1])
+        return self.distribute_in_batches(x,y)
     
     def distribute_in_batches(self, X, y):
         num_batch = int(len(X) / self.batch_size)
