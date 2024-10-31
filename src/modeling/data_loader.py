@@ -1,3 +1,15 @@
+#BEGIN of contants
+#----
+#ADULT_FOLDER = "../data/adult/"
+#ADULT_TRAIN_ORIGINAL_FNAME = "adult_train.csv"
+#ADULT_TEST_ORIGINAL_FNAME = "adult_test.csv"
+#ADULT_CTGAN_FNAME = "onehot_adult_sdv_100k.csv"
+#ADULT_CTGAN_GAUSSIAN_FNAME = "onehot_adult_sdv_gaussian_100k.csv"
+#ADULT_CTGAN_CAT_FNAME = "onehot_adult_sdv_categorical_100k.csv"
+#----
+
+#END of contants 
+
 import pandas as pd
 import torch
 import random
