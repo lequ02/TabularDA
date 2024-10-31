@@ -37,7 +37,9 @@ class train:
       self.data = data_loader(self.data_path, self.dataset_name, test_ratio=self.test_ratio,
                               train_option=self.train_option, test_option=self.test_option,
                               batch_size=self.batch_size, numerical_columns=self.numerical_columns)
-      
+
+      #in: list_train_fnames, list_test_fnames
+      #out: 
       print("----------------------------------------------------")
       print(f"Training dataset size: {len(self.data.train_data.dataset)}")
       print(f"Testing dataset size: {len(self.data.test_data.dataset)}")
