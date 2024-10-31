@@ -7,9 +7,7 @@ import copy
 import numpy as np
 from tqdm import tqdm
 from torch import nn
-from modeling.adult_model import DNN_Adult
-from modeling.census_model import DNN_Census
-from modeling.news_model import DNN_News  
+from models import DNN_Adult, DNN_Census, DNN_News 
 from trainer import trainer  
 from data_loader import data_loader 
 from torchsummary import summary

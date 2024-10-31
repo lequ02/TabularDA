@@ -3,9 +3,7 @@ import numpy as np
 import copy
 import torch
 from torch import nn, optim
-from modeling.adult_model import DNN_Adult
-from modeling.census_model import DNN_Census
-from modeling.news_model import DNN_News  
+from models import DNN_Adult, DNN_Census, DNN_News 
 from sklearn.metrics import mean_squared_error, r2_score
 import math
 
