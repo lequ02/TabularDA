@@ -74,7 +74,9 @@ def load_covertype(verbose=False):
 
     return load_dataset(31, verbose)
 
-
+def load_intrusion(verbose=False):
+    
+    return load_dataset()
 
 
 
