@@ -45,6 +45,10 @@ class DNN_Adult(nn.Module):
             x = self.sigmoid(x)
         return x
     
+    def train(self, mode=True):
+        super().train(mode)
+        return self
+    
     
     
     ######################## Census Dataset ################
@@ -91,6 +95,10 @@ class DNN_Census(nn.Module):
             x = self.sigmoid(x)
         return x
     
+    def train(self, mode=True):
+        super().train(mode)
+        return self
+    
 
 ######################## News Dataset ################
 
@@ -131,6 +139,10 @@ class DNN_News(nn.Module):
         x = self.drop4(self.act4(self.bn4(self.layer4(x))))
         x = self.output(x)
         return x
+    
+    def train(self, mode=True):
+        super().train(mode)
+        return self
     
     
     
