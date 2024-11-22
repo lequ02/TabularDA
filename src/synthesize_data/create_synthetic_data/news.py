@@ -22,6 +22,9 @@ def create_synthetic_data_news():
             'train_csv': f'{ds_name}_train.csv',
             'test_csv': f'{ds_name}_test.csv',
 
+            'train_csv_onehot': f'onehot_{ds_name}_train.csv',
+            'test_csv_onehot': f'onehot_{ds_name}_test.csv',
+
             'sdv_only_synthesizer': f'{ds_name}_synthesizer.pkl',
             'sdv_only_csv': f'onehot_{ds_name}_sdv_100k.csv',
 
@@ -33,7 +36,8 @@ def create_synthetic_data_news():
             }
 
   # save train-test data to csv files
-  xtrain, xtest, ytrain, ytest, target_name, categorical_columns = prepare_train_test_news(paths['data_dir']+paths['train_csv'], paths['data_dir']+paths['test_csv'])
+  xtrain, xtest, ytrain, ytest, target_name, categorical_columns = prepare_train_test_news(paths['data_dir']+paths['train_csv'], paths['data_dir']+paths['test_csv'],
+                                                                                              paths['data_dir']+paths['train_csv_onehot'], paths['data_dir']+paths['test_csv_onehot'])
 
   # sdv only
   xytrain = pd.concat([xtrain, ytrain], axis=1)
@@ -65,7 +69,7 @@ def create_synthetic_data_news():
                             )
 
 
-def prepare_train_test_news(save_train_as, save_test_as):
+def prepare_train_test_news(save_train_as, save_test_as, save_train_as_onehot, save_test_as_onehot):
   """
   train-test split the news data
   handle missing values
@@ -92,6 +96,19 @@ def prepare_train_test_news(save_train_as, save_test_as):
   check_directory.check_directory(save_test_as)
   train_set.to_csv(save_train_as, index=False)
   test_set.to_csv(save_test_as, index=False)
+  print(f"train data saved to csv at {save_train_as}")
+  print(f"test data saved to csv at {save_test_as}")
+
+  # one-hot encode the train-test data
+  xtrain_onehot, xtest_onehot = onehot.onehot(xtrain, xtest, categorical_columns, verbose=True)
+  train_set_onehot = pd.concat([xtrain_onehot, ytrain], axis=1)
+  test_set_onehot = pd.concat([xtest_onehot, ytest], axis=1)
+  check_directory.check_directory(save_train_as_onehot)
+  check_directory.check_directory(save_test_as_onehot)
+  train_set_onehot.to_csv(save_train_as_onehot, index=False)
+  test_set_onehot.to_csv(save_test_as_onehot, index=False)
+  print(f"train data one-hot encoded saved to csv at {save_train_as_onehot}")
+  print(f"test data one-hot encoded saved to csv at {save_test_as_onehot}")
 
   return xtrain, xtest, ytrain, ytest, target_name, categorical_columns
 

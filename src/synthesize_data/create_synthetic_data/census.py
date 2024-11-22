@@ -21,6 +21,9 @@ def create_synthetic_data_census():
             'train_csv': f'{ds_name}_train.csv',
             'test_csv': f'{ds_name}_test.csv',
 
+            'train_csv_onehot': f'onehot_{ds_name}_train.csv',
+            'test_csv_onehot': f'onehot_{ds_name}_test.csv',
+
             'sdv_only_synthesizer': f'{ds_name}_synthesizer.pkl',
             'sdv_only_csv': f'onehot_{ds_name}_sdv_100k.csv',
 
@@ -31,17 +34,18 @@ def create_synthetic_data_census():
             'sdv_categorical_csv': f'onehot_{ds_name}_sdv_categorical_100k.csv'
             }
 
-#   # save train-test data to csv files
-#   xtrain, xtest, ytrain, ytest, target_name, categorical_columns = prepare_train_test_census(paths['data_dir']+paths['train_csv'], paths['data_dir']+paths['test_csv'])
+  # save train-test data to csv files
+  xtrain, xtest, ytrain, ytest, target_name, categorical_columns = prepare_train_test_census(paths['data_dir']+paths['train_csv'], paths['data_dir']+paths['test_csv'],
+                                                                                              paths['data_dir']+paths['train_csv_onehot'], paths['data_dir']+paths['test_csv_onehot'])
 
-#   # sdv only
-#   xytrain = pd.concat([xtrain, ytrain], axis=1)
-#   synthesize_census_sdv = synthesize_data(xytrain, ytrain, categorical_columns,
-#                             sample_size=100_000, target_synthesizer='',
-#                             target_name=target_name, synthesizer_file_name= paths['synthesizer_dir']+paths['sdv_only_synthesizer'],
-#                             csv_file_name= paths['data_dir']+paths['sdv_only_csv'], verbose=True,
-#                             # show_network=True
-#                             )
+  # sdv only
+  xytrain = pd.concat([xtrain, ytrain], axis=1)
+  synthesize_census_sdv = synthesize_data(xytrain, ytrain, categorical_columns,
+                            sample_size=100_000, target_synthesizer='',
+                            target_name=target_name, synthesizer_file_name= paths['synthesizer_dir']+paths['sdv_only_synthesizer'],
+                            csv_file_name= paths['data_dir']+paths['sdv_only_csv'], verbose=True,
+                            # show_network=True
+                            )
 
 
   target_name = 'income'
@@ -69,7 +73,7 @@ def create_synthetic_data_census():
   
 
 
-def prepare_train_test_census(save_train_as, save_test_as):
+def prepare_train_test_census(save_train_as, save_test_as, save_train_as_onehot, save_test_as_onehot):
   """
   map the y value to 0 and 1
   train-test split the census data
@@ -99,6 +103,19 @@ def prepare_train_test_census(save_train_as, save_test_as):
   check_directory.check_directory(save_test_as)
   train_set.to_csv(save_train_as, index=False)
   test_set.to_csv(save_test_as, index=False)
+  print(f"train data saved to csv at {save_train_as}")
+  print(f"test data saved to csv at {save_test_as}")
+
+  # one-hot encode the train-test data
+  xtrain_onehot, xtest_onehot = onehot.onehot(xtrain, xtest, categorical_columns, verbose=True)
+  train_set_onehot = pd.concat([xtrain_onehot, ytrain], axis=1)
+  test_set_onehot = pd.concat([xtest_onehot, ytest], axis=1)
+  check_directory.check_directory(save_train_as_onehot)
+  check_directory.check_directory(save_test_as_onehot)
+  train_set_onehot.to_csv(save_train_as_onehot, index=False)
+  test_set_onehot.to_csv(save_test_as_onehot, index=False)
+  print(f"train data one-hot encoded saved to csv at {save_train_as_onehot}")
+  print(f"test data one-hot encoded saved to csv at {save_test_as_onehot}")
 
   return xtrain, xtest, ytrain, ytest, target_name, categorical_columns
 
