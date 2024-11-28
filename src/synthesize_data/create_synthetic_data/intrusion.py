@@ -48,9 +48,9 @@ def create_synthetic_data_intrusion():
                             )
 
 
-  target_name = 'income'
-  categorical_columns=['workclass', 'education', 'marital-status', 'occupation',
-                      'relationship', 'race', 'sex', 'native-country']
+  target_name = 'target'
+  categorical_columns=['protocol_type', 'service', 'flag', 'land', 'logged_in', 'is_host_login', 'is_guest_login']
+
   # sdv gaussian
   xtrain, xtest, ytrain, ytest, target_name, categorical_columns = read_intrusion_data(paths['data_dir']+paths['train_csv'], paths['data_dir']+paths['test_csv'],
                                                                                     target_name=target_name, categorical_columns=categorical_columns)
