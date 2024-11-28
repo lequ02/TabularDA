@@ -75,10 +75,10 @@ def load_covertype(verbose=False):
     return load_dataset(31, verbose)
 
 def load_intrusion(verbose=False):
-    df = pd.read_csv('data\intrusion\kddcup.data.corrected.csv')
-    y = df['target']
+    df = pd.read_csv('..\data\intrusion\kddcup.data.corrected.csv')
+    y = df[['target']]
     x = df.drop(columns=['target'])
-    
+
     return x, y
 
 
