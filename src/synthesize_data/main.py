@@ -2,7 +2,7 @@ from synthesizer import *
 import sys
 import os
 import pandas as pd
-from create_synthetic_data import adult, news, census, covertype, intrusion
+from create_synthetic_data import adult, news, census, covertype, intrusion, credit
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -13,7 +13,8 @@ def single_run():
   # news.create_synthetic_data_news()
   # census.create_synthetic_data_census()
   # covertype.create_synthetic_data_covertype()
-  intrusion.create_synthetic_data_intrusion()
+  # intrusion.create_synthetic_data_intrusion()
+  credit.create_synthetic_data_credit()
 
 def main():
   # adult.create_synthetic_data_adult()
@@ -21,6 +22,7 @@ def main():
   # census.create_synthetic_data_census()
   # covertype.create_synthetic_data_covertype()
   # intrusion.create_synthetic_data_intrusion()
+  # credit.create_synthetic_data_credit()
   pass
 
 

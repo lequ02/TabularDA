@@ -81,5 +81,11 @@ def load_intrusion(verbose=False):
 
     return x, y
 
+def load_credit(verbose=False):
+    df = pd.read_csv('../data/credit/creditcard.csv')
+    y = df[['Class']]
+    x = df.drop(columns=['Class'])
+
+    return x, y
 
 
