@@ -38,17 +38,17 @@ def create_synthetic_data_credit():
   xtrain, xtest, ytrain, ytest, target_name, categorical_columns = prepare_train_test_credit(paths['data_dir']+paths['train_csv'], paths['data_dir']+paths['test_csv'],
                                                                                               paths['data_dir']+paths['train_csv_onehot'], paths['data_dir']+paths['test_csv_onehot'])
 
-  # sdv only
-  xytrain = pd.concat([xtrain, ytrain], axis=1)
-  synthesize_credit_sdv = synthesize_data(xytrain, ytrain, categorical_columns,
-                            sample_size=100_000, target_synthesizer='',
-                            target_name=target_name, synthesizer_file_name= paths['synthesizer_dir']+paths['sdv_only_synthesizer'],
-                            csv_file_name= paths['data_dir']+paths['sdv_only_csv'], verbose=True,
-                            # show_network=True
-                            )
+  # # sdv only
+  # xytrain = pd.concat([xtrain, ytrain], axis=1)
+  # synthesize_credit_sdv = synthesize_data(xytrain, ytrain, categorical_columns,
+  #                           sample_size=100_000, target_synthesizer='',
+  #                           target_name=target_name, synthesizer_file_name= paths['synthesizer_dir']+paths['sdv_only_synthesizer'],
+  #                           csv_file_name= paths['data_dir']+paths['sdv_only_csv'], verbose=True,
+  #                           # show_network=True
+  #                           )
 
 
-  target_name = 'target'
+  target_name = 'Class'
   categorical_columns=[]
 
   # sdv gaussian
