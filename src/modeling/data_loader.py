@@ -1,23 +1,3 @@
-  
-#     def print_sample_data(self):
-#         print("\nFirst 5 samples from training set:")
-#         for i, (inputs, labels) in enumerate(self.train_data):
-#             if i < 5:
-#                 print(f"Sample {i+1}:")
-#                 print(f"Input shape: {inputs.shape}, Input data: {inputs.numpy()}")
-#                 print(f"Label: {labels[0].item()}")
-#             else:
-#                 break
-
-#         print("\nFirst 5 samples from test set:")
-#         for i, (inputs, labels) in enumerate(self.test_data):
-#             if i < 5:
-#                 print(f"Sample {i+1}:")
-#                 print(f"Input shape: {inputs.shape}, Input data: {inputs.numpy()}")
-#                 print(f"Label: {labels[0].item()}")
-#             else:
-#                 break
-
 import pandas as pd
 import torch
 from torch.utils.data import TensorDataset, DataLoader, ConcatDataset
@@ -30,38 +10,71 @@ class data_loader:
     def __init__(self, dataset_name, batch_size):
         self.dataset_name = dataset_name
         self.batch_size = batch_size
-        # print(f"Available keys in IN_DATA_PATHS: {list(constants.IN_DATA_PATHS.keys())}")
-
         self.paths = constants.IN_DATA_PATHS[dataset_name]
-
+        self.train_columns = None  # Store train columns for alignment
 
     def load_train_augment_data(self, train_option, augment_option):
-     
         if train_option not in ['original', 'synthetic', 'mix'] or augment_option not in [None, 'ctgan', 'categorical', 'gaussian']:
             raise ValueError("Invalid train_option or augment_option")
         if train_option == 'original':
-            return self. _load_data_in_batches(pd.read_csv(self.paths['train_original']))
+            train_df = pd.read_csv(self.paths['train_original'])
+        elif train_option == 'synthetic':
+            train_df = pd.read_csv(self.paths[train_option][augment_option])
+        else:  # 'mix' option
+            original_df = pd.read_csv(self.paths['train_original'])
+            synthetic_df = pd.read_csv(self.paths['synthetic'][augment_option])
+
+            train_df = pd.concat([original_df, synthetic_df], axis=0)
         
-        if train_option == 'synthetic':
-            return self._load_data_in_batches(pd.read_csv(self.paths[train_option][augment_option]))
-        
-        return self._load_data_in_batches(pd.concat([pd.read_csv(self.paths['train_original']), pd.read_csv(self.paths[train_option][augment_option])], axis=0))
-    
+        print(f"Train dataset columns:\n{train_df.columns}")
+        self.train_columns = train_df.columns[:-1]  # Store columns for test data alignment
+        return self._load_data_in_batches(train_df)
         
     def load_test_data(self):
-        return pd.read_csv(self.paths['test'])
-        
-    def _load_data_in_batches(self, ds):
-        ds = self._standardize(ds)
-        X = ds.iloc[:, :-1] 
-        y = ds.iloc[:, -1] 
-        
-        return self._distribute_in_batches(X.values,y.values)
+        # Load test data
+        test_df = pd.read_csv(self.paths['test'])
+        print(f"Test dataset preview:\n{test_df.head()}")  # Debugging
+
+        if self.train_columns is None:
+            raise ValueError("Training data must be loaded before test data to align columns.")
+
+        # Align test columns with training columns
+        missing_cols = set(self.train_columns) - set(test_df.columns)
+        for col in missing_cols:
+            test_df[col] = 0  
+
+        # Drop extra columns
+        extra_cols = set(test_df.columns) - set(self.train_columns)
+        if extra_cols:
+            test_df = test_df.drop(columns=extra_cols)
+
+        print(f"Test dataset columns after alignment:\n{test_df.columns}")
+        print(f"Test dataset shape after alignment: {test_df.shape}")
+
+        # Prepare features and labels
+        X = test_df[self.train_columns]  
+        y = test_df.iloc[:, -1]
+
+        # Standardize features
+        X = self._standardize(X)
+
+        # Convert to PyTorch tensors
+        X_tensor = torch.tensor(X.values, dtype=torch.float)
+        y_tensor = torch.tensor(y.values, dtype=torch.float)
+
+        # Create TensorDataset
+        dataset = TensorDataset(X_tensor, y_tensor)
+        return DataLoader(dataset, batch_size=self.batch_size, shuffle=False)
+
+    def _load_data_in_batches(self, df):
+        X = df.iloc[:, :-1] 
+        y = df.iloc[:, -1] 
+        X = self._standardize(X)
+        return self._distribute_in_batches(X.values, y.values)
         
     def _standardize(self, df):
         scaler = StandardScaler()
-
-        return pd.DataFrame(scaler.fit_transform(df))
+        return pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
         
     def _distribute_in_batches(self, X, y):
         print("Type X", type(X))
@@ -83,45 +96,6 @@ class data_loader:
             batches.append(batch)
         
         return DataLoader(ConcatDataset(batches), batch_size=self.batch_size)
-    
 
-#     def balance_classes(self, X, y):
-#         class_counts = y.value_counts()
-#         majority_class = class_counts.idxmax()
-#         minority_class = class_counts.idxmin()
 
-#         majority_count = int(class_counts[minority_class] * (76 / 24))
-#         minority_count = class_counts[minority_class]
 
-#         # Ensure majority_count does not exceed the available samples
-#         available_majority_count = class_counts[majority_class]
-#         if majority_count > available_majority_count:
-#             majority_count = available_majority_count
-
-#         majority_samples = X[y == majority_class].sample(majority_count, random_state=42).reset_index(drop=True)
-#         minority_samples = X[y == minority_class].reset_index(drop=True)
-
-#         X_balanced = pd.concat([majority_samples, minority_samples]).reset_index(drop=True)
-#         y_balanced = pd.concat([pd.Series([majority_class] * majority_count), pd.Series([minority_class] * minority_count)]).reset_index(drop=True)
-
-#         balanced_data = pd.concat([X_balanced, y_balanced], axis=1)
-#         return balanced_data
-
-#     def print_sample_data(self):
-#         print("\nFirst 5 samples from training set:")
-#         for i, (inputs, labels) in enumerate(self.train_data):
-#             if i < 5:
-#                 print(f"Sample {i+1}:")
-#                 print(f"Input shape: {inputs.shape}, Input data: {inputs.numpy()}")
-#                 print(f"Label: {labels[0].item()}")
-#             else:
-#                 break
-
-#         print("\nFirst 5 samples from test set:")
-#         for i, (inputs, labels) in enumerate(self.test_data):
-#             if i < 5:
-#                 print(f"Sample {i+1}:")
-#                 print(f"Input shape: {inputs.shape}, Input data: {inputs.numpy()}")
-#                 print(f"Label: {labels[0].item()}")
-#             else:
-#                 break
