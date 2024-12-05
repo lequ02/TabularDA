@@ -23,7 +23,7 @@ def onehot(xtrain, xtest, categorical_columns, verbose=False):
   xtrain_prep = xtrain[numerical_cols]
   xtest_prep = xtest[numerical_cols]
 
-  xtrain_prep.to_csv("xtrain_prep_ori.csv")
+  # xtrain_prep.to_csv("xtrain_prep_ori.csv")
 
     # One-Hot Encoding with modified categorical values
   for col in categorical_columns:
@@ -60,10 +60,10 @@ def onehot(xtrain, xtest, categorical_columns, verbose=False):
         print(len(dif1), dif1)
 
 
-      print("xtrain_prep:", xtrain_prep.shape)
-      print("xtest_prep:", xtest_prep.shape)
+      # print("xtrain_prep:", xtrain_prep.shape)
+      # print("xtest_prep:", xtest_prep.shape)
 
 
 
-      xtrain_prep.to_csv("xtrain_prep.csv")
+      # xtrain_prep.to_csv("xtrain_prep.csv")
   return xtrain_prep, xtest_prep

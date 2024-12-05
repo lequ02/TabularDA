@@ -41,6 +41,8 @@ class CreateSyntheticData:
 
     def create_synthetic_data_sdv_only(self):
         xtrain, xtest, ytrain, ytest, target_name, categorical_columns = self.prepare_train_test(self.missing_values_strategy, self.test_size)
+        # need this line or the xy data will be double one-hot encoded. dont know why
+        xtrain, xtest, ytrain, ytest, target_name, categorical_columns = self.read_data()
         self.synthesize_data(xtrain, ytrain, categorical_columns, 'sdv_only', '')
 
     def create_synthetic_data_sdv_gaussian(self):
