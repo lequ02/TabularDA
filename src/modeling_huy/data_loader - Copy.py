@@ -19,12 +19,23 @@ class data_loader:
         if train_option == 'original':
             train_df = pd.read_csv(self.paths['train_original'])
         elif train_option == 'synthetic':
-            train_df = pd.read_csv(self.paths[train_option][augment_option])
+            train_df = pd.read_csv(self.paths[train_option][augment_option], index_col=0)
         else:  # 'mix' option
             original_df = pd.read_csv(self.paths['train_original'])
-            synthetic_df = pd.read_csv(self.paths['synthetic'][augment_option])
+            synthetic_df = pd.read_csv(self.paths['synthetic'][augment_option], index_col=0)
 
-            train_df = pd.concat([original_df, synthetic_df], axis=0)
+            print("\n\n original df", original_df)
+            print("\n\n synthetic df", synthetic_df)
+
+            print("\n\ndiff syn-ori",set(synthetic_df.columns) - set(original_df.columns))
+            print("\n\ndiff ori-syn",set(original_df.columns) - set(synthetic_df.columns))
+
+            train_df = pd.concat([original_df, synthetic_df], axis=0, ignore_index=True)
+
+            print("\n\nconcat df", train_df)
+
+            print("\n\n target concat")
+            print(train_df['income'])
         
         print(f"Train dataset columns:\n{train_df.columns}")
         self.train_columns = train_df.columns[:-1]  # Store columns for test data alignment

@@ -27,6 +27,9 @@ class trainer:
             self.optimizer.zero_grad()
             output = self.model.forward(X)
 
+            # print("\n\ny", y)
+            # print("")
+
             
 
             loss = self.criterion(output, y)

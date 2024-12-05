@@ -45,6 +45,9 @@ class train:
         self.train_data = self.data_loader.load_train_augment_data(self.train_option, self.augment_option)
         self.test_data = self.data_loader.load_test_data()
 
+
+        # print("\n\n y of self.train_data", self.train_data['income'])
+
         print("----------------------------------------------------")
         print(f"Training dataset size: {len(self.train_data)}")
         print(f"Testing dataset size: {len(self.test_data)}")
