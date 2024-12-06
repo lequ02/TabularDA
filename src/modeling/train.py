@@ -295,9 +295,6 @@ class train:
         return loss, accuracy, f1
 
 
-
-    
-    
     def validate_regression(self, load_weight=False):
         print("Validation statistic...")
 
