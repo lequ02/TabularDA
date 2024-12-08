@@ -1,6 +1,3 @@
-
-
-
 from data_loader import data_loader
 import random
 import pandas as pd
@@ -116,7 +113,6 @@ class train:
         print("SELF.train_data", self.train_data)
         mtrainer.data = self.train_data
 
-        # summary(mtrainer.model['model'], (input_size,))
         summary(model, (input_size,))
         return mtrainer
 
