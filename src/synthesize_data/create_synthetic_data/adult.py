@@ -42,8 +42,17 @@ def create_synthetic_data_adult():
   xtrain, xtest, ytrain, ytest, target_name, categorical_columns = prepare_train_test_adult(paths['data_dir']+paths['train_csv'], paths['data_dir']+paths['test_csv'], 
                                                                                               paths['data_dir']+paths['train_csv_onehot'], paths['data_dir']+paths['test_csv_onehot'])
 
+  # need this line or the xy data will be double one-hot encoded. dont know why
+  xtrain, xtest, ytrain, ytest, target_name, categorical_columns = read_adult_data(paths['data_dir']+paths['train_csv'], paths['data_dir']+paths['test_csv'],
+                                                                                      target_name=target_name, categorical_columns=categorical_columns)
+
   # sdv only
   xytrain = pd.concat([xtrain, ytrain], axis=1)
+
+  print("\n\nxy train")
+  print(xytrain.columns)
+  print(xytrain.head())
+
   synthesize_adult_sdv = synthesize_data(xytrain, ytrain, categorical_columns,
                             sample_size=100_000, target_synthesizer='',
                             target_name=target_name, synthesizer_file_name= paths['synthesizer_dir']+paths['sdv_only_synthesizer'],
@@ -105,6 +114,9 @@ def prepare_train_test_adult(save_train_as, save_test_as, save_train_as_onehot, 
   print(f"train data saved to csv at {save_train_as}")
   print(f"test data saved to csv at {save_test_as}")
 
+  print("\n\npre-onehot", xtrain.columns)
+  print(xtrain.head())
+
   # save train-test to csv with one-hot encoding
   xtrain_onehot, xtest_onehot = onehot.onehot(xtrain, xtest, categorical_columns)
   train_set_onehot = pd.concat([xtrain_onehot, ytrain], axis=1)
@@ -115,6 +127,9 @@ def prepare_train_test_adult(save_train_as, save_test_as, save_train_as_onehot, 
   test_set_onehot.to_csv(save_test_as_onehot, index=False)
   print(f"onehot train data saved to csv at {save_train_as_onehot}")
   print(f"onehot test data saved to csv at {save_test_as_onehot}")
+
+  print("\n\nxtrain columns\n", xtrain.columns)
+  print(xtrain.head())
   
   return xtrain, xtest, ytrain, ytest, target_name, categorical_columns
 
