@@ -40,7 +40,7 @@ class CreateSyntheticData:
         self.create_synthetic_data_sdv_categorical()
 
     def create_synthetic_data_sdv_only(self):
-        xtrain, xtest, ytrain, ytest, target_name, categorical_columns = self.prepare_train_test(self.missing_values_strategy, self.test_size)
+        xtrain, xtest, ytrain, ytest, target_name, categorical_columns = self.prepare_train_test(self.categorical_columns , self.missing_values_strategy, self.test_size)
         # need this line or the xy data will be double one-hot encoded. dont know why
         xtrain, xtest, ytrain, ytest, target_name, categorical_columns = self.read_data()
         self.synthesize_data(xtrain, ytrain, categorical_columns, 'sdv_only', '')
@@ -60,14 +60,15 @@ class CreateSyntheticData:
         """
         x_original, y_original = self.load_data_func()
         data = pd.concat([x_original, y_original], axis=1)
-        xtrain, xtest, ytrain, ytest = create_train_test.create_train_test(data, target_name=self.target_name, test_size=test_size, random_state=42)
-        xtrain, ytrain = handle_missing_values.handle_missing_values(xtrain, ytrain, target_name=self.target_name, strategy=missing_values_strategy)
-        xtest, ytest = handle_missing_values.handle_missing_values(xtest, ytest, target_name=self.target_name, strategy=missing_values_strategy)
+        # xtrain, xtest, ytrain, ytest = create_train_test.create_train_test(data, target_name=self.target_name, test_size=test_size, random_state=42, stratify=y_original, categorical_columns=self.categorical_columns)
+        # xtrain, ytrain = handle_missing_values.handle_missing_values(xtrain, ytrain, target_name=self.target_name, strategy=missing_values_strategy)
+        # xtest, ytest = handle_missing_values.handle_missing_values(xtest, ytest, target_name=self.target_name, strategy=missing_values_strategy)
+        xtrain, xtest, ytrain, ytest, xtrain_onehot, xtest_onehot = self.test_split_and_handle_missing(data, missing_values_strategy, test_size)
         # save data to csv
-        self.save_to_csv(xtrain, ytrain, xtest, ytest, self.paths['train_csv'], self.paths['test_csv'])
+        self.save_to_csv(xtrain, ytrain, xtest, ytest, self.paths['data_dir']+self.paths['train_csv'], self.paths['data_dir']+self.paths['test_csv'])
         # save onehot encoded data to csv
-        xtrain_onehot, xtest_onehot = onehot.onehot(xtrain, xtest, self.categorical_columns)
-        self.save_to_csv(xtrain_onehot, ytrain, xtest_onehot, ytest, self.paths['train_csv_onehot'], self.paths['test_csv_onehot'])
+        # xtrain_onehot, xtest_onehot = onehot.onehot(xtrain, xtest, self.categorical_columns)
+        self.save_to_csv(xtrain_onehot, ytrain, xtest_onehot, ytest, self.paths['data_dir']+self.paths['train_csv_onehot'], self.paths['data_dir']+self.paths['test_csv_onehot'])
         return xtrain, xtest, ytrain, ytest, self.target_name, self.categorical_columns
 
     def read_data(self):
@@ -88,5 +89,13 @@ class CreateSyntheticData:
         train_set.to_csv(train_csv, index=False)
         test_set.to_csv(test_csv, index=False)
         print(f"Data saved to csv at {train_csv} and {test_csv}")
+
+    def test_split_and_handle_missing_onehot(self, data, missing_values_strategy='drop', test_size=0.2):
+        xtrain, xtest, ytrain, ytest = create_train_test.create_train_test(data, target_name=self.target_name, test_size=test_size, random_state=42, 
+                                                                           stratify=data[self.target_name], categorical_columns=self.categorical_columns)
+        xtrain, ytrain = handle_missing_values.handle_missing_values(xtrain, ytrain, target_name=self.target_name, strategy=missing_values_strategy)
+        xtest, ytest = handle_missing_values.handle_missing_values(xtest, ytest, target_name=self.target_name, strategy=missing_values_strategy)
+        xtrain_onehot, xtest_onehot = onehot.onehot(xtrain, xtest, self.categorical_columns)
+        return xtrain, xtest, ytrain, ytest, xtrain_onehot, xtest_onehot
 
 

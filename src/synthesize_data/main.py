@@ -1,15 +1,17 @@
+# from synthesize_data.create_synthetic_data import adult_old
 from synthesizer import *
 import sys
 import os
 import pandas as pd
-from create_synthetic_data import adult, news, census, covertype, intrusion, credit
+from create_synthetic_data import news, census, covertype, intrusion, credit, adult
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # from datasets import load_adult, load_news, load_census, load_covertype, load_intrusion
 
 def single_run():
-  adult.create_synthetic_data_adult()
+  # adult.create_synthetic_data_adult()
+  adult.CreateSyntheticDataAdult().create_synthetic_data()
   # news.create_synthetic_data_news()
   # census.create_synthetic_data_census()
   # covertype.create_synthetic_data_covertype()
