@@ -1,5 +1,6 @@
 from sklearn.preprocessing import OneHotEncoder
 import pandas as pd
+from .customErrors import *
 
 def prepend_col_name(df, columns):
     for col in columns:
@@ -36,10 +37,10 @@ def onehot(xtrain, xtest, categorical_columns, verbose=False):
       xtrain_onehot = pd.DataFrame(xtrain_onehot, columns = xtrain[col].unique())
 
 
-      print("xtrain_onehot", xtrain_onehot)
-      print("xtrain_prep: ", xtrain_prep)
-      print("xtrain_onehot shape: ", xtrain_onehot.shape)
-      print("xtrain_prep shape: ", xtrain_prep.shape)
+      # print("xtrain_onehot", xtrain_onehot)
+      # print("xtrain_prep: ", xtrain_prep)
+      # print("xtrain_onehot shape: ", xtrain_onehot.shape)
+      # print("xtrain_prep shape: ", xtrain_prep.shape)
 
       xtrain_prep = pd.concat([xtrain_prep, xtrain_onehot], axis=1) # when dropping missing values, index won't be continuous, so concat (xtrain_prep, xtrain_onehot, axis=1) will not match
 
@@ -53,11 +54,23 @@ def onehot(xtrain, xtest, categorical_columns, verbose=False):
       xtest_prep = pd.concat([xtest_prep, xtest_onehot], axis=1)
 
       # Check differences between xtrain and xtest
+      dif1 = set(xtest[col].unique()) - set(xtrain[col].unique())
+      if dif1 != set():
+        # safeguard 
+        # make sure that the categorical values in xtest are the same as in xtrain
+        error_message = f"""
+        Differences found between xtest and xtrain in column: "{col}"
+        Number of unique values in test (test - train): {len(dif1)}
+        Unique values: {dif1}
+        """
+        raise TestTrainDiffError(error_message)
+
       if verbose:
         print(f"Differences between xtest and xtrain in column: {col}")
-        dif1 = set(xtest[col].unique()) - set(xtrain[col].unique())
-        # print(col)
         print(len(dif1), dif1)
+        # print(col)
+
+
 
 
       # print("xtrain_prep:", xtrain_prep.shape)
