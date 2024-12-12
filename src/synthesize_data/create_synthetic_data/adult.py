@@ -19,7 +19,7 @@ class CreateSyntheticDataAdult(CreateSyntheticData.CreateSyntheticData):
                             sample_size_to_synthesize=100_000, missing_values_strategy='drop', test_size=0.2)
         
 
-    def prepare_train_test(self, categorical_columns, missing_values_strategy='drop', test_size=0.2):
+    def prepare_train_test(self):
         """
         map the y value to 0 and 1
         train-test split the adult data
@@ -29,11 +29,9 @@ class CreateSyntheticDataAdult(CreateSyntheticData.CreateSyntheticData):
         """
         # process adult data
         x_original, y_original = load_adult()
-        target_name = y_original.columns[0]
         print("Mapping y value to 0 and 1")
         y_original = y_original['income'].map({'<=50K': 0, '>50K': 1})
-        categorical_columns = ['workclass', 'education', 'marital-status', 'occupation',
-                                    'relationship', 'race', 'sex', 'native-country']
+
 
 
         x_original, y_original = self.load_data_func()

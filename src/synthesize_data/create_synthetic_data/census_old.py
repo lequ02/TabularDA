@@ -5,16 +5,16 @@ import pandas as pd
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from synthesizer import *
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-from datasets import load_adult, load_news, load_intrusion, load_covertype
+from datasets import load_adult, load_news, load_census, load_covertype
 from commons import create_train_test, handle_missing_values, check_directory, read_train_test_csv, onehot
 
-def create_synthetic_data_intrusion():
+def create_synthetic_data_census():
   """
-  create train-test data for intrusion dataset
+  create train-test data for census dataset
   synthesize data using SDV only, SDV with GaussianNB, and SDV with CategoricalNB
   """
-  ds_name = 'intrusion'
-  # synthesize data for the intrusion dataset
+  ds_name = 'census'
+  # synthesize data for the census dataset
   paths = {'synthesizer_dir': f'../sdv trained model/{ds_name}/',
             'data_dir': f'../data/{ds_name}/',
 
@@ -35,15 +35,12 @@ def create_synthetic_data_intrusion():
             }
 
   # save train-test data to csv files
-  xtrain, xtest, ytrain, ytest, target_name, categorical_columns = prepare_train_test_intrusion(paths['data_dir']+paths['train_csv'], paths['data_dir']+paths['test_csv'],
+  xtrain, xtest, ytrain, ytest, target_name, categorical_columns = prepare_train_test_census(paths['data_dir']+paths['train_csv'], paths['data_dir']+paths['test_csv'],
                                                                                               paths['data_dir']+paths['train_csv_onehot'], paths['data_dir']+paths['test_csv_onehot'])
 
-  # need this line or the xy data will be double one-hot encoded. dont know why
-  xtrain, xtest, ytrain, ytest, target_name, categorical_columns = read_intrusion_data(paths['data_dir']+paths['train_csv'], paths['data_dir']+paths['test_csv'],
-                                                                                      target_name=target_name, categorical_columns=categorical_columns)
   # sdv only
   xytrain = pd.concat([xtrain, ytrain], axis=1)
-  synthesize_intrusion_sdv = synthesize_data(xytrain, ytrain, categorical_columns,
+  synthesize_census_sdv = synthesize_data(xytrain, ytrain, categorical_columns,
                             sample_size=100_000, target_synthesizer='',
                             target_name=target_name, synthesizer_file_name= paths['synthesizer_dir']+paths['sdv_only_synthesizer'],
                             csv_file_name= paths['data_dir']+paths['sdv_only_csv'], verbose=True,
@@ -51,13 +48,13 @@ def create_synthetic_data_intrusion():
                             )
 
 
-  target_name = 'target'
-  categorical_columns=['protocol_type', 'service', 'flag', 'land', 'logged_in', 'is_host_login', 'is_guest_login']
-
+  target_name = 'income'
+  categorical_columns=['workclass', 'education', 'marital-status', 'occupation',
+                      'relationship', 'race', 'sex', 'native-country']
   # sdv gaussian
-  xtrain, xtest, ytrain, ytest, target_name, categorical_columns = read_intrusion_data(paths['data_dir']+paths['train_csv'], paths['data_dir']+paths['test_csv'],
+  xtrain, xtest, ytrain, ytest, target_name, categorical_columns = read_census_data(paths['data_dir']+paths['train_csv'], paths['data_dir']+paths['test_csv'],
                                                                                     target_name=target_name, categorical_columns=categorical_columns)
-  synthesize_intrusion_sdv_gaussian_100k = synthesize_data(xtrain, ytrain, categorical_columns,
+  synthesize_census_sdv_gaussian_100k = synthesize_data(xtrain, ytrain, categorical_columns,
                             sample_size=100_000, target_synthesizer='gaussianNB',
                             target_name=target_name, synthesizer_file_name= paths['synthesizer_dir']+paths['sdv_gaussian_synthesizer'],
                             csv_file_name= paths['data_dir']+paths['sdv_gaussian_csv'], verbose=True,
@@ -65,9 +62,9 @@ def create_synthetic_data_intrusion():
                             )
 
   # sdv categorical
-  xtrain, xtest, ytrain, ytest, target_name, categorical_columns = read_intrusion_data(paths['data_dir']+paths['train_csv'], paths['data_dir']+paths['test_csv'],
+  xtrain, xtest, ytrain, ytest, target_name, categorical_columns = read_census_data(paths['data_dir']+paths['train_csv'], paths['data_dir']+paths['test_csv'],
                                                                                     target_name=target_name, categorical_columns=categorical_columns)
-  synthesize_intrusion_sdv_categorical_100k = synthesize_from_trained_model(xtrain, ytrain, categorical_columns,
+  synthesize_census_sdv_categorical_100k = synthesize_from_trained_model(xtrain, ytrain, categorical_columns,
                             sample_size=100_000, target_synthesizer='categoricalNB',
                             target_name=target_name, synthesizer_file_name= paths['synthesizer_dir']+paths['sdv_categorical_synthesizer'],
                             csv_file_name= paths['data_dir']+paths['sdv_categorical_csv'], verbose=True,
@@ -76,23 +73,24 @@ def create_synthetic_data_intrusion():
   
 
 
-def prepare_train_test_intrusion(save_train_as, save_test_as, save_train_as_onehot, save_test_as_onehot):
+def prepare_train_test_census(save_train_as, save_test_as, save_train_as_onehot, save_test_as_onehot):
   """
   map the y value to 0 and 1
-  train-test split the intrusion data
+  train-test split the census data
   handle missing values
   save the train-test data to csv
   train-test csv files are NOT one-hot encoded
   """
-  # process intrusion data
-  x_original, y_original = load_intrusion()
+  # process census data
+  x_original, y_original = load_census()
   target_name = y_original.columns[0]
-  categorical_columns = ['protocol_type', 'service', 'flag', 'land', 'logged_in', 'is_host_login', 'is_guest_login']
+  y_original = y_original['income'].map({'<=50K': 0, '>50K': 1})
+  categorical_columns = ['workclass', 'education', 'marital-status', 'occupation',
+                            'relationship', 'race', 'sex', 'native-country']
 
   # train test split
   data = pd.concat([x_original, y_original], axis=1)
-  xtrain, xtest, ytrain, ytest = create_train_test.create_train_test(data, target_name=target_name, test_size=10000, 
-                                                                     random_state=42, stratify=y_original)
+  xtrain, xtest, ytrain, ytest = create_train_test.create_train_test(data, target_name=target_name, test_size=0.2, random_state=42)
 
   # handle missing values
   xtrain, ytrain = handle_missing_values.handle_missing_values(xtrain, ytrain, target_name=target_name, strategy='drop')
@@ -122,12 +120,12 @@ def prepare_train_test_intrusion(save_train_as, save_test_as, save_train_as_oneh
   return xtrain, xtest, ytrain, ytest, target_name, categorical_columns
 
 
-def read_intrusion_data(train_csv, test_csv, target_name, categorical_columns):
+def read_census_data(train_csv, test_csv, target_name, categorical_columns):
   """
   read train and test data from csv files
   """
-  # train_csv="..\\data\\intrusion\\intrusion_train.csv"
-  # test_csv="..\\data\\intrusion\\intrusion_test.csv"
+  # train_csv="..\\data\\census\\census_train.csv"
+  # test_csv="..\\data\\census\\census_test.csv"
   # target_name='income'
   # categorical_columns=['workclass', 'education', 'marital-status', 'occupation',
   #                     'relationship', 'race', 'sex', 'native-country']

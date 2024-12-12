@@ -26,7 +26,6 @@ def synthesize_data(x_original, y_original, categorical_columns, target_name,
   input: original data
   output: synthesized data.
   X' and y' are concatenated. X' created by CTGAN (SDV), y' created by GaussianNB, CategoricalNB or Bayesian Network
-  X' and y' are concatenated. X' created by CTGAN (SDV), y' created by GaussianNB, CategoricalNB or Bayesian Network
   """
   if csv_file_name is None:
     csv_file_name = f'synthesized_data_{target_synthesizer}.csv'
@@ -81,8 +80,6 @@ def synthesize_data(x_original, y_original, categorical_columns, target_name,
   # create y' using GaussianNB or CategoricalNB
   elif target_synthesizer == 'gaussianNB':
     synthesized_data = create_label_gaussianNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
-  elif target_synthesizer == 'gaussianNB':
-    synthesized_data = create_label_gaussianNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
   elif target_synthesizer == 'categoricalNB':
     synthesized_data = create_label_categoricalNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
 
@@ -104,7 +101,7 @@ def synthesize_data(x_original, y_original, categorical_columns, target_name,
   
   # save synthesized data to csv
   check_directory(csv_file_name) # create directory if not exist
-  synthesized_data.to_csv(csv_file_name)
+  synthesized_data.to_csv(csv_file_name, index=False)
 
   if verbose:
     print(f"Successfully synthesized X and y data with {target_synthesizer}")
@@ -186,7 +183,7 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns, t
     synthesized_data = pd.concat([synthesized_data, y], axis=1)
     # print(set(synthesize_data.columns))
     target_synthesizer = 'SDV'
-    # synthesized_data.to_csv(csv_file_name)
+    # synthesized_data.to_csv(csv_file_name, index=False)
 
   # create y' using GaussianNB or CategoricalNB
   elif target_synthesizer == 'gaussianNB':
@@ -230,7 +227,7 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns, t
   
   # save synthesized data to csv
   check_directory(csv_file_name) # create directory if not exist
-  synthesized_data.to_csv(csv_file_name)
+  synthesized_data.to_csv(csv_file_name, index=False)
 
   if verbose:
     print(f"Successfully synthesized X and y data with {target_synthesizer}")
