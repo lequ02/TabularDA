@@ -7,17 +7,19 @@ set_config(transform_output = "pandas")
 
 def handle_missing_values(x, y, target_name, strategy):
     data = pd.concat([x, y], axis=1)
-    print("Handling missing values, strategy: ", strategy)
-    # handle missing values
-    if strategy == 'drop':
-        data.dropna(inplace=True)
-        # print(data)
-        # print(data.shape)
-        # print(data.isnull().sum())
-        data.reset_index(drop=True, inplace=True) # must always reset index so there's no missing index
-    else:
-        imputer = impute.SimpleImputer(strategy)
-        data = imputer.fit_transform(data)
+    print("Missing values before handling: ", data.isnull().sum().sum())
+    if data.isnull().sum().sum() != 0:
+        print("Handling missing values, strategy: ", strategy)
+        # handle missing values
+        if strategy == 'drop':
+            data.dropna(inplace=True)
+            # print(data)
+            # print(data.shape)
+            # print(data.isnull().sum())
+            data.reset_index(drop=True, inplace=True) # must always reset index so there's no missing index
+        else:
+            imputer = impute.SimpleImputer(strategy)
+            data = imputer.fit_transform(data)
 
     y = pd.DataFrame(data[target_name])
     x = data.drop(columns=[target_name])

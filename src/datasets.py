@@ -1,6 +1,8 @@
 
 import pandas as pd
 from ucimlrepo import fetch_ucirepo
+from sklearn.datasets import fetch_openml
+
 
 def load_dataset(dataset_id, verbose=False):
     # fetch dataset
@@ -89,3 +91,11 @@ def load_credit(verbose=False):
     return x, y
 
 
+def load_mnist28(verbose=False):
+    mnist = fetch_openml('mnist_784', version=1, as_frame=False)
+
+    X, y = mnist['data'], mnist['target']
+    X = pd.DataFrame(X)
+    y = pd.DataFrame(y, columns=['label'])
+
+    return X, y

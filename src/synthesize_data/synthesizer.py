@@ -188,8 +188,6 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns, t
   # create y' using GaussianNB or CategoricalNB
   elif target_synthesizer == 'gaussianNB':
     synthesized_data = create_label_gaussianNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
-  elif target_synthesizer == 'gaussianNB':
-    synthesized_data = create_label_gaussianNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
   elif target_synthesizer == 'categoricalNB':
     synthesized_data = create_label_categoricalNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
 
