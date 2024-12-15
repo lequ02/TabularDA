@@ -1,7 +1,6 @@
 import sys
 import os
 import pandas as pd
-# from onehot import *
 from synthesizer import get_metadata
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

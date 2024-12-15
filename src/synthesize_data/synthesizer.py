@@ -1,6 +1,5 @@
 from sdv.single_table import CTGANSynthesizer
 from sdv.metadata import SingleTableMetadata
-# from onehot import onehot
 from naive_bayes import create_label_gaussianNB, create_label_categoricalNB
 from bayes_net import create_label_BN, create_label_BN_from_trained
 from bayes_net import create_label_BN, create_label_BN_from_trained
@@ -12,7 +11,7 @@ import os
 
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
-print(sys.path)
+# print(sys.path)
 from commons.onehot import onehot
 
 def synthesize_data(x_original, y_original, categorical_columns, target_name,
@@ -60,15 +59,9 @@ def synthesize_data(x_original, y_original, categorical_columns, target_name,
   # one-hot encode
   x_original, x_synthesized = onehot(x_original, x_synthesized, categorical_columns, verbose=verbose)
 
-  # print("\n\n\n!!!!CONCHO!!!!\n\n\n", x_original.shape)
-  # print(x_original.isnull().sum())
-
 
   # if a target synthesizer is not specified, assume that the user wants to synthesize X' and y' using CTGAN only
   if not target_synthesizer:
-    # print("Target synthesizer not specified")
-    # print("Synthesizing data using SDV only")
-    # print("Assume x_original contains both X and y")
     synthesized_data = x_synthesized.reindex(sorted(x_synthesized.columns), axis=1)
     x_synthesized_backup.drop(columns=[target_name], inplace=True)
     # ensure that the target column is the last column
@@ -158,8 +151,6 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns, t
     print(f"Successfully synthesized X data with shape {x_synthesized.shape}. Here are the first 5 rows:")
     print(x_synthesized.head())
 
-  # print("\n\n\n!!!!CONhuuu!!!\n\n\n", x_original.shape)
-  # print(x_original.isnull().sum())
 
   # pre-encode backups
   x_original_backup = x_original.copy()
@@ -167,23 +158,17 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns, t
   # one-hot encode
   x_original, x_synthesized = onehot(x_original, x_synthesized, categorical_columns, verbose=verbose)
 
-  # print("\n\n\n!!!!CONCHO!!!!\n\n\n", x_original.shape)
-  # print(x_original.isnull().sum())
 
 
   # if a target synthesizer is not specified, assume that the user wants to synthesize X' and y' using CTGAN only
   if not target_synthesizer:
-    # print("Target synthesizer not specified")
-    # print("Synthesizing data using SDV only")
-    # print("Assume x_original contains both X and y")
     synthesized_data = x_synthesized.reindex(sorted(x_synthesized.columns), axis=1)
     x_synthesized_backup.drop(columns=[target_name], inplace=True)
+    # ensure that the target column is the last column
     y = synthesized_data[target_name]
     synthesized_data.drop(columns=[target_name], inplace=True)
     synthesized_data = pd.concat([synthesized_data, y], axis=1)
-    # print(set(synthesize_data.columns))
     target_synthesizer = 'SDV'
-    # synthesized_data.to_csv(csv_file_name, index=False)
 
   # create y' using GaussianNB or CategoricalNB
   elif target_synthesizer == 'gaussianNB':

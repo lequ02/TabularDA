@@ -73,15 +73,6 @@ def onehot(xtrain, xtest, categorical_columns, verbose=False):
       if verbose:
         print(f"Differences between xtest and xtrain in column: {col}")
         print(len(dif1), dif1)
-        # print(col)
 
-
-
-
-      # print("xtrain_prep:", xtrain_prep.shape)
-      # print("xtest_prep:", xtest_prep.shape)
-
-
-
-      # xtrain_prep.to_csv("xtrain_prep.csv")
+        
   return xtrain_prep, xtest_prep
