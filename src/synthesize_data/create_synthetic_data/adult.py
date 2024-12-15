@@ -28,20 +28,24 @@ class CreateSyntheticDataAdult(CreateSyntheticData.CreateSyntheticData):
         train-test csv files are NOT one-hot encoded
         """
         # process adult data
-        x_original, y_original = load_adult()
+        x_original, y_original = self.load_data_func()
         print("Mapping y value to 0 and 1")
         y_original = y_original['income'].map({'<=50K': 0, '>50K': 1})
 
 
 
-        x_original, y_original = self.load_data_func()
         data = pd.concat([x_original, y_original], axis=1)
+
+        print('\n\ndata')
+        print(data.head())
         # xtrain, xtest, ytrain, ytest = create_train_test.create_train_test(data, target_name=self.target_name, test_size=test_size, random_state=42, stratify=y_original, categorical_columns=categorical_columns)
         # xtrain, ytrain = handle_missing_values.handle_missing_values(xtrain, ytrain, target_name=self.target_name, strategy=missing_values_strategy)
         # xtest, ytest = handle_missing_values.handle_missing_values(xtest, ytest, target_name=self.target_name, strategy=missing_values_strategy)
         
         xtrain, xtest, ytrain, ytest, xtrain_onehot, xtest_onehot = self.test_split_and_handle_missing_onehot(data, test_size=self.test_size, missing_values_strategy=self.missing_values_strategy)
-        
+        print("\n\\nytrain", ytrain)
+        print("\n\nytest", ytest)
+
         # print("\n\n paths:", self.paths)
         # print(self.paths['train_csv'])
         # print(self.paths['test_csv'])

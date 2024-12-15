@@ -10,14 +10,14 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # from datasets import load_adult, load_news, load_census, load_covertype, load_intrusion
 
 def single_run():
-  # adult.CreateSyntheticDataAdult().create_synthetic_data()
+  adult.CreateSyntheticDataAdult().create_synthetic_data()
   # census.CreateSyntheticDataCensus().create_synthetic_data()
   # news.create_synthetic_data_news()
   # covertype.create_synthetic_data_covertype()
   # intrusion.create_synthetic_data_intrusion()
   # credit.create_synthetic_data_credit()
   # mnist28.CreateSyntheticDataMnist28().create_synthetic_data()
-  mnist12.CreateSyntheticDataMnist12().create_synthetic_data()
+  # mnist12.CreateSyntheticDataMnist12().create_synthetic_data()
 
 def main():
   # adult.create_synthetic_data_adult()

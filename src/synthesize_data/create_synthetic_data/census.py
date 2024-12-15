@@ -22,11 +22,10 @@ class CreateSyntheticDataCensus(CreateSyntheticData.CreateSyntheticData):
         train-test csv files are NOT one-hot encoded
         """
         # process census data
-        x_original, y_original = load_census()
+        x_original, y_original = self.load_data_func()
         print("Mapping y value to 0 and 1")
         y_original = y_original['income'].map({'<=50K': 0, '>50K': 1})
 
-        x_original, y_original = self.load_data_func()
         data = pd.concat([x_original, y_original], axis=1)
         xtrain, xtest, ytrain, ytest, xtrain_onehot, xtest_onehot = self.test_split_and_handle_missing_onehot(data, test_size=self.test_size, missing_values_strategy=self.missing_values_strategy)
         # save train, test data to csv
