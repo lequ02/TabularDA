@@ -70,9 +70,7 @@ class train:
         self.acc_file_name = f"{self.w_file_name}.acc.csv"
         self.report_file_name = f"{self.w_file_name}.report.txt"
         
-        # csv_file_name = self.data_loader.paths
-        # if not csv_file_name.endswith('.csv'):
-        #     csv_file_name = "No CSV file specified"
+        
 
         print("Configuration: ")
         # print(f"dataset, CSV file, model: {self.dataset_name}, {csv_file_name}, {self.model_name}")
@@ -148,6 +146,7 @@ class train:
         patience_counter = 0
 
         for epoch in range(self.num_epochs):
+            print("-----------------------")
             print(f"Epoch {epoch+1}/{self.num_epochs}")
 
             self.trainer.train(device, epochs=1)  # Train for 1 epoch at a time
@@ -185,6 +184,7 @@ class train:
                     acc_file.write(f"{epoch+1},{train_mse},{train_r2},{test_mse},{test_r2}\n")
 
             print(f"lr: {lr}")
+            # print("-------------------------------------------")
 
             # Saving the model only if the current test loss is better
             if test_loss < best_val_loss:
@@ -228,6 +228,11 @@ class train:
         r2 = r2_score(all_labels, all_preds)
 
         return loss, mse, r2
+    
+
+
+
+
 
     def validate_classification(self, load_weight=False):
         print("Validation statistic...")
@@ -240,8 +245,8 @@ class train:
         corrects, loss, total = 0, 0, 0
         all_preds, all_labels = [], []
 
-        first_batch = next(iter(self.test_data))
-        print(f"First batch from test_data: {first_batch}")
+        # first_batch = next(iter(self.test_data))
+        # print(f"First batch from test_data: {first_batch}")
 
         with torch.no_grad():
             for batch_idx, (X, y) in enumerate(self.test_data):
@@ -250,21 +255,37 @@ class train:
                 output = self.trainer.model(X)
                  # Convert probabilities to binary predictions (threshold = 0.5)
                 pred = (output > 0.5).float()
+                # print(f"Batch {batch_idx}: output={output}, pred={pred}, target-y={y}")
+              
+
+
                 # Count correct predictions
                 corrects += pred.eq(y).sum().item()
                 all_preds.extend(pred.cpu().numpy())
+               
                 loss += self.trainer.criterion(output, y).item() * len(y)
                 total += len(y)
                 all_labels.extend(y.cpu().numpy())
+
+        
+
+        # print("\n\nval preds:", np.unique(all_preds))
+        # print("\n\nval labels:", np.unique(all_labels))
+
         
         loss = loss / total
         accuracy = 100 * corrects / total
         f1 = f1_score(all_labels, all_preds)
 
         print(f"Accuracy: {accuracy:.4f}%, Loss: {loss:.4f}, F1: {f1:.4f}")
-        print("-------------------------------------------")
-
+      
+        # print("-------------------------------------------")
+        
         return loss, accuracy, f1
+    
+
+
+
     
     
     def train_stats_classification(self, device):
@@ -283,12 +304,19 @@ class train:
                 loss += self.trainer.criterion(output, y).item() * len(y)
                 total += len(y)
                 all_labels.extend(y.cpu().numpy())
+
+
+        print("\n\ntrain preds:", np.unique(all_preds))
         
         loss = loss / total
         accuracy = 100 * corrects / total
         f1 = f1_score(all_labels, all_preds)
 
         return loss, accuracy, f1
+    
+
+
+
 
 
     def validate_regression(self, load_weight=False):
@@ -327,3 +355,4 @@ class train:
         print("Saving model...")
         torch.save(self.trainer.model.state_dict(), self.w_dir + fmodel)
         print("Model saved!")
+        print("-------------------------------------------")

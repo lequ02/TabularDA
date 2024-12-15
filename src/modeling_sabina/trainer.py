@@ -18,18 +18,35 @@ class trainer:
         # Train the model
         self.model.to(device)
         self.model.train()
-        print("SELF.DATA IS", self.data)
+        # print("SELF.DATA IS", self.data)
         for batch_idx, (X, y) in enumerate(self.data):
 
             
             
             X, y = X.to(device), y.to(device).float().unsqueeze(1)
+
+            # nan_columns = torch.isnan(X).any(dim=0)
+
+            
+
+            # # Print the columns with NaN values
+            # print("Columns with NaN values:")
+            # print(X[:, nan_columns])
+            # print(nan_columns)
+            
+            
             self.optimizer.zero_grad()
             output = self.model.forward(X)
+
+
+            # print(f"y : {y}")
+            # print (f"output : {output}")
 
             
 
             loss = self.criterion(output, y)
+
+           
             loss.backward()
             self.optimizer.step()
 
