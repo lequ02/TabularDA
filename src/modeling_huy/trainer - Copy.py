@@ -9,6 +9,8 @@ class trainer:
         self.criterion = criterion
         self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
         self.data = data 
+
+        # print("\n\nself.data", self.data)
         
     def clear_model(self):
         del self.model["model"]
@@ -26,6 +28,9 @@ class trainer:
             X, y = X.to(device), y.to(device).float().unsqueeze(1)
             self.optimizer.zero_grad()
             output = self.model.forward(X)
+
+            # print("\n\ny", y)
+            # print("")
 
             
 

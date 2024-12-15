@@ -13,47 +13,76 @@ class data_loader:
         self.paths = constants.IN_DATA_PATHS[dataset_name]
         self.train_columns = None  # Store train columns for alignment
 
+    def drop_index_col(self, df):
+        if "Unnamed: 0" in df.columns:
+            df.drop("Unnamed: 0", axis=1, inplace=True)
+        return df
+    
     def load_train_augment_data(self, train_option, augment_option):
         if train_option not in ['original', 'synthetic', 'mix'] or augment_option not in [None, 'ctgan', 'categorical', 'gaussian']:
             raise ValueError("Invalid train_option or augment_option")
         if train_option == 'original':
             train_df = pd.read_csv(self.paths['train_original'])
+            train_df = self.drop_index_col(train_df)
         elif train_option == 'synthetic':
             train_df = pd.read_csv(self.paths[train_option][augment_option])
+            train_df = self.drop_index_col(train_df)
         else:  # 'mix' option
             original_df = pd.read_csv(self.paths['train_original'])
+            original_df = self.drop_index_col(original_df)
+            print(self.paths)
+            print(self.paths['synthetic'])
+            print(self.paths['synthetic'][augment_option])
+
             synthetic_df = pd.read_csv(self.paths['synthetic'][augment_option])
+            synthetic_df = self.drop_index_col(synthetic_df)
+
 
             train_df = pd.concat([original_df, synthetic_df], axis=0)
         
-        print(f"Train dataset columns:\n{train_df.columns}")
-        self.train_columns = train_df.columns[:-1]  # Store columns for test data alignment
+        # sort train and test alphabetically so the columns are in the same order
+        train_df = train_df.reindex(sorted(train_df.columns), axis=1)
+        # print(f"Train dataset columns:\n{train_df.columns}")
+        self.train_columns = train_df.columns  # Store columns for test data alignment
         return self._load_data_in_batches(train_df)
         
     def load_test_data(self):
         # Load test data
+        print("\n\n path", self.paths['test'])
         test_df = pd.read_csv(self.paths['test'])
-        print(f"Test dataset preview:\n{test_df.head()}")  # Debugging
+        # print(f"Test dataset preview:\n{test_df.head()}")  # Debugging
+        print(test_df.head(2))
+
 
         if self.train_columns is None:
             raise ValueError("Training data must be loaded before test data to align columns.")
 
         # Align test columns with training columns
         missing_cols = set(self.train_columns) - set(test_df.columns)
+        print(missing_cols)
         for col in missing_cols:
             test_df[col] = 0  
-
+            # sort train and test alphabetically so the columns are in the same order
+            test_df = test_df.reindex(sorted(test_df.columns), axis=1)
+        
         # Drop extra columns
         extra_cols = set(test_df.columns) - set(self.train_columns)
+        
         if extra_cols:
             test_df = test_df.drop(columns=extra_cols)
 
-        print(f"Test dataset columns after alignment:\n{test_df.columns}")
-        print(f"Test dataset shape after alignment: {test_df.shape}")
+        # print(f"Test dataset columns after alignment:\n{test_df.columns}")
+        # print(f"Test dataset shape after alignment: {test_df.shape}")
+            
+        
+        
 
-        # Prepare features and labels
-        X = test_df[self.train_columns]  
-        y = test_df.iloc[:, -1]
+        y = test_df[self.paths['target_name']]
+        X = test_df.drop(self.paths['target_name'], axis=1)
+
+        print("\n\n y dataloader", y.unique())
+
+
 
         # Standardize features
         X = self._standardize(X)
@@ -67,8 +96,10 @@ class data_loader:
         return DataLoader(dataset, batch_size=self.batch_size, shuffle=False)
 
     def _load_data_in_batches(self, df):
-        X = df.iloc[:, :-1] 
-        y = df.iloc[:, -1] 
+        
+
+        y = df[self.paths['target_name']]
+        X = df.drop(self.paths['target_name'], axis=1)
         X = self._standardize(X)
         return self._distribute_in_batches(X.values, y.values)
         

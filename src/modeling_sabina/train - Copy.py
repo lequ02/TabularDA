@@ -240,8 +240,8 @@ class train:
         corrects, loss, total = 0, 0, 0
         all_preds, all_labels = [], []
 
-        first_batch = next(iter(self.test_data))
-        print(f"First batch from test_data: {first_batch}")
+        # first_batch = next(iter(self.test_data))
+        # print(f"First batch from test_data: {first_batch}")
 
         with torch.no_grad():
             for batch_idx, (X, y) in enumerate(self.test_data):

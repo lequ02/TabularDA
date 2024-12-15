@@ -73,6 +73,7 @@ class data_loader:
 
         elif option == 'synthetic':
             ds_synth = pd.read_csv(self.file_name, index_col=0)
+            ds_synth.columns = [col.split('_', 1)[-1] if '_' in col else col for col in ds_synth.columns]
             ds_train, ds_test = self.train_test_split(ds_synth, self.test_ratio)
             print(f"Synthetic dataset - Train shape: {ds_train.shape}, Test shape: {ds_test.shape}")
             return ds_train, ds_test

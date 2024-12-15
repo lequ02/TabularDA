@@ -45,6 +45,9 @@ class train:
         self.train_data = self.data_loader.load_train_augment_data(self.train_option, self.augment_option)
         self.test_data = self.data_loader.load_test_data()
 
+
+        # print("\n\n y of self.train_data", self.train_data['income'])
+
         print("----------------------------------------------------")
         print(f"Training dataset size: {len(self.train_data)}")
         print(f"Testing dataset size: {len(self.test_data)}")
@@ -228,6 +231,10 @@ class train:
         r2 = r2_score(all_labels, all_preds)
 
         return loss, mse, r2
+    
+
+
+
 
     def validate_classification(self, load_weight=False):
         print("Validation statistic...")
@@ -286,7 +293,46 @@ class train:
         
         loss = loss / total
         accuracy = 100 * corrects / total
-        f1 = f1_score(all_labels, all_preds)
+        # precision = 
+        # f1 = f1_score(all_labels, all_preds)
+
+
+
+        # After the loop, calculate precision, recall, and f1 score
+
+        # Convert all_preds and all_labels to numpy arrays (if they aren't already)
+        all_preds = np.array(all_preds)
+        all_labels = np.array(all_labels)
+
+        # Calculate TP, FP, FN, and TN
+        TP = ((all_preds == 1) & (all_labels == 1)).sum()  # True Positives
+        FP = ((all_preds == 1) & (all_labels == 0)).sum()  # False Positives
+        FN = ((all_preds == 0) & (all_labels == 1)).sum()  # False Negatives
+        TN = ((all_preds == 0) & (all_labels == 0)).sum()  # True Negatives
+
+        # Calculate Precision manually
+        if TP + FP > 0:
+            precision = TP / (TP + FP)
+        else:
+            precision = 0  # Avoid division by zero
+
+        # Calculate Recall manually
+        if TP + FN > 0:
+            recall = TP / (TP + FN)
+        else:
+            recall = 0  # Avoid division by zero
+
+        # Calculate F1 score manually
+        if precision + recall > 0:
+            f1 = 2 * (precision * recall) / (precision + recall)
+        else:
+            f1 = 0  # Avoid division by zero
+
+        # Output precision, recall, and f1 score
+        print(f"Precision: {precision:.4f}")
+        print(f"Recall: {recall:.4f}")
+        print(f"F1 Score: {f1:.4f}")
+
 
         return loss, accuracy, f1
 
