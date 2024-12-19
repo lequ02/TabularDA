@@ -1,4 +1,5 @@
 from data_loader import data_loader
+import matplotlib.pyplot as plt
 import random
 import pandas as pd
 import math
@@ -9,7 +10,7 @@ from tqdm import tqdm
 import torch
 from torch import nn
 from torchsummary import summary
-from sklearn.metrics import f1_score, classification_report, mean_squared_error, r2_score
+from sklearn.metrics import f1_score,precision_score, recall_score, classification_report, mean_squared_error, r2_score
 from models import DNN_Adult, DNN_Census, DNN_News 
 from trainer import trainer
 import constants
@@ -92,6 +93,8 @@ class train:
             model = DNN_Adult(input_size=input_size).to(device)
             self.model_name = "DNN_Adult"
             criterion = nn.BCELoss()
+
+
         elif self.dataset_name.lower() == "census":
             model = DNN_Census(input_size=input_size).to(device)
             self.model_name = "DNN_Census"
@@ -142,6 +145,7 @@ class train:
         test_r2_scores = []
 
         best_val_loss = float('inf')
+    
         patience = 10  # Number of epochs to wait for improvement before stopping
         patience_counter = 0
 
@@ -196,11 +200,12 @@ class train:
                 if patience_counter >= patience:
                     print("Early stopping triggered!")
                     break
+            
 
             if epoch + 1 in save_at:
                 fmodel = f"{epoch + 1}_{self.w_file_name}"
                 self.save_model(fmodel)
-
+        self.plot_loss_and_f1_curves(train_losses, test_losses,train_f1_scores,test_f1_scores)
         print("Finish training!")
 
     def train_stats_regression(self, device):
@@ -250,7 +255,7 @@ class train:
 
         with torch.no_grad():
             for batch_idx, (X, y) in enumerate(self.test_data):
-                X, y = X.to(device), y.to(device).float().reshape(-1, 1)
+                X, y = X.to(device), y.to(device).float().unsqueeze(1)
                 
                 output = self.trainer.model(X)
                  # Convert probabilities to binary predictions (threshold = 0.5)
@@ -264,6 +269,7 @@ class train:
                 all_preds.extend(pred.cpu().numpy())
                
                 loss += self.trainer.criterion(output, y).item() * len(y)
+                
                 total += len(y)
                 all_labels.extend(y.cpu().numpy())
 
@@ -272,12 +278,13 @@ class train:
         # print("\n\nval preds:", np.unique(all_preds))
         # print("\n\nval labels:", np.unique(all_labels))
 
-        
+        precision = precision_score(all_labels, all_preds)
+        recall = recall_score(all_labels, all_preds)
         loss = loss / total
         accuracy = 100 * corrects / total
         f1 = f1_score(all_labels, all_preds)
 
-        print(f"Accuracy: {accuracy:.4f}%, Loss: {loss:.4f}, F1: {f1:.4f}")
+        print(f"Accuracy: {accuracy:.4f}%,Precision: {precision:.4f},Recall: {recall:.4f}, Loss: {loss:.4f}, F1: {f1:.4f}")
       
         # print("-------------------------------------------")
         
@@ -290,6 +297,7 @@ class train:
     
     def train_stats_classification(self, device):
         self.trainer.model.eval()
+        
         corrects, loss, total = 0, 0, 0
         all_preds, all_labels = [], []
         
@@ -306,7 +314,7 @@ class train:
                 all_labels.extend(y.cpu().numpy())
 
 
-        print("\n\ntrain preds:", np.unique(all_preds))
+        # print("\n\ntrain preds:", np.unique(all_preds))
         
         loss = loss / total
         accuracy = 100 * corrects / total
@@ -356,3 +364,34 @@ class train:
         torch.save(self.trainer.model.state_dict(), self.w_dir + fmodel)
         print("Model saved!")
         print("-------------------------------------------")
+
+    def plot_loss_and_f1_curves(self, train_losses, test_losses, train_f1_scores, test_f1_scores):
+        """Plots and saves training/validation loss and F1 score curves to the model directory."""
+        # Ensure the directory exists
+        os.makedirs(self.acc_dir, exist_ok=True)
+        
+        # Plot Loss Curves
+        loss_plot_file = os.path.join(self.acc_dir, f"{self.acc_file_name}_loss_curve.png")
+        plt.figure(figsize=(10, 6))
+        plt.plot(train_losses, label='Training Loss', color='blue')
+        plt.plot(test_losses, label='Validation Loss', color='orange')
+        plt.xlabel('Epochs')
+        plt.ylabel('Loss')
+        plt.title('Training and Validation Loss Curves')
+        plt.legend()
+        plt.grid()
+        plt.savefig(loss_plot_file)
+        plt.close()
+
+        # Plot F1 Score Curves
+        f1_plot_file = os.path.join(self.acc_dir, f"{self.acc_file_name}_f1_curve.png")
+        plt.figure(figsize=(10, 6))
+        plt.plot(train_f1_scores, label='Training F1 Score', color='green')
+        plt.plot(test_f1_scores, label='Validation F1 Score', color='red')
+        plt.xlabel('Epochs')
+        plt.ylabel('F1 Score')
+        plt.title('Training and Validation F1 Score Curves')
+        plt.legend()
+        plt.grid()
+        plt.savefig(f1_plot_file)
+        plt.close()
