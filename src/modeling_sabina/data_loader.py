@@ -23,9 +23,11 @@ class data_loader:
             raise ValueError("Invalid train_option or augment_option")
         if train_option == 'original':
             train_df = pd.read_csv(self.paths['train_original'])
+            # train_df = train_df[sorted(train_df.columns)]
             train_df = self.drop_index_col(train_df)
         elif train_option == 'synthetic':
             train_df = pd.read_csv(self.paths[train_option][augment_option])
+            train_df = train_df[sorted(train_df.columns)]
             train_df = self.drop_index_col(train_df)
         else:  # 'mix' option
             original_df = pd.read_csv(self.paths['train_original'])
@@ -35,6 +37,7 @@ class data_loader:
             print(self.paths['synthetic'][augment_option])
 
             synthetic_df = pd.read_csv(self.paths['synthetic'][augment_option])
+
             synthetic_df = self.drop_index_col(synthetic_df)
 
 
@@ -42,16 +45,22 @@ class data_loader:
         
         # sort train and test alphabetically so the columns are in the same order
         train_df = train_df.reindex(sorted(train_df.columns), axis=1)
+
+        print("\n\ntrain columns")
+        print(train_df.columns)
+
+
         # print(f"Train dataset columns:\n{train_df.columns}")
         self.train_columns = train_df.columns  # Store columns for test data alignment
         return self._load_data_in_batches(train_df)
         
     def load_test_data(self):
         # Load test data
-        print("\n\n path", self.paths['test'])
+        # print("\n\n path", self.paths['test'])
         test_df = pd.read_csv(self.paths['test'])
+        
         # print(f"Test dataset preview:\n{test_df.head()}")  # Debugging
-        print(test_df.head(2))
+        # print(test_df.head(2))
 
 
         if self.train_columns is None:
@@ -74,7 +83,9 @@ class data_loader:
         # print(f"Test dataset columns after alignment:\n{test_df.columns}")
         # print(f"Test dataset shape after alignment: {test_df.shape}")
             
-        
+        # test_df = test_df[sorted(test_df.columns)]
+        print("\n\ntest columns")
+        print(test_df.columns)
         
 
         y = test_df[self.paths['target_name']]
