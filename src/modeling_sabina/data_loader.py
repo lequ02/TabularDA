@@ -23,7 +23,6 @@ class data_loader:
             raise ValueError("Invalid train_option or augment_option")
         if train_option == 'original':
             train_df = pd.read_csv(self.paths['train_original'])
-            # train_df = train_df[sorted(train_df.columns)]
             train_df = self.drop_index_col(train_df)
         elif train_option == 'synthetic':
             train_df = pd.read_csv(self.paths[train_option][augment_option])
@@ -71,7 +70,7 @@ class data_loader:
         print(missing_cols)
         for col in missing_cols:
             test_df[col] = 0  
-            
+
         # sort train and test alphabetically so the columns are in the same order
         test_df = test_df.reindex(sorted(test_df.columns), axis=1)
         
@@ -91,9 +90,6 @@ class data_loader:
 
         y = test_df[self.paths['target_name']]
         X = test_df.drop(self.paths['target_name'], axis=1)
-
-        print("\n\n y dataloader", y.unique())
-
 
 
         # Standardize features
