@@ -71,8 +71,9 @@ class data_loader:
         print(missing_cols)
         for col in missing_cols:
             test_df[col] = 0  
-            # sort train and test alphabetically so the columns are in the same order
-            test_df = test_df.reindex(sorted(test_df.columns), axis=1)
+            
+        # sort train and test alphabetically so the columns are in the same order
+        test_df = test_df.reindex(sorted(test_df.columns), axis=1)
         
         # Drop extra columns
         extra_cols = set(test_df.columns) - set(self.train_columns)
