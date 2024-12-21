@@ -12,7 +12,7 @@ def parse_args():
   parser.add_argument('--lr', dest='lr', help='Learning rate', type=float, required=True)
   parser.add_argument('--global-round', dest='global_round', help='Number of epochs to train the model', type=int, required=True)
   # parser.add_argument('--test-ratio', dest='test_ratio', help='Number of samples for test set', type=int, required=True)
-  parser.add_argument('--train-option', dest='train_option', help='Training data option (original or mix)', type=str, required=True)
+  parser.add_argument('--train-option', dest='train_option', help='Training data option (original, synthetic or mix)', type=str, required=True)
   parser.add_argument('--augment-option', dest='augment_option', help='Synthetic data option (ctgan or gaussian or categorical)', type=str, default=None)
   parser.add_argument('--test-option', dest='test_option', help='Test data option (original or mix)', type=str, required=True)
   parser.add_argument('--pre-trained-weight-file', dest='pre_trained_w_file', help='File path of a trained model to load', type=str, default=None)

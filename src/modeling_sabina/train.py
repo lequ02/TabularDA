@@ -12,6 +12,7 @@ from torch import nn
 from torchsummary import summary
 from sklearn.metrics import f1_score,precision_score, recall_score, classification_report, mean_squared_error, r2_score
 from models import DNN_Adult, DNN_Census, DNN_News 
+from models_folder import model_mnist12
 from trainer import trainer
 import constants
 
@@ -103,6 +104,10 @@ class train:
             model = DNN_News(input_size=input_size).to(device)
             self.model_name = "DNN_News"
             criterion = nn.MSELoss()
+        elif self.dataset_name.lower() == "mnist12":
+            model = model_mnist12.DNN_MNIST12(input_size=input_size).to(device)
+            self.model_name = "DNN_MNIST12"
+            criterion = nn.CrossEntropyLoss()  
         else:
             raise ValueError("Unknown dataset name")
 
@@ -110,7 +115,7 @@ class train:
             print(f"Loading weight from {pre_trained_w_file}")
             model.load_state_dict(torch.load(self.w_dir + pre_trained_w_file))
 
-        mtrainer = trainer(model, self.train_data, criterion, self.learning_rate, device=device)
+        mtrainer = trainer(model, self.train_data, criterion, self.learning_rate, dataset_name=self.dataset_name, device=device)
         print("SELF.train_data", self.train_data)
         mtrainer.data = self.train_data
 
@@ -155,7 +160,7 @@ class train:
 
             self.trainer.train(device, epochs=1)  # Train for 1 epoch at a time
 
-            if self.dataset_name.lower() in ["adult", "census"]:
+            if self.dataset_name.lower() in ["adult", "census", 'mnist12', 'mnist28']:
                 train_loss, train_acc, train_f1 = self.train_stats_classification(device)
                 train_losses.append(train_loss)
                 train_f1_scores.append(train_f1)
@@ -255,34 +260,50 @@ class train:
 
         with torch.no_grad():
             for batch_idx, (X, y) in enumerate(self.test_data):
-                X, y = X.to(device), y.to(device).float().unsqueeze(1)
+                #  multi-class classification
+                if self.dataset_name.lower() == "mnist12" or self.dataset_name.lower() == "mnist28":
+                    X, y = X.to(device), y.long().to(device)
+
+                    output = self.trainer.model(X)  
+                    _, predicted = torch.max(output.data, 1)  # Changed prediction for multi-class
+                    corrects += (predicted == y).sum().item()
+                    all_preds.extend(predicted.cpu().numpy())
+                    loss += self.trainer.criterion(output, y).item() * len(y)
+                    total += len(y)
+                    all_labels.extend(y.cpu().numpy())
+
+                    precision = precision_score(all_labels, all_preds, average='macro')
+                    recall = recall_score(all_labels, all_preds, average='macro')
+                    loss = loss / total
+                    accuracy = 100 * corrects / total
+                    f1 = f1_score(all_labels, all_preds, average='macro')  # Added average='macro' for multi-class
+
+
+                else: # binary classification
+                    X, y = X.to(device), y.to(device).float().unsqueeze(1)
+                    
+                    output = self.trainer.model(X)
+                    # Convert probabilities to binary predictions (threshold = 0.5)
+                    pred = (output > 0.5).float()
+                    # print(f"Batch {batch_idx}: output={output}, pred={pred}, target-y={y}")
                 
-                output = self.trainer.model(X)
-                 # Convert probabilities to binary predictions (threshold = 0.5)
-                pred = (output > 0.5).float()
-                # print(f"Batch {batch_idx}: output={output}, pred={pred}, target-y={y}")
-              
-
-
-                # Count correct predictions
-                corrects += pred.eq(y).sum().item()
-                all_preds.extend(pred.cpu().numpy())
-               
-                loss += self.trainer.criterion(output, y).item() * len(y)
+                    # Count correct predictions
+                    corrects += pred.eq(y).sum().item()
+                    all_preds.extend(pred.cpu().numpy())
                 
-                total += len(y)
-                all_labels.extend(y.cpu().numpy())
+                    loss += self.trainer.criterion(output, y).item() * len(y)
+                    
+                    total += len(y)
+                    all_labels.extend(y.cpu().numpy())
+            
+                    # print("\n\nval preds:", np.unique(all_preds))
+                    # print("\n\nval labels:", np.unique(all_labels))
 
-        
-
-        # print("\n\nval preds:", np.unique(all_preds))
-        # print("\n\nval labels:", np.unique(all_labels))
-
-        precision = precision_score(all_labels, all_preds)
-        recall = recall_score(all_labels, all_preds)
-        loss = loss / total
-        accuracy = 100 * corrects / total
-        f1 = f1_score(all_labels, all_preds)
+                    precision = precision_score(all_labels, all_preds)
+                    recall = recall_score(all_labels, all_preds)
+                    loss = loss / total
+                    accuracy = 100 * corrects / total
+                    f1 = f1_score(all_labels, all_preds, 'binary')
 
         print(f"Accuracy: {accuracy:.4f}%,Precision: {precision:.4f},Recall: {recall:.4f}, Loss: {loss:.4f}, F1: {f1:.4f}")
       
@@ -291,9 +312,6 @@ class train:
         return loss, accuracy, f1
     
 
-
-
-    
     
     def train_stats_classification(self, device):
         self.trainer.model.eval()
@@ -303,22 +321,38 @@ class train:
         
         with torch.no_grad():
             for batch_idx, (X, y) in enumerate(self.train_data):
-                X, y = X.to(device), y.to(device).float().unsqueeze(1)
+                #  multi-class classification 
+                if self.dataset_name.lower() == "mnist12" or self.dataset_name.lower() == "mnist28":
+                    X, y = X.to(device), y.long().to(device)  # Changed this line
+                    
+                    output = self.trainer.model(X)
+                    _, predicted = torch.max(output.data, 1)  # Changed prediction for multi-class
+                    corrects += (predicted == y).sum().item()
+                    all_preds.extend(predicted.cpu().numpy())
+                    loss += self.trainer.criterion(output, y).item() * len(y)
+                    total += len(y)
+                    all_labels.extend(y.cpu().numpy())
+
+                    loss = loss / total
+                    accuracy = 100 * corrects / total
+                    f1 = f1_score(all_labels, all_preds, average='macro')  # Added average='macro' for multi-class
+
+                    
+                else: # binary classification
+                    X, y = X.to(device), y.to(device).float().unsqueeze(1)
                 
-                output = self.trainer.model(X)
-                pred = (output > 0.5).float()
-                corrects += pred.eq(y).sum().item()
-                all_preds.extend(pred.cpu().numpy())
-                loss += self.trainer.criterion(output, y).item() * len(y)
-                total += len(y)
-                all_labels.extend(y.cpu().numpy())
-
-
-        # print("\n\ntrain preds:", np.unique(all_preds))
-        
-        loss = loss / total
-        accuracy = 100 * corrects / total
-        f1 = f1_score(all_labels, all_preds)
+                    output = self.trainer.model(X)
+                    pred = (output > 0.5).float()
+                    corrects += pred.eq(y).sum().item()
+                    all_preds.extend(pred.cpu().numpy())
+                    loss += self.trainer.criterion(output, y).item() * len(y)
+                    total += len(y)
+                    all_labels.extend(y.cpu().numpy())
+                    # print("\n\ntrain preds:", np.unique(all_preds))
+                    
+                    loss = loss / total
+                    accuracy = 100 * corrects / total
+                    f1 = f1_score(all_labels, all_preds)
 
         return loss, accuracy, f1
     

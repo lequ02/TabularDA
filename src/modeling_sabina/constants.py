@@ -26,8 +26,29 @@ IN_DATA_PATHS = {
             'ctgan': '../../data/news/onehot_news_sdv_100k.csv',
             'categorical': '../../data/news/onehot_news_sdv_categorical_100k.csv',
             'gaussian': '../../data/news/onehot_news_sdv_gaussian_100k.csv'
-        }
-    }
+        },
+        'target_name': ' shares'
+    },
+    'mnist12': {
+        'train_original': '../../data/mnist12/mnist12_train.csv',
+        'test': '../../data/mnist12/mnist12_test.csv',
+        'synthetic': {
+            'ctgan': '../../data/mnist12/onehot_mnist12_sdv_100k.csv',
+            'categorical': '../../data/mnist12/onehot_mnist12_sdv_categorical_100k.csv',
+            'gaussian': '../../data/mnist12/onehot_mnist12_sdv_gaussian_100k.csv'
+        },
+        'target_name': 'label'
+    },
+    'mnist28': {
+        'train_original': '../../data/mnist28/mnist28_train.csv',
+        'test': '../../data/mnist28/mnist28_test.csv',
+        'synthetic': {
+            'ctgan': '../../data/mnist28/onehot_mnist28_sdv_100k.csv',
+            'categorical': '../../data/mnist28/onehot_mnist28_sdv_categorical_100k.csv',
+            'gaussian': '../../data/mnist28/onehot_mnist28_sdv_gaussian_100k.csv'
+        },
+        'target_name': 'label'
+    },
 }
 
 OUT_DATA_PATHS = "../../output/"
