@@ -39,13 +39,25 @@ class train:
         self.train_option = train_option
         self.augment_option = augment_option
         self.test_option = test_option
-        
+
+        if self.dataset_name.lower() in ['mnist12', 'mnist28', 'intrusion', 'covertype']:
+            self.f1_type = "macro"
+        elif self.dataset_name.lower() in ['adult', 'census', 'credit']:
+            self.f1_type = "binary"
+        else: # news ds
+            self.f1_type = None
+
+
         self.pre_trained_w_file = pre_trained_w_file
 
         # Initialize train and test data
         self.data_loader = data_loader(self.dataset_name, self.batch_size)
         self.train_data = self.data_loader.load_train_augment_data(self.train_option, self.augment_option)
         self.test_data = self.data_loader.load_test_data()
+
+        # self.train_data.to_csv("dummy_train_data_mnist12.csv")
+        # self.test_data.to_csv("dummy_test_data_mnist12.csv")
+        # print("\n\n\n\n\n break now\n\n\n")
 
         print("----------------------------------------------------")
         print(f"Training dataset size: {len(self.train_data)}")
@@ -108,6 +120,18 @@ class train:
             model = model_mnist12.DNN_MNIST12(input_size=input_size).to(device)
             self.model_name = "DNN_MNIST12"
             criterion = nn.CrossEntropyLoss()  
+        elif self.dataset_name.lower() == "mnist28":
+            model = model_mnist12.DNN_MNIST28(input_size=input_size).to(device)
+            self.model_name = "DNN_MNIST28"
+            criterion = nn.CrossEntropyLoss()
+        elif self.dataset_name.lower() == "intrusion":
+            model = DNN_Intrusion(input_size=input_size).to(device)
+            self.model_name = "DNN_Intrusion"
+            criterion = nn.CrossEntropyLoss()
+        elif self.dataset_name.lower() == "covertype":
+            model = DNN_Covertype(input_size=input_size).to(device)
+            self.model_name = "DNN_Covertype"
+            criterion = nn.CrossEntropyLoss()
         else:
             raise ValueError("Unknown dataset name")
 
@@ -190,7 +214,7 @@ class train:
                 test_r2_scores.append(test_r2)
 
                 with open(self.acc_dir + self.acc_file_name, 'a') as acc_file:
-                    acc_file.write(f"{epoch+1},{train_mse},{train_r2},{test_mse},{test_r2}\n")
+                    acc_file.write(f"{epoch+1}, {train_mse}, {train_r2}, {test_mse}, {test_r2}\n")
 
             print(f"lr: {lr}")
             # print("-------------------------------------------")
@@ -210,7 +234,9 @@ class train:
             if epoch + 1 in save_at:
                 fmodel = f"{epoch + 1}_{self.w_file_name}"
                 self.save_model(fmodel)
-        self.plot_loss_and_f1_curves(train_losses, test_losses,train_f1_scores,test_f1_scores)
+
+        print("len", len(train_losses), len(test_losses), len(train_f1_scores), len(test_f1_scores))
+        self.plot_loss_and_f1_curves(train_losses, test_losses, train_f1_scores, test_f1_scores)
         print("Finish training!")
 
     def train_stats_regression(self, device):
@@ -272,11 +298,11 @@ class train:
                     total += len(y)
                     all_labels.extend(y.cpu().numpy())
 
-                    precision = precision_score(all_labels, all_preds, average='macro')
-                    recall = recall_score(all_labels, all_preds, average='macro')
-                    loss = loss / total
-                    accuracy = 100 * corrects / total
-                    f1 = f1_score(all_labels, all_preds, average='macro')  # Added average='macro' for multi-class
+                    # precision = precision_score(all_labels, all_preds, average=self.f1_type)
+                    # recall = recall_score(all_labels, all_preds, average=self.f1_type)
+                    # loss = loss / total
+                    # accuracy = 100 * corrects / total
+                    # f1 = f1_score(all_labels, all_preds, average=self.f1_type)  # Added average=self.f1_type for multi-class
 
 
                 else: # binary classification
@@ -299,13 +325,13 @@ class train:
                     # print("\n\nval preds:", np.unique(all_preds))
                     # print("\n\nval labels:", np.unique(all_labels))
 
-                    precision = precision_score(all_labels, all_preds)
-                    recall = recall_score(all_labels, all_preds)
-                    loss = loss / total
-                    accuracy = 100 * corrects / total
-                    f1 = f1_score(all_labels, all_preds, 'binary')
+        precision = precision_score(all_labels, all_preds, average=self.f1_type)
+        recall = recall_score(all_labels, all_preds, average=self.f1_type)
+        loss = loss / total
+        accuracy = 100 * corrects / total
+        f1 = f1_score(all_labels, all_preds, average=self.f1_type)
 
-        print(f"Accuracy: {accuracy:.4f}%,Precision: {precision:.4f},Recall: {recall:.4f}, Loss: {loss:.4f}, F1: {f1:.4f}")
+        print(f"Accuracy: {accuracy:.4f}%, Precision: {precision:.4f}, Recall: {recall:.4f}, Loss: {loss:.4f}, F1: {f1:.4f}")
       
         # print("-------------------------------------------")
         
@@ -333,9 +359,9 @@ class train:
                     total += len(y)
                     all_labels.extend(y.cpu().numpy())
 
-                    loss = loss / total
-                    accuracy = 100 * corrects / total
-                    f1 = f1_score(all_labels, all_preds, average='macro')  # Added average='macro' for multi-class
+                    # loss = loss / total
+                    # accuracy = 100 * corrects / total
+                    # f1 = f1_score(all_labels, all_preds, average=self.f1_type)  # Added average=self.f1_type for multi-class
 
                     
                 else: # binary classification
@@ -350,9 +376,9 @@ class train:
                     all_labels.extend(y.cpu().numpy())
                     # print("\n\ntrain preds:", np.unique(all_preds))
                     
-                    loss = loss / total
-                    accuracy = 100 * corrects / total
-                    f1 = f1_score(all_labels, all_preds)
+        loss = loss / total
+        accuracy = 100 * corrects / total
+        f1 = f1_score(all_labels, all_preds, average=self.f1_type)
 
         return loss, accuracy, f1
     
@@ -414,6 +440,7 @@ class train:
         plt.title('Training and Validation Loss Curves')
         plt.legend()
         plt.grid()
+        plt.xticks(range(len(train_losses)), range(1, len(train_losses) + 1))  # Ensure x-labels are integers
         plt.savefig(loss_plot_file)
         plt.close()
 
@@ -427,5 +454,6 @@ class train:
         plt.title('Training and Validation F1 Score Curves')
         plt.legend()
         plt.grid()
+        plt.xticks(range(len(train_f1_scores)), range(1, len(train_f1_scores) + 1))  # Ensure x-labels are integers
         plt.savefig(f1_plot_file)
         plt.close()

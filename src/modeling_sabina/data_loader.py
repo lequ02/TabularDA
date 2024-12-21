@@ -31,19 +31,31 @@ class data_loader:
         else:  # 'mix' option
             original_df = pd.read_csv(self.paths['train_original'])
             original_df = self.drop_index_col(original_df)
-            print(self.paths)
-            print(self.paths['synthetic'])
-            print(self.paths['synthetic'][augment_option])
+            # sort original and synthetic alphabetically so the columns are in the same order
+            original_df = original_df.reindex(sorted(original_df.columns), axis=1)
+
+            print("\n\noriginal columns")
+            print(original_df.columns)
+
+            # print(self.paths)
+            # print(self.paths['synthetic'])
+            # print(self.paths['synthetic'][augment_option])
 
             synthetic_df = pd.read_csv(self.paths['synthetic'][augment_option])
-
             synthetic_df = self.drop_index_col(synthetic_df)
+            # sort original and synthetic alphabetically so the columns are in the same order
+            synthetic_df = synthetic_df.reindex(sorted(synthetic_df.columns), axis=1)
+
+            print("\n\nsynthetic columns")
+            print(synthetic_df.columns)
 
 
             train_df = pd.concat([original_df, synthetic_df], axis=0)
         
         # sort train and test alphabetically so the columns are in the same order
         train_df = train_df.reindex(sorted(train_df.columns), axis=1)
+
+        # train_df.to_csv("dummy_train_df.csv", index=False)
 
         print("\n\ntrain columns")
         print(train_df.columns)
@@ -86,6 +98,8 @@ class data_loader:
         # test_df = test_df[sorted(test_df.columns)]
         print("\n\ntest columns")
         print(test_df.columns)
+
+        # test_df.to_csv("dummy_test_df.csv", index=False)
         
 
         y = test_df[self.paths['target_name']]
