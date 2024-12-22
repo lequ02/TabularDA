@@ -27,7 +27,7 @@ class train:
     
     def __init__(self, dataset_name, batch_size, learning_rate, 
                 num_epochs, w_dir, acc_dir, train_option,
-                test_option, augment_option=None, pre_trained_w_file=None):
+                test_option, patience=10, early_stop_criterion='loss', augment_option=None, pre_trained_w_file=None):
         self.dataset_name = dataset_name
         self.batch_size = batch_size
         self.learning_rate = learning_rate
@@ -39,6 +39,9 @@ class train:
         self.train_option = train_option
         self.augment_option = augment_option
         self.test_option = test_option
+
+        self.patience = patience
+        self.early_stop_criterion = early_stop_criterion
 
         if self.dataset_name.lower() in ['mnist12', 'mnist28', 'intrusion', 'covertype']:
             self.f1_type = "macro"
@@ -174,8 +177,9 @@ class train:
         test_r2_scores = []
 
         best_val_loss = float('inf')
+        best_val_f1 = 0
     
-        patience = 10  # Number of epochs to wait for improvement before stopping
+        patience = self.patience  # Number of epochs to wait for improvement before stopping
         patience_counter = 0
 
         for epoch in range(self.num_epochs):
@@ -219,23 +223,36 @@ class train:
             print(f"lr: {lr}")
             # print("-------------------------------------------")
 
-            # Saving the model only if the current test loss is better
-            if test_loss < best_val_loss:
-                best_val_loss = test_loss
-                self.save_model(self.w_file_name)  # Save the best model
-                patience_counter = 0  # Reset patience counter
-            else:
-                patience_counter += 1
-                if patience_counter >= patience:
-                    print("Early stopping triggered!")
-                    break
-            
+            if self.early_stop_criterion == 'loss':
+                # Saving the model only if the current test loss is better
+                if test_loss < best_val_loss:
+                    best_val_loss = test_loss
+                    self.save_model(self.w_file_name)  # Save the best model
+                    patience_counter = 0  # Reset patience counter
+                else:
+                    patience_counter += 1
+                    if patience_counter >= patience:
+                        print("Early stopping (loss) triggered!")
+                        break
+                
+
+            if self.early_stop_criterion == 'f1':
+                if test_f1 > best_val_f1:
+                    best_val_f1 = test_f1
+                    self.save_model(self.w_file_name)  # Save the best model
+                    patience_counter = 0  # Reset patience counter
+                else:
+                    patience_counter += 1
+                    if patience_counter >= patience:
+                        print("Early stopping (f1) triggered!")
+                        break
+
 
             if epoch + 1 in save_at:
                 fmodel = f"{epoch + 1}_{self.w_file_name}"
                 self.save_model(fmodel)
 
-        print("len", len(train_losses), len(test_losses), len(train_f1_scores), len(test_f1_scores))
+        # print("len", len(train_losses), len(test_losses), len(train_f1_scores), len(test_f1_scores))
         self.plot_loss_and_f1_curves(train_losses, test_losses, train_f1_scores, test_f1_scores)
         print("Finish training!")
 
@@ -429,7 +446,12 @@ class train:
         """Plots and saves training/validation loss and F1 score curves to the model directory."""
         # Ensure the directory exists
         os.makedirs(self.acc_dir, exist_ok=True)
-        
+        # Determine the number of x-ticks to display automatically
+        num_epochs = len(train_losses)
+        max_ticks = min(num_epochs, 25)  # Maximum number of ticks to display
+        step = max(1, num_epochs // max_ticks)
+        x_ticks = range(0, num_epochs, step)
+
         # Plot Loss Curves
         loss_plot_file = os.path.join(self.acc_dir, f"{self.acc_file_name}_loss_curve.png")
         plt.figure(figsize=(10, 6))
@@ -440,7 +462,7 @@ class train:
         plt.title('Training and Validation Loss Curves')
         plt.legend()
         plt.grid()
-        plt.xticks(range(len(train_losses)), range(1, len(train_losses) + 1))  # Ensure x-labels are integers
+        plt.xticks(x_ticks, [str(x) for x in x_ticks])  # Ensure x-labels are integers
         plt.savefig(loss_plot_file)
         plt.close()
 
@@ -454,6 +476,6 @@ class train:
         plt.title('Training and Validation F1 Score Curves')
         plt.legend()
         plt.grid()
-        plt.xticks(range(len(train_f1_scores)), range(1, len(train_f1_scores) + 1))  # Ensure x-labels are integers
+        plt.xticks(x_ticks, [str(x) for x in x_ticks])  # Ensure x-labels are integers
         plt.savefig(f1_plot_file)
         plt.close()

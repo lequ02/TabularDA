@@ -16,6 +16,8 @@ def parse_args():
   parser.add_argument('--augment-option', dest='augment_option', help='Synthetic data option (ctgan or gaussian or categorical)', type=str, default=None)
   parser.add_argument('--test-option', dest='test_option', help='Test data option (original or mix)', type=str, required=True)
   parser.add_argument('--pre-trained-weight-file', dest='pre_trained_w_file', help='File path of a trained model to load', type=str, default=None)
+  parser.add_argument('--patience', dest='patience', help='Patience for early stopping', type=int, default=10)
+  parser.add_argument('--early-stop-crit', dest='early_stop_criterion', help='Early stopping criterion (f1 or loss)', type=str, default='loss')
 
   return parser.parse_args()
 
@@ -36,7 +38,9 @@ def main(args):
       train_option=args.train_option,
       augment_option=args.augment_option,
       test_option=args.test_option,
-      pre_trained_w_file=args.pre_trained_w_file
+      pre_trained_w_file=args.pre_trained_w_file,
+      patience=args.patience,
+      early_stop_criterion=args.early_stop_criterion,
   )
   train_model.training()
 
