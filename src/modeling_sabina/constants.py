@@ -49,6 +49,28 @@ IN_DATA_PATHS = {
         },
         'target_name': 'label'
     },
+
+    'covertype': {
+        'train_original': '../../data/covertype/onehot_covertype_train.csv',
+        'test': '../../data/covertype/onehot_covertype_test.csv',
+        'synthetic': {
+            'ctgan': '../../data/covertype/onehot_covertype_sdv_100k.csv',
+            'categorical': '../../data/covertype/onehot_covertype_sdv_categorical_100k.csv',
+            'gaussian': '../../data/covertype/onehot_covertype_sdv_gaussian_100k.csv'
+        },
+        'target_name': 'Cover_Type'
+    },
+
+    'intrusion': {
+        'train_original': '../../data/intrusion/onehot_intrusion_train.csv',
+        'test': '../../data/intrusion/onehot_intrusion_test.csv',
+        'synthetic': {
+            'ctgan': '../../data/intrusion/onehot_intrusion_sdv_100k.csv',
+            'categorical': '../../data/intrusion/onehot_intrusion_sdv_categorical_100k.csv',
+            'gaussian': '../../data/intrusion/onehot_intrusion_sdv_gaussian_100k.csv'
+        },
+        'target_name': 'target'
+    },
 }
 
 OUT_DATA_PATHS = "../../output/"

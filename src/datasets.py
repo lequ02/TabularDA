@@ -52,13 +52,24 @@ def load_news(verbose=False):
 # print("News dataset target shape:", y_news.shape)
 
 
-def load_census(verbose=False):
+def load_census(verbose=False): 
     x, y = load_dataset(20, verbose)
     # the y values are <=50K, <=50K., >50K >50K.
     # We need to remove the '.' from the values
     y['income'] = y['income'].str.replace('.', '', regex=False)
     # print(y.income.unique())
     return x, y
+
+
+def load_census_kdd(verbose=False):  # link in paper could be wrong. id=117
+    # x, y = load_dataset(117, verbose)
+    # # the y values are <=50K, <=50K., >50K >50K.
+    # # We need to remove the '.' from the values
+    # y['income'] = y['income'].str.replace('.', '', regex=False)
+    # # print(y.income.unique())
+    # return x, y
+
+    pass
 
 
 def load_covertype(verbose=False):
