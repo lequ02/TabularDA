@@ -12,7 +12,7 @@ from torch import nn
 from torchsummary import summary
 from sklearn.metrics import f1_score,precision_score, recall_score, classification_report, mean_squared_error, r2_score
 from models import DNN_Adult, DNN_Census, DNN_News 
-from models_folder import model_mnist12
+from models_folder import model_mnist12, model_mnist28
 from trainer import trainer
 import constants
 
@@ -124,7 +124,7 @@ class train:
             self.model_name = "DNN_MNIST12"
             criterion = nn.CrossEntropyLoss()  
         elif self.dataset_name.lower() == "mnist28":
-            model = model_mnist12.DNN_MNIST28(input_size=input_size).to(device)
+            model = model_mnist28.DNN_MNIST28(input_size=input_size).to(device)
             self.model_name = "DNN_MNIST28"
             criterion = nn.CrossEntropyLoss()
         elif self.dataset_name.lower() == "intrusion":
