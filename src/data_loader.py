@@ -126,7 +126,7 @@ class data_loader:
                                                'relationship', 'race', 'sex', 'native-country'], verbose=False)
             x_onehot = x_onehot.reindex(sorted(x_onehot.columns), axis=1)
             print("Adult dataset columns:", x_onehot.columns)
-            print("Sample labels:", y['income'].unique())  # Verify labels
+            print("Sample labels:", y['income'].unique()) 
             return x_onehot, y
 
         elif self.dataset_name == 'census':

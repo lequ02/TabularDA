@@ -11,8 +11,10 @@ import torch
 from torch import nn
 from torchsummary import summary
 from sklearn.metrics import f1_score,precision_score, recall_score, classification_report, mean_squared_error, r2_score
-from models import DNN_Adult, DNN_Census, DNN_News 
 from models_folder import model_mnist12, model_mnist28, model_intrusion
+from adult_model import DNN_Adult
+from census_model import DNN_Census
+from news_model import DNN_News
 from trainer import trainer
 import constants
 
@@ -118,6 +120,7 @@ class train:
             model = DNN_News(input_size=input_size).to(device)
             self.model_name = "DNN_News"
             criterion = nn.MSELoss()
+<<<<<<< HEAD
         elif self.dataset_name.lower() == "mnist12":
             model = model_mnist12.DNN_MNIST12(input_size=input_size).to(device)
             self.model_name = "DNN_MNIST12"
@@ -134,6 +137,24 @@ class train:
             model = DNN_Covertype(input_size=input_size).to(device)
             self.model_name = "DNN_Covertype"
             criterion = nn.CrossEntropyLoss()
+=======
+        # elif self.dataset_name.lower() == "mnist12":
+        #     model = model_mnist12.DNN_MNIST12(input_size=input_size).to(device)
+        #     self.model_name = "DNN_MNIST12"
+        #     criterion = nn.CrossEntropyLoss()  
+        # elif self.dataset_name.lower() == "mnist28":
+        #     model = model_mnist28.DNN_MNIST28(input_size=input_size).to(device)
+        #     self.model_name = "DNN_MNIST28"
+        #     criterion = nn.CrossEntropyLoss()
+        # elif self.dataset_name.lower() == "intrusion":
+        #     model = DNN_Intrusion(input_size=input_size).to(device)
+        #     self.model_name = "DNN_Intrusion"
+        #     criterion = nn.CrossEntropyLoss()
+        # elif self.dataset_name.lower() == "covertype":
+        #     model = DNN_Covertype(input_size=input_size).to(device)
+        #     self.model_name = "DNN_Covertype"
+        #     criterion = nn.CrossEntropyLoss()
+>>>>>>> 200dcd907f924e4d7977383cf0b4c4d6b3fc7fbb
         else:
             raise ValueError("Unknown dataset name")
 

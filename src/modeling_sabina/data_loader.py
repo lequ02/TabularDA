@@ -95,7 +95,7 @@ class data_loader:
         # print(f"Test dataset columns after alignment:\n{test_df.columns}")
         # print(f"Test dataset shape after alignment: {test_df.shape}")
             
-        # test_df = test_df[sorted(test_df.columns)]
+        test_df = test_df[sorted(test_df.columns)]
         print("\n\ntest columns")
         print(test_df.columns)
 
