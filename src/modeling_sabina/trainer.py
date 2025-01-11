@@ -20,7 +20,7 @@ class trainer:
         self.model.train()
         
         for batch_idx, (X, y) in enumerate(self.data):
-            if self.dataset_name == 'mnist12' or self.dataset_name == 'mnist28':
+            if self.dataset_name == 'mnist12' or self.dataset_name == 'mnist28' or self.dataset_name.lower() == "intrusion":
                 ## Print types and devices before conversion
                 # print(f"Before conversion - y dtype: {y.dtype}, device: {y.device}")
                 

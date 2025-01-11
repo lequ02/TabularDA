@@ -12,7 +12,7 @@ from torch import nn
 from torchsummary import summary
 from sklearn.metrics import f1_score,precision_score, recall_score, classification_report, mean_squared_error, r2_score
 from models import DNN_Adult, DNN_Census, DNN_News 
-from models_folder import model_mnist12, model_mnist28
+from models_folder import model_mnist12, model_mnist28, model_intrusion
 from trainer import trainer
 import constants
 
@@ -35,7 +35,6 @@ class train:
         self.w_dir = w_dir #out_data_path + "weight/"
         self.acc_dir = acc_dir #out_data_path + "acc/"
 
-        # self.test_ratio = test_ratio
         self.train_option = train_option
         self.augment_option = augment_option
         self.test_option = test_option
@@ -44,9 +43,9 @@ class train:
         self.early_stop_criterion = early_stop_criterion
 
         if self.dataset_name.lower() in ['mnist12', 'mnist28', 'intrusion', 'covertype']:
-            self.f1_type = "macro"
+            self.f1_type = "micro"
         elif self.dataset_name.lower() in ['adult', 'census', 'credit']:
-            self.f1_type = "binary"
+            self.f1_type = "micro"
         else: # news ds
             self.f1_type = None
 
@@ -63,8 +62,8 @@ class train:
         # print("\n\n\n\n\n break now\n\n\n")
 
         print("----------------------------------------------------")
-        print(f"Training dataset size: {len(self.train_data)}")
-        print(f"Testing dataset size: {len(self.test_data)}")
+        print(f"Training dataset size: {len(self.train_data) * self.batch_size}")
+        print(f"Testing dataset size: {len(self.test_data) * self.batch_size}")
         print("----------------------------------------------------")
 
         # Set up output configuration and trainer
@@ -128,7 +127,7 @@ class train:
             self.model_name = "DNN_MNIST28"
             criterion = nn.CrossEntropyLoss()
         elif self.dataset_name.lower() == "intrusion":
-            model = DNN_Intrusion(input_size=input_size).to(device)
+            model = model_intrusion.DNN_Intrusion(input_size=input_size).to(device)
             self.model_name = "DNN_Intrusion"
             criterion = nn.CrossEntropyLoss()
         elif self.dataset_name.lower() == "covertype":
@@ -161,7 +160,7 @@ class train:
 
         with open(self.acc_dir + self.acc_file_name, 'w') as acc_file:
             if self.dataset_name.lower() in ["adult", "census"]:
-                acc_file.write("global_round,train_loss,train_acc,train_f1,test_loss,test_acc,test_f1\n")
+                acc_file.write("global_round,train_loss,train_acc,train_f1_micro,test_loss,test_acc,test_f1_micro\n")
             else:
                 acc_file.write("global_round,train_mse,train_r2,test_mse,test_r2\n")
 
@@ -188,7 +187,7 @@ class train:
 
             self.trainer.train(device, epochs=1)  # Train for 1 epoch at a time
 
-            if self.dataset_name.lower() in ["adult", "census", 'mnist12', 'mnist28']:
+            if self.dataset_name.lower() in ["adult", "census", 'mnist12', 'mnist28', 'intrusion']:
                 train_loss, train_acc, train_f1 = self.train_stats_classification(device)
                 train_losses.append(train_loss)
                 train_f1_scores.append(train_f1)
@@ -304,7 +303,7 @@ class train:
         with torch.no_grad():
             for batch_idx, (X, y) in enumerate(self.test_data):
                 #  multi-class classification
-                if self.dataset_name.lower() == "mnist12" or self.dataset_name.lower() == "mnist28":
+                if self.dataset_name.lower() == "mnist12" or self.dataset_name.lower() == "mnist28" or self.dataset_name.lower() == "intrusion":
                     X, y = X.to(device), y.long().to(device)
 
                     output = self.trainer.model(X)  
@@ -342,8 +341,8 @@ class train:
                     # print("\n\nval preds:", np.unique(all_preds))
                     # print("\n\nval labels:", np.unique(all_labels))
 
-        precision = precision_score(all_labels, all_preds, average=self.f1_type)
-        recall = recall_score(all_labels, all_preds, average=self.f1_type)
+        precision = precision_score(all_labels, all_preds, average=self.f1_type, zero_division=0)
+        recall = recall_score(all_labels, all_preds, average=self.f1_type, zero_division=0)
         loss = loss / total
         accuracy = 100 * corrects / total
         f1 = f1_score(all_labels, all_preds, average=self.f1_type)
@@ -365,7 +364,7 @@ class train:
         with torch.no_grad():
             for batch_idx, (X, y) in enumerate(self.train_data):
                 #  multi-class classification 
-                if self.dataset_name.lower() == "mnist12" or self.dataset_name.lower() == "mnist28":
+                if self.dataset_name.lower() == "mnist12" or self.dataset_name.lower() == "mnist28" or self.dataset_name.lower() == "intrusion":
                     X, y = X.to(device), y.long().to(device)  # Changed this line
                     
                     output = self.trainer.model(X)
