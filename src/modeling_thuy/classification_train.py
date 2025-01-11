@@ -43,7 +43,7 @@ class train:
 
         print("=====Setting up data=====")
         
-        if dataset_name.lower() in ['mnist12', 'mnist28', 'intrusion']: #more than 2 classes
+        if dataset_name.lower() in ['mnist12', 'mnist28', 'intrusion', 'covertype']: #more than 2 classes
             self.multi_y = True
         elif dataset_name.lower() in ['adult', 'census']: #binary
             self.multi_y = False
