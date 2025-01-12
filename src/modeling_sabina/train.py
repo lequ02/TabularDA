@@ -120,7 +120,6 @@ class train:
             model = DNN_News(input_size=input_size).to(device)
             self.model_name = "DNN_News"
             criterion = nn.MSELoss()
-<<<<<<< HEAD
         elif self.dataset_name.lower() == "mnist12":
             model = model_mnist12.DNN_MNIST12(input_size=input_size).to(device)
             self.model_name = "DNN_MNIST12"
@@ -137,24 +136,6 @@ class train:
             model = DNN_Covertype(input_size=input_size).to(device)
             self.model_name = "DNN_Covertype"
             criterion = nn.CrossEntropyLoss()
-=======
-        # elif self.dataset_name.lower() == "mnist12":
-        #     model = model_mnist12.DNN_MNIST12(input_size=input_size).to(device)
-        #     self.model_name = "DNN_MNIST12"
-        #     criterion = nn.CrossEntropyLoss()  
-        # elif self.dataset_name.lower() == "mnist28":
-        #     model = model_mnist28.DNN_MNIST28(input_size=input_size).to(device)
-        #     self.model_name = "DNN_MNIST28"
-        #     criterion = nn.CrossEntropyLoss()
-        # elif self.dataset_name.lower() == "intrusion":
-        #     model = DNN_Intrusion(input_size=input_size).to(device)
-        #     self.model_name = "DNN_Intrusion"
-        #     criterion = nn.CrossEntropyLoss()
-        # elif self.dataset_name.lower() == "covertype":
-        #     model = DNN_Covertype(input_size=input_size).to(device)
-        #     self.model_name = "DNN_Covertype"
-        #     criterion = nn.CrossEntropyLoss()
->>>>>>> 200dcd907f924e4d7977383cf0b4c4d6b3fc7fbb
         else:
             raise ValueError("Unknown dataset name")
 
