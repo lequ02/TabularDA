@@ -193,7 +193,7 @@ class train:
         train_scores = self.get_dict_of_eval_metrics()
         test_scores = self.get_dict_of_eval_metrics()
         
-        best_loss = float("-inf")
+        best_loss = float("inf")
         best_score = 0 
         
         patience_counter = 0
@@ -252,7 +252,7 @@ class train:
                 if (patience_counter > self.patience):
                     need_stopping = True          
         else:
-            if best_score <  score[self.early_stop_criterion]- tolerance:
+            if best_score < score[self.early_stop_criterion] - tolerance:
                 best_score = score[self.early_stop_criterion]
                 self.save_model(self.w_file_name)
                 patience_counter = 0
