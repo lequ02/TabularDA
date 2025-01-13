@@ -11,8 +11,8 @@ import torch
 from torch import nn
 from torchsummary import summary
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, classification_report
-from models import DNN_Adult, DNN_Census
-from models_folder import model_mnist12, model_mnist28, model_intrusion
+
+from models_folder import model_mnist12, model_mnist28, model_intrusion,model_adult,model_census
 from trainer import trainer
 import constants
 
@@ -93,17 +93,22 @@ class train:
         input_size = next(iter(self.train_data))[0].shape[1]
     
         if self.dataset_name.lower() == "adult":
-            model = DNN_Adult(input_size=input_size).to(device)
-            self.model_name = "DNN_Adult"
+            if self.train_option.lower() == "mix"  :
+                model = model_adult.DNN_Adult_mix(input_size=input_size).to(device)
+                self.model_name = "DNN_Adult_mix"
+            else:
+                model = model_adult.DNN_Adult(input_size=input_size).to(device)
+                self.model_name = "DNN_Adult"
             criterion = nn.BCELoss()
         elif self.dataset_name.lower() == "census":
-            model = DNN_Census(input_size=input_size).to(device)
-            self.model_name = "DNN_Census"
+            if self.train_option.lower() == "mix"  :
+                model = model_census.DNN_Census_mix(input_size=input_size).to(device)
+                self.model_name = "DNN_Census_mix"
+            else:
+
+                model = model_census.DNN_Census(input_size=input_size).to(device)
+                self.model_name = "DNN_Census"
             criterion = nn.BCELoss()
-        elif self.dataset_name.lower() == "mnist12":
-            model = model_mnist12.DNN_MNIST12(input_size=input_size).to(device)
-            self.model_name = "DNN_MNIST12"
-            criterion = nn.CrossEntropyLoss()  
         elif self.dataset_name.lower() == "mnist28":
             model = model_mnist28.DNN_MNIST28(input_size=input_size).to(device)
             self.model_name = "DNN_MNIST28"
@@ -112,10 +117,11 @@ class train:
             model = model_intrusion.DNN_Intrusion(input_size=input_size).to(device)
             self.model_name = "DNN_Intrusion"
             criterion = nn.CrossEntropyLoss()
-        elif self.dataset_name.lower() == "covertype":
-            model = DNN_Covertype(input_size=input_size).to(device)
-            self.model_name = "DNN_Covertype"
-            criterion = nn.CrossEntropyLoss()
+        # elif self.dataset_name.lower() == "covertype":
+        #     model = DNN_Covertype(input_size=input_size).to(device)
+        #     self.model_name = "DNN_Covertype"
+        #     #self.multi_y = True
+        #     criterion = nn.CrossEntropyLoss()
         else:
             raise ValueError("Unknown dataset name")
 

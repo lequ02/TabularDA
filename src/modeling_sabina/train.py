@@ -12,8 +12,8 @@ from torch import nn
 from torchsummary import summary
 from sklearn.metrics import f1_score,precision_score, recall_score, classification_report, mean_squared_error, r2_score
 from models_folder import model_mnist12, model_mnist28, model_intrusion
-from adult_model import DNN_Adult
-from census_model import DNN_Census
+from adult_model import DNN_Adult, DNN_Adult_mix
+from census_model import DNN_Census,DNN_Census_mix
 from news_model import DNN_News
 from trainer import trainer
 import constants
@@ -107,15 +107,28 @@ class train:
         print(f"input size shape: {input_size}")
 
         if self.dataset_name.lower() == "adult":
-            model = DNN_Adult(input_size=input_size).to(device)
-            self.model_name = "DNN_Adult"
+            if self.train_option.lower() == "mix"  :
+                model = DNN_Adult_mix(input_size=input_size).to(device)
+                self.model_name = "DNN_Adult_mix"
+            else:
+                model = DNN_Adult(input_size=input_size).to(device)
+                self.model_name = "DNN_Adult"
             criterion = nn.BCELoss()
+
+        
+        
 
 
         elif self.dataset_name.lower() == "census":
-            model = DNN_Census(input_size=input_size).to(device)
-            self.model_name = "DNN_Census"
+            if self.train_option.lower() == "mix"  :
+                model = DNN_Census_mix(input_size=input_size).to(device)
+                self.model_name = "DNN_Census_mix"
+            else:
+
+                model = DNN_Census(input_size=input_size).to(device)
+                self.model_name = "DNN_Census"
             criterion = nn.BCELoss()
+            
         elif self.dataset_name.lower() == "news":
             model = DNN_News(input_size=input_size).to(device)
             self.model_name = "DNN_News"
