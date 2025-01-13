@@ -183,8 +183,9 @@ class train:
         with open(self.acc_dir + self.acc_file_name, 'w') as acc_file:
             train_to_write = ",".join([f"train_{x}" for x in list(self.get_dict_of_eval_metrics().keys())])
             dev_to_write = ",".join([f"dev_{x}" for x in list(self.get_dict_of_eval_metrics().keys())])
+            test_to_write = ",".join([f"test_{x}" for x in list(self.get_dict_of_eval_metrics().keys())])
 
-            acc_file.write("global_round,train_loss," + train_to_write + ",dev_loss," + dev_to_write + "\n")
+            acc_file.write("global_round,train_loss," + train_to_write + ",dev_loss," + dev_to_write + ",test_loss," + test_to_write+"\n")
                         
         lr = self.learning_rate
 
@@ -227,7 +228,7 @@ class train:
                 dev_score_to_write = ",".join(map(str, list(dev_score.values())))
                 test_score_to_write = ",".join(map(str, list(test_score.values())))
                 
-                acc_file.write(f"{epoch+1},{train_loss},{train_score_to_write},{dev_loss},{dev_score_to_write},{test_score},{test_score_to_write}\n")
+                acc_file.write(f"{epoch+1},{train_loss},{train_score_to_write},{dev_loss},{dev_score_to_write},{test_loss},{test_score_to_write}\n")
         
             if self.patience == -1: #no early stopping
                 if epoch in save_at:
