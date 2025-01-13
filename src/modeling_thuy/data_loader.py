@@ -2,24 +2,27 @@ import pandas as pd
 import torch
 from torch.utils.data import TensorDataset, DataLoader, ConcatDataset
 from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+
 
 # Constants
 import constants
 
 class data_loader:
-    def __init__(self, dataset_name, batch_size, multi_y = True):
+    def __init__(self, dataset_name, batch_size, multi_y = True, problem_type = 'classification'):
         self.dataset_name = dataset_name
         self.batch_size = batch_size
         self.paths = constants.IN_DATA_PATHS[dataset_name]
         self.train_columns = None  # Store train columns for alignment
         self.multi_y = multi_y
+        self.problem_type = problem_type
 
     def drop_index_col(self, df):
         if "Unnamed: 0" in df.columns:
             df.drop("Unnamed: 0", axis=1, inplace=True)
         return df
     
-    def load_train_augment_data(self, train_option, augment_option):
+    def load_train_augment_data(self, train_option, augment_option, validation = 0):
         if train_option not in ['original', 'synthetic', 'mix'] or augment_option not in [None, 'ctgan', 'categorical', 'gaussian']:
             raise ValueError("Invalid train_option or augment_option")
         if train_option == 'original':
@@ -64,7 +67,17 @@ class data_loader:
 
         # print(f"Train dataset columns:\n{train_df.columns}")
         self.train_columns = train_df.columns  # Store columns for test data alignment
-        return self._load_data_in_batches(train_df)
+        
+        if self.problem_type == 'classification':
+            stratify_column = self.paths['target_name']
+        elif self.problem_type == 'regression':
+            stratify_column = None
+        else:
+            ValueError(f"This {self.problem_type} is not supported!")
+
+
+        train_df, dev_df = self.split_data(train_df, stratify_column, validation)
+        return self._load_data_in_batches(train_df), self._load_data_in_batches(dev_df)
         
     def load_test_data(self):
         # Load test data
@@ -159,5 +172,15 @@ class data_loader:
         
         return DataLoader(ConcatDataset(batches), batch_size=self.batch_size)
 
+    def split_data(self, df, stratify_column = None, validation = 0):
+        
+        if validation > 1:
+            validation = int(validation)
+            
+        if stratify_column != None:
+            return train_test_split(df, test_size = validation, 
+            stratify = df[stratify_column], random_state=42)
+        else:
+            return train_test_split(df, test_size = validation, random_state=42)
 
 

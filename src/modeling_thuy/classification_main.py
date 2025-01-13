@@ -12,6 +12,7 @@ def parse_args():
   parser.add_argument('--train-option', dest='train_option', help='Training data option (original, synthetic or mix)', type=str, required=True)
   parser.add_argument('--augment-option', dest='augment_option', help='Synthetic data option (ctgan or gaussian or categorical)', type=str, default=None)
   parser.add_argument('--test-option', dest='test_option', help='Test data option (original or mix)', type=str, required=True)
+  parser.add_argument('--validation', dest='validation', help='validation percentage', type=float, required=True, default = 0.2)
 
 #training  
   parser.add_argument('--batchsize', dest='batchsize', help='Batch size', type=int, required=True)
@@ -39,6 +40,7 @@ def main(args):
       train_option=args.train_option,
       augment_option=args.augment_option,
       test_option=args.test_option,
+      validation = args.validation,
       
       batch_size=args.batchsize,
       learning_rate=args.lr,
