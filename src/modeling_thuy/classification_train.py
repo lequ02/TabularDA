@@ -25,21 +25,21 @@ class train:
 
     #in_data_path = "../../data/"
     
-    def __init__(self, dataset_name, train_option = None, augment_option = None, test_option = None, 
+    def __init__(self, dataset_name, train_option = None, augment_option = None, test_option = None, validation = 0.2,
                         batch_size = 128, learning_rate = 0.001, num_epochs = 10, patience=10, early_stop_criterion='loss', 
                         eval_metrics = None, metric_to_plot = None,
                         pre_trained_w_file = None,
                         w_dir = None, acc_dir = None ):
         
         self.setup_data(dataset_name = dataset_name, train_option = train_option,
-                        augment_option = augment_option, test_option = test_option, batch_size = batch_size)
+                        augment_option = augment_option, test_option = test_option, validation = validation, batch_size = batch_size)
 
         self.setup_fitting(num_epochs = num_epochs, learning_rate = learning_rate, patience=patience, early_stop_criterion=early_stop_criterion)
         self.setup_eval_metric(eval_metrics, metric_to_plot)
         self.setup_trainer(pre_trained_w_file = pre_trained_w_file)
         self.setup_output(w_dir = w_dir, acc_dir = acc_dir)
 
-    def setup_data(self, dataset_name, train_option, augment_option, test_option, batch_size):
+    def setup_data(self, dataset_name, train_option, augment_option, test_option, validation, batch_size):
 
         print("=====Setting up data=====")
         
@@ -53,13 +53,15 @@ class train:
         self.augment_option = augment_option
         self.test_option = test_option
         self.batch_size = batch_size
+        self.validation = validation
 
-        self.data_loader = data_loader(self.dataset_name, self.batch_size, multi_y = self.multi_y)
-        self.train_data = self.data_loader.load_train_augment_data(self.train_option, self.augment_option)
+        self.data_loader = data_loader(self.dataset_name, self.batch_size, multi_y = self.multi_y, problem_type = 'classification')
+        self.train_data, self.dev_data = self.data_loader.load_train_augment_data(self.train_option, self.augment_option, self.validation)
         self.test_data = self.data_loader.load_test_data()
 
         print(f"Dataset name:{self.dataset_name}")
         print(f"Training dataset size: {len(self.train_data) * self.batch_size} samples")
+        print(f"Validation dataset size: {len(self.dev_data) * self.batch_size} samples")
         print(f"Testing dataset size: {len(self.test_data) * self.batch_size} samples")
         print("")
 
@@ -93,32 +95,26 @@ class train:
         if self.dataset_name.lower() == "adult":
             model = DNN_Adult(input_size=input_size).to(device)
             self.model_name = "DNN_Adult"
-            #self.multi_y = False
             criterion = nn.BCELoss()
         elif self.dataset_name.lower() == "census":
             model = DNN_Census(input_size=input_size).to(device)
             self.model_name = "DNN_Census"
-            #self.multi_y = False
             criterion = nn.BCELoss()
         elif self.dataset_name.lower() == "mnist12":
             model = model_mnist12.DNN_MNIST12(input_size=input_size).to(device)
             self.model_name = "DNN_MNIST12"
-            #self.multi_y = True
             criterion = nn.CrossEntropyLoss()  
         elif self.dataset_name.lower() == "mnist28":
             model = model_mnist28.DNN_MNIST28(input_size=input_size).to(device)
             self.model_name = "DNN_MNIST28"
-            #self.multi_y = True
             criterion = nn.CrossEntropyLoss()
         elif self.dataset_name.lower() == "intrusion":
             model = model_intrusion.DNN_Intrusion(input_size=input_size).to(device)
             self.model_name = "DNN_Intrusion"
-            #self.multi_y = True
             criterion = nn.CrossEntropyLoss()
         elif self.dataset_name.lower() == "covertype":
             model = DNN_Covertype(input_size=input_size).to(device)
             self.model_name = "DNN_Covertype"
-            #self.multi_y = True
             criterion = nn.CrossEntropyLoss()
         else:
             raise ValueError("Unknown dataset name")
@@ -175,22 +171,22 @@ class train:
         print("==========================================================================================")
         print("Start training...")
 
-        save_at = [(i + 1) * 500 for i in range(int(self.num_epochs / 500))]
+        save_at = [(i + 1) * 10 for i in range(int(self.num_epochs / 10))] #save model at every 20 iteration, start from 1
+        save_at = [0] + save_at
 
         with open(self.acc_dir + self.acc_file_name, 'w') as acc_file:
             train_to_write = ",".join([f"train_{x}" for x in list(self.get_dict_of_eval_metrics().keys())])
-            test_to_write = ",".join([f"test_{x}" for x in list(self.get_dict_of_eval_metrics().keys())])
+            dev_to_write = ",".join([f"dev_{x}" for x in list(self.get_dict_of_eval_metrics().keys())])
 
-            acc_file.write("global_round,train_loss," + train_to_write + ",test_loss," + test_to_write + "\n")
-            
-            #acc_file.write("global_round,train_loss,train_acc,train_f1_binary,train_f1_macro,train_f1_micro,train_f1_sample,train_f1_weighted,test_loss,test_acc,test_f1_binary,test_f1_macro,test_f1_micro,test_f1_sample,test_f1_weighted\n")
-            
+            acc_file.write("global_round,train_loss," + train_to_write + ",dev_loss," + dev_to_write + "\n")
+                        
         lr = self.learning_rate
 
-        train_losses, test_losses = [], []
+        train_losses, dev_losses, test_losses = [], [], []
         
 
         train_scores = self.get_dict_of_eval_metrics()
+        dev_scores = self.get_dict_of_eval_metrics()
         test_scores = self.get_dict_of_eval_metrics()
         
         best_loss = float("inf")
@@ -205,37 +201,45 @@ class train:
             self.trainer.train(device, epochs = 1)  # Train for 1 epoch at a time
 
             train_loss, train_score = self.validate(data = self.train_data, load_weight=False)
+            dev_loss, dev_score = self.validate(data = self.dev_data, load_weight=False)
             test_loss, test_score = self.validate(data = self.test_data, load_weight=False)
             
             train_losses.append(train_loss)
+            dev_losses.append(dev_loss)
             test_losses.append(test_loss)
             
             for stype in list(train_score.keys()):
                 train_scores[stype].append(train_score[stype])
+                dev_scores[stype].append(dev_score[stype])
                 test_scores[stype].append(test_score[stype])
 
             print(f"Training statistic: Loss: {train_loss:.4f}, train_score: {train_score}")
-            print(f"Testing statistic: Loss: {test_loss:.4f}, test_score: {test_score}")
+            print(f"Validation statistic: Loss: {dev_loss:.4f}, dev_score: {dev_score}")
                          
             with open(self.acc_dir + self.acc_file_name, 'a') as acc_file:
                 train_score_to_write = ",".join(map(str, list(train_score.values())))
+                dev_score_to_write = ",".join(map(str, list(dev_score.values())))
                 test_score_to_write = ",".join(map(str, list(test_score.values())))
                 
-                acc_file.write(f"{epoch+1},{train_loss},{train_score_to_write},{test_loss},{test_score_to_write}\n")
+                acc_file.write(f"{epoch+1},{train_loss},{train_score_to_write},{dev_loss},{dev_score_to_write},{test_score},{test_score_to_write}\n")
         
             if self.patience == -1: #no early stopping
-                if epoch + 1 in save_at:
+                if epoch in save_at:
                     self.save_model(self.w_file_name)
             else:
-                stop, patience_counter, best_loss, best_score = self.check_early_stop(test_loss, test_score, best_loss, best_score, patience_counter)
+                stop, patience_counter, best_loss, best_score = self.check_early_stop(dev_loss, dev_score, best_loss, best_score, patience_counter)
                 
                 if stop == True:
                     print("Early stopping (loss) triggered!")
                     print("Early stopping by " + self.early_stop_criterion)
                     break
                 
-
-        self.plot_loss_and_f1_curves(train_losses, test_losses, train_scores[self.metric_to_plot], test_scores[self.metric_to_plot])
+        # test_loss, test_score = self.validate(data = self.test_data, load_weight=True)
+        print(f"Testing statistic: loss: {test_loss}, scores: {test_score}")
+        self.plot_loss_and_f1_curves(train_losses, train_scores[self.metric_to_plot], 
+                                     dev_losses, dev_scores[self.metric_to_plot], 
+                                     test_losses=test_losses, test_f1_scores=test_scores[self.metric_to_plot])
+        
         print("Finish training!")
 
     
@@ -324,7 +328,7 @@ class train:
         print("Model saved!")
         print("-------------------------------------------")
 
-    def plot_loss_and_f1_curves(self, train_losses, test_losses, train_f1_scores, test_f1_scores):
+    def plot_loss_and_f1_curves(self, train_losses, train_f1_scores, val_losses, val_f1_scores, test_losses=None, test_f1_scores=None):
         """Plots and saves training/validation loss and F1 score curves to the model directory."""
         # Ensure the directory exists
         os.makedirs(self.acc_dir, exist_ok=True)
@@ -338,7 +342,9 @@ class train:
         loss_plot_file = os.path.join(self.acc_dir, f"{self.acc_file_name}_loss_curve.png")
         plt.figure(figsize=(10, 6))
         plt.plot(train_losses, label='Training', color='blue')
-        plt.plot(test_losses, label='Validation', color='orange')
+        plt.plot(val_losses, label='Validation', color='orange')
+        if test_losses is not None:
+            plt.plot(test_losses, label='Testing', color='red')
         plt.xlabel('Epochs')
         plt.ylabel('Loss')
         plt.title('Training and Validation Loss Curves')
@@ -352,7 +358,9 @@ class train:
         f1_plot_file = os.path.join(self.acc_dir, f"{self.acc_file_name}_{self.metric_to_plot}.png")
         plt.figure(figsize=(10, 6))
         plt.plot(train_f1_scores, label='Training', color='blue')
-        plt.plot(test_f1_scores, label='Validation', color='orange')
+        plt.plot(val_f1_scores, label='Validation', color='orange')
+        if test_f1_scores is not None:
+            plt.plot(test_f1_scores, label='Testing', color='red')
         plt.xlabel('Epochs')
         plt.ylabel(self.metric_to_plot)
         plt.title(f'Training and Validation {self.metric_to_plot}')
