@@ -109,10 +109,16 @@ class train:
                 model = model_census.DNN_Census(input_size=input_size).to(device)
                 self.model_name = "DNN_Census"
             criterion = nn.BCELoss()
+            
         elif self.dataset_name.lower() == "mnist28":
             model = model_mnist28.DNN_MNIST28(input_size=input_size).to(device)
             self.model_name = "DNN_MNIST28"
             criterion = nn.CrossEntropyLoss()
+        elif self.dataset_name.lower() == "mnist12":
+            model = model_mnist12.DNN_MNIST12(input_size=input_size).to(device)
+            self.model_name = "DNN_MNIST12"
+            criterion = nn.CrossEntropyLoss()
+
         elif self.dataset_name.lower() == "intrusion":
             model = model_intrusion.DNN_Intrusion(input_size=input_size).to(device)
             self.model_name = "DNN_Intrusion"
