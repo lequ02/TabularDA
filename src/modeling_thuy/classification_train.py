@@ -12,7 +12,7 @@ from torch import nn
 from torchsummary import summary
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, classification_report
 
-from models_folder import model_mnist12, model_mnist28, model_intrusion, model_adult, model_census, model_credit
+from models_folder import model_mnist12, model_mnist28, model_intrusion,model_adult,model_census
 from trainer import trainer
 import constants
 
@@ -124,25 +124,19 @@ class train:
             model = model_mnist28.DNN_MNIST28(input_size=input_size).to(device)
             self.model_name = "DNN_MNIST28"
             criterion = nn.CrossEntropyLoss()
-        elif self.dataset_name.lower() == "mnist12":
-            model = model_mnist12.DNN_MNIST12(input_size=input_size).to(device)
-            self.model_name = "DNN_MNIST12"
-            criterion = nn.CrossEntropyLoss()
+        
+            
+
 
         elif self.dataset_name.lower() == "intrusion":
             model = model_intrusion.DNN_Intrusion(input_size=input_size).to(device)
             self.model_name = "DNN_Intrusion"
             criterion = nn.CrossEntropyLoss()
-        elif self.dataset_name.lower() == "covertype":
-            model = DNN_Covertype(input_size=input_size).to(device)
-            self.model_name = "DNN_Covertype"
-            criterion = nn.CrossEntropyLoss()
-
-        elif self.dataset_name.lower() == "credit":
-            model = model_credit.DNN_Credit(input_size=input_size).to(device)
-            self.model_name = "DNN_Credit"
-            criterion = nn.BCELoss()
-
+        # elif self.dataset_name.lower() == "covertype":
+        #     model = DNN_Covertype(input_size=input_size).to(device)
+        #     self.model_name = "DNN_Covertype"
+        #     #self.multi_y = True
+        #     criterion = nn.CrossEntropyLoss()
         else:
             raise ValueError("Unknown dataset name")
 
