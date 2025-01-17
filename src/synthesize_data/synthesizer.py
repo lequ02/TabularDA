@@ -1,7 +1,6 @@
 from sdv.single_table import CTGANSynthesizer
 from sdv.metadata import SingleTableMetadata
-from naive_bayes import create_label_gaussianNB, create_label_categoricalNB
-from bayes_net import create_label_BN, create_label_BN_from_trained
+from naive_bayes import create_label_gaussianNB, create_label_categoricalNB, create_label_gmmNB
 from bayes_net import create_label_BN, create_label_BN_from_trained
 import pickle
 import torch
@@ -70,11 +69,13 @@ def synthesize_data(x_original, y_original, categorical_columns, target_name,
     synthesized_data = pd.concat([synthesized_data, y], axis=1)
     target_synthesizer = 'SDV'
 
-  # create y' using GaussianNB or CategoricalNB
+  # create y' using GaussianNB, CategoricalNB or gmmNB
   elif target_synthesizer == 'gaussianNB':
     synthesized_data = create_label_gaussianNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
   elif target_synthesizer == 'categoricalNB':
     synthesized_data = create_label_categoricalNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
+  elif target_synthesizer == 'gmmNB':
+    synthesized_data = create_label_gmmNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
 
   # create y' using a Bayesian Network model
   # train a new BN model
@@ -170,11 +171,13 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns, t
     synthesized_data = pd.concat([synthesized_data, y], axis=1)
     target_synthesizer = 'SDV'
 
-  # create y' using GaussianNB or CategoricalNB
+  # create y' using GaussianNB, CategoricalNB, or gmmNB
   elif target_synthesizer == 'gaussianNB':
     synthesized_data = create_label_gaussianNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
   elif target_synthesizer == 'categoricalNB':
     synthesized_data = create_label_categoricalNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
+  elif target_synthesizer == 'gmmNB':
+    synthesized_data = create_label_gmmNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
 
   # create y' using a Bayesian Network model
   elif BN_model is not None:
