@@ -62,12 +62,12 @@ IN_DATA_PATHS = {
     },
 
     'intrusion': {
-        'train_original': '../../data/intrusion/post_label_encode/onehot_intrusion_train.csv',
-        'test': '../../data/intrusion/post_label_encode/onehot_intrusion_test.csv',
+        'train_original': '../../data/intrusion/onehot_intrusion_train.csv',
+        'test': '../../data/intrusion/onehot_intrusion_test.csv',
         'synthetic': {
-            'ctgan': '../../data/intrusion/post_label_encode/onehot_intrusion_sdv_100k.csv',
-            'categorical': '../../data/intrusion/post_label_encode/onehot_intrusion_sdv_categorical_100k.csv',
-            'gaussian': '../../data/intrusion/post_label_encode/onehot_intrusion_sdv_gaussian_100k.csv'
+            'ctgan': '../../data/intrusion/onehot_intrusion_sdv_100k.csv',
+            'categorical': '../../data/intrusion/onehot_intrusion_sdv_categorical_100k.csv',
+            'gaussian': '../../data/intrusion/onehot_intrusion_sdv_gaussian_100k.csv'
         },
         'target_name': 'target'
     },

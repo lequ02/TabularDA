@@ -22,7 +22,7 @@ class data_loader:
             df.drop("Unnamed: 0", axis=1, inplace=True)
         return df
     
-    def load_train_augment_data(self, train_option, augment_option, validation = 0):
+    def load_train_augment_data(self, train_option, augment_option, mix_ratio = -1, n_sample = -1, validation = 0):
         if train_option not in ['original', 'synthetic', 'mix'] or augment_option not in [None, 'ctgan', 'categorical', 'gaussian']:
             raise ValueError("Invalid train_option or augment_option")
         if train_option == 'original':
@@ -54,7 +54,7 @@ class data_loader:
             print(synthetic_df.columns)
 
 
-            train_df = pd.concat([original_df, synthetic_df], axis=0)
+            train_df = self.concat(original_df, synthetic_df, axis = 0, concat_ratio = mix_ratio, n_sample = n_sample) #pd.concat([original_df, synthetic_df], axis=0)
         
         # sort train and test alphabetically so the columns are in the same order
         train_df = train_df.reindex(sorted(train_df.columns), axis=1)
@@ -182,5 +182,48 @@ class data_loader:
             stratify = df[stratify_column], random_state=42)
         else:
             return train_test_split(df, test_size = validation, random_state=42)
+
+    def concat(self, df1, df2, axis = 0, concat_ratio = -1, n_sample = -1):
+        #concat_ratio: percentage of df1 => 1-concat_ratio  = percentage of df2
+        #df1 is for original data and df2 is for augmented data
+        
+        if (n_sample == -1) or (concat_ratio == -1): #take all original samples and all augmented samples
+            return pd.concat([df1, df2], axis = 0, join = 'inner')
+        
+        df1_sample, df2_sample = df1.shape[0], df2.shape[0]
+
+        if n_sample <= 0:
+            ValueError("Number of sample must be an integer greater than 0 or equal to -1")
+
+        if (concat_ratio >= 0) and (concat_ratio<=1):
+
+            df1_sample = int(n_sample * concat_ratio)
+            
+        elif int(concat_ratio) == concat_ratio:
+            df1_sample = concat_ratio
+        else:
+            ValueError("Concat_ratio must be a positive integer or in the range [0..1]!")
+        
+        df2_sample = n_sample - df1_sample
+
+        if self.problem_type == 'classification':
+            stratify_column = self.paths['target_name']
+        elif self.problem_type == 'regression':
+            stratify_column = None
+        else:
+            ValueError(f"This {self.problem_type} is not supported!")
+
+        if (df1_sample <df1.shape[0]):
+            _, df1 = self.split_data(df1, stratify_column, df1_sample)
+        if df1_sample < df2.shape[0]:
+            _, df2 = self.split_data(df2, stratify_column, df2_sample)
+        
+        return pd.concat([df1, df2], axis=0, join = 'inner')
+
+            
+#        return pd.concat([df1.sample(n = df1_sample, random_state = 42, axis = 'index'), 
+#            df2.sample(n = df2_sample, random_state=42, axis = 'index', )], axis=0)
+
+
 
 
