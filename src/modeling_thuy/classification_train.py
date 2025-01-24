@@ -25,21 +25,21 @@ class train:
 
     #in_data_path = "../../data/"
     
-    def __init__(self, dataset_name, train_option = None, augment_option = None, test_option = None, validation = 0.2,
+    def __init__(self, dataset_name, train_option = None, augment_option = None, mix_ratio = -1, n_sample = -1, test_option = None, validation = 0.2,
                         batch_size = 128, learning_rate = 0.001, num_epochs = 10, patience=10, early_stop_criterion='loss', 
                         eval_metrics = None, metric_to_plot = None,
                         pre_trained_w_file = None,
                         w_dir = None, acc_dir = None ):
         
         self.setup_data(dataset_name = dataset_name, train_option = train_option,
-                        augment_option = augment_option, test_option = test_option, validation = validation, batch_size = batch_size)
+                        augment_option = augment_option, mix_ratio = mix_ratio, n_sample = n_sample, test_option = test_option, validation = validation, batch_size = batch_size)
 
         self.setup_fitting(num_epochs = num_epochs, learning_rate = learning_rate, patience=patience, early_stop_criterion=early_stop_criterion)
         self.setup_eval_metric(eval_metrics, metric_to_plot)
         self.setup_trainer(pre_trained_w_file = pre_trained_w_file)
         self.setup_output(w_dir = w_dir, acc_dir = acc_dir)
 
-    def setup_data(self, dataset_name, train_option, augment_option, test_option, validation, batch_size):
+    def setup_data(self, dataset_name, train_option, augment_option, mix_ratio, n_sample, test_option, validation, batch_size):
 
         print("=====Setting up data=====")
         
@@ -51,15 +51,25 @@ class train:
         self.dataset_name = dataset_name
         self.train_option = train_option
         self.augment_option = augment_option
+        self.mix_ratio = mix_ratio
+        self.n_sample = n_sample
+
         self.test_option = test_option
         self.batch_size = batch_size
         self.validation = validation
 
         self.data_loader = data_loader(self.dataset_name, self.batch_size, multi_y = self.multi_y, problem_type = 'classification')
-        self.train_data, self.dev_data = self.data_loader.load_train_augment_data(self.train_option, self.augment_option, self.validation)
+        self.train_data, self.dev_data = self.data_loader.load_train_augment_data(self.train_option, self.augment_option, self.mix_ratio, self.n_sample, self.validation)
         self.test_data = self.data_loader.load_test_data()
 
         print(f"Dataset name:{self.dataset_name}")
+        print(f"train_option:{self.train_option}")
+        print(f"augment_option:{self.augment_option}")
+        print(f"mix_ratio:{self.mix_ratio}")
+        print(f"n_sample:{self.n_sample}")
+        
+        
+        
         print(f"Training dataset size: {len(self.train_data) * self.batch_size} samples")
         print(f"Validation dataset size: {len(self.dev_data) * self.batch_size} samples")
         print(f"Testing dataset size: {len(self.test_data) * self.batch_size} samples")
@@ -145,9 +155,9 @@ class train:
         if self.augment_option is None:
             self.w_file_name = f"{self.model_name}_train_{self.train_option}_test_{self.test_option}_lr{self.learning_rate}_B{self.batch_size}_G{self.num_epochs}.weight.pth"
         elif self.test_option == 'original':
-            self.w_file_name = f"{self.model_name}_train_{self.train_option}_augment_{self.augment_option}_test_{self.test_option}_lr{self.learning_rate}_B{self.batch_size}_G{self.num_epochs}.weight.pth"
+            self.w_file_name = f"{self.model_name}_train_{self.train_option}_augment_{self.augment_option}_mix_ratio{self.mix_ratio}_n{self.n_sample}_test_{self.test_option}_lr{self.learning_rate}_B{self.batch_size}_G{self.num_epochs}.weight.pth"
         else:
-            self.w_file_name = f"{self.model_name}_train_{self.train_option}_augment_{self.augment_option}_test_{self.test_option}_augment_{self.augment_option}_lr{self.learning_rate}_B{self.batch_size}_G{self.num_epochs}.weight.pth"
+            self.w_file_name = f"{self.model_name}_train_{self.train_option}_augment_{self.augment_option}_mix_ratio{self.mix_ratio}_n{self.n_sample}_test_{self.test_option}_augment_{self.augment_option}_lr{self.learning_rate}_B{self.batch_size}_G{self.num_epochs}.weight.pth"
         self.acc_file_name = f"{self.w_file_name}.acc.csv"
         self.report_file_name = f"{self.w_file_name}.report.txt"
                 
@@ -225,12 +235,19 @@ class train:
                 stop, patience_counter, best_loss, best_score = self.check_early_stop(dev_loss, dev_score, best_loss, best_score, patience_counter)
                 
                 if stop == True:
-                    print("Early stopping (loss) triggered!")
-                    print("Early stopping by " + self.early_stop_criterion)
+                    print(f"Early stopping by {self.early_stop_criterion} triggered!")
                     break
                 
         test_loss, test_score = self.validate(data = self.test_data, load_weight=True)
         print(f"Testing statistic: loss: {test_loss}, scores: {test_score}")
+
+        with open(self.acc_dir + self.report_file_name, 'w') as report_file:
+            report_file.write(f"Testing statistic: loss: {test_loss}, scores: {test_score}")
+        report_file.close()
+                        
+        
+        #Mix CTGAN + GAUSSIAN Testing statistic: loss: 4.0316255683898925, scores: {'accuracy': 0.9904, 'f1_macro': 0.4179506764095088, 'f1_micro': 0.9904, 'f1_weighted': 0.9883435833292837}
+        
         self.plot_loss_and_f1_curves(train_losses, dev_losses, train_scores[self.metric_to_plot], dev_scores[self.metric_to_plot])
         
         print("Finish training!")
@@ -249,7 +266,7 @@ class train:
                 if (patience_counter > self.patience):
                     need_stopping = True          
         else:
-            if best_score <  score[self.early_stop_criterion]- tolerance:
+            if best_score < score[self.early_stop_criterion] - tolerance:
                 best_score = score[self.early_stop_criterion]
                 self.save_model(self.w_file_name)
                 patience_counter = 0

@@ -11,8 +11,10 @@ def parse_args():
   parser.add_argument('--dataset-name', dest='dataset_name', help='Name of the dataset (e.g., adult, census, intrusion)', type=str, required=True)
   parser.add_argument('--train-option', dest='train_option', help='Training data option (original, synthetic or mix)', type=str, required=True)
   parser.add_argument('--augment-option', dest='augment_option', help='Synthetic data option (ctgan or gaussian or categorical)', type=str, default=None)
+  parser.add_argument('--mix-ratio', dest='mix_ratio', help='When train_option = mix, you need to specify the percentage|#samples to take from the original data', type=float, default=-1)
+  parser.add_argument('--n-sample', dest='n_sample', help='mix_ratio is specified, you need to specify #samples for the whole train set', type=int, default=-1)
   parser.add_argument('--test-option', dest='test_option', help='Test data option (original or mix)', type=str, required=True)
-  parser.add_argument('--validation', dest='validation', help='validation percentage', type=float, required=True, default = 0.2)
+  parser.add_argument('--validation', dest='validation', help='Portion of train data for dev set . If an integer, that is #samples. If a float, it is the percentage', type=float, required=True, default = 0.2)
 
 #training  
   parser.add_argument('--batchsize', dest='batchsize', help='Batch size', type=int, required=True)
@@ -39,6 +41,8 @@ def main(args):
       dataset_name=dataset_name,
       train_option=args.train_option,
       augment_option=args.augment_option,
+      mix_ratio = args.mix_ratio,
+      n_sample = args.n_sample,
       test_option=args.test_option,
       validation = args.validation,
       
