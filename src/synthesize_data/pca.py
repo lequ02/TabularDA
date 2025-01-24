@@ -1,3 +1,6 @@
+from sklearn.decomposition import PCA
+import pandas as pd
+
 def pca_df(df_original, df_synthesized, target_name, verbose=True, n_components=None):
     """
     Perform PCA on the original data and project the synthesized data into the same space.
@@ -11,8 +14,6 @@ def pca_df(df_original, df_synthesized, target_name, verbose=True, n_components=
     DataFrames: Transformed datasets in PCA space.
     df_original_pca, df_synthesized_pca
     """
-    from sklearn.decomposition import PCA
-    import pandas as pd
 
     y_original = df_original[target_name]
     y_synthesized = df_synthesized[target_name]
@@ -59,8 +60,13 @@ def auto_pca(df_original, df_synthesized, target_name, verbose=True, lower_varia
         print(f"Number of components selected: {n_components}")
         print(f"Cumulative explained variance: {cumulative_variance[n_components-1]}")
 
+
+    explained_variance_table = pd.DataFrame(cumulative_variance, columns=['Explained Variance (cummulative)'])
+    explained_variance_table.index = explained_variance_table.index + 1
+    explained_variance_table.index.name = 'Component'
+
     # Perform PCA with the determined number of components
     df_original_pca, df_synthesized_pca, _ = pca_df(df_original, df_synthesized, target_name, n_components=n_components, verbose=False)
 
 
-    return df_original_pca, df_synthesized_pca
+    return df_original_pca, df_synthesized_pca, explained_variance_table

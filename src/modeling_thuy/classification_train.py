@@ -11,8 +11,8 @@ import torch
 from torch import nn
 from torchsummary import summary
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, classification_report
-from models import DNN_Adult, DNN_Census
-from models_folder import model_mnist12, model_mnist28, model_intrusion
+
+from models_folder import model_mnist12, model_mnist28, model_intrusion,model_adult,model_census
 from trainer import trainer
 import constants
 
@@ -103,29 +103,41 @@ class train:
         input_size = next(iter(self.train_data))[0].shape[1]
     
         if self.dataset_name.lower() == "adult":
-            model = DNN_Adult(input_size=input_size).to(device)
-            self.model_name = "DNN_Adult"
+            if self.train_option.lower() == "mix"  :
+                model = model_adult.DNN_Adult_mix(input_size=input_size).to(device)
+                self.model_name = "DNN_Adult_mix"
+            else:
+                model = model_adult.DNN_Adult(input_size=input_size).to(device)
+                self.model_name = "DNN_Adult"
             criterion = nn.BCELoss()
         elif self.dataset_name.lower() == "census":
-            model = DNN_Census(input_size=input_size).to(device)
-            self.model_name = "DNN_Census"
+            if self.train_option.lower() == "mix"  :
+                model = model_census.DNN_Census_mix(input_size=input_size).to(device)
+                self.model_name = "DNN_Census_mix"
+            else:
+
+                model = model_census.DNN_Census(input_size=input_size).to(device)
+                self.model_name = "DNN_Census"
             criterion = nn.BCELoss()
-        elif self.dataset_name.lower() == "mnist12":
-            model = model_mnist12.DNN_MNIST12(input_size=input_size).to(device)
-            self.model_name = "DNN_MNIST12"
-            criterion = nn.CrossEntropyLoss()  
+            
         elif self.dataset_name.lower() == "mnist28":
             model = model_mnist28.DNN_MNIST28(input_size=input_size).to(device)
             self.model_name = "DNN_MNIST28"
             criterion = nn.CrossEntropyLoss()
+        elif self.dataset_name.lower() == "mnist12":
+            model = model_mnist12.DNN_MNIST12(input_size=input_size).to(device)
+            self.model_name = "DNN_MNIST12"
+            criterion = nn.CrossEntropyLoss()
+
         elif self.dataset_name.lower() == "intrusion":
             model = model_intrusion.DNN_Intrusion(input_size=input_size).to(device)
             self.model_name = "DNN_Intrusion"
             criterion = nn.CrossEntropyLoss()
-        elif self.dataset_name.lower() == "covertype":
-            model = DNN_Covertype(input_size=input_size).to(device)
-            self.model_name = "DNN_Covertype"
-            criterion = nn.CrossEntropyLoss()
+        # elif self.dataset_name.lower() == "covertype":
+        #     model = DNN_Covertype(input_size=input_size).to(device)
+        #     self.model_name = "DNN_Covertype"
+        #     #self.multi_y = True
+        #     criterion = nn.CrossEntropyLoss()
         else:
             raise ValueError("Unknown dataset name")
 
@@ -187,16 +199,18 @@ class train:
         with open(self.acc_dir + self.acc_file_name, 'w') as acc_file:
             train_to_write = ",".join([f"train_{x}" for x in list(self.get_dict_of_eval_metrics().keys())])
             dev_to_write = ",".join([f"dev_{x}" for x in list(self.get_dict_of_eval_metrics().keys())])
+            test_to_write = ",".join([f"test_{x}" for x in list(self.get_dict_of_eval_metrics().keys())])
 
-            acc_file.write("global_round,train_loss," + train_to_write + ",dev_loss," + dev_to_write + "\n")
+            acc_file.write("global_round,train_loss," + train_to_write + ",dev_loss," + dev_to_write + ",test_loss," + test_to_write+"\n")
                         
         lr = self.learning_rate
 
-        train_losses, dev_losses = [], []
+        train_losses, dev_losses, test_losses = [], [], []
         
 
         train_scores = self.get_dict_of_eval_metrics()
         dev_scores = self.get_dict_of_eval_metrics()
+        test_scores = self.get_dict_of_eval_metrics()
         
         best_loss = float("inf")
         best_score = 0 
@@ -211,13 +225,16 @@ class train:
 
             train_loss, train_score = self.validate(data = self.train_data, load_weight=False)
             dev_loss, dev_score = self.validate(data = self.dev_data, load_weight=False)
+            test_loss, test_score = self.validate(data = self.test_data, load_weight=False)
             
             train_losses.append(train_loss)
             dev_losses.append(dev_loss)
+            test_losses.append(test_loss)
             
             for stype in list(train_score.keys()):
                 train_scores[stype].append(train_score[stype])
                 dev_scores[stype].append(dev_score[stype])
+                test_scores[stype].append(test_score[stype])
 
             print(f"Training statistic: Loss: {train_loss:.4f}, train_score: {train_score}")
             print(f"Validation statistic: Loss: {dev_loss:.4f}, dev_score: {dev_score}")
@@ -225,8 +242,9 @@ class train:
             with open(self.acc_dir + self.acc_file_name, 'a') as acc_file:
                 train_score_to_write = ",".join(map(str, list(train_score.values())))
                 dev_score_to_write = ",".join(map(str, list(dev_score.values())))
+                test_score_to_write = ",".join(map(str, list(test_score.values())))
                 
-                acc_file.write(f"{epoch+1},{train_loss},{train_score_to_write},{dev_loss},{dev_score_to_write}\n")
+                acc_file.write(f"{epoch+1},{train_loss},{train_score_to_write},{dev_loss},{dev_score_to_write},{test_loss},{test_score_to_write}\n")
         
             if self.patience == -1: #no early stopping
                 if epoch in save_at:
@@ -238,7 +256,7 @@ class train:
                     print(f"Early stopping by {self.early_stop_criterion} triggered!")
                     break
                 
-        test_loss, test_score = self.validate(data = self.test_data, load_weight=True)
+        # test_loss, test_score = self.validate(data = self.test_data, load_weight=True)
         print(f"Testing statistic: loss: {test_loss}, scores: {test_score}")
 
         with open(self.acc_dir + self.report_file_name, 'w') as report_file:
@@ -248,11 +266,12 @@ class train:
         
         #Mix CTGAN + GAUSSIAN Testing statistic: loss: 4.0316255683898925, scores: {'accuracy': 0.9904, 'f1_macro': 0.4179506764095088, 'f1_micro': 0.9904, 'f1_weighted': 0.9883435833292837}
         
-        self.plot_loss_and_f1_curves(train_losses, dev_losses, train_scores[self.metric_to_plot], dev_scores[self.metric_to_plot])
-        
+#        self.plot_loss_and_f1_curves(train_losses, dev_losses, train_scores[self.metric_to_plot], dev_scores[self.metric_to_plot])
+        self.plot_loss_and_f1_curves(train_losses, train_scores[self.metric_to_plot], 
+                                     dev_losses, dev_scores[self.metric_to_plot], 
+                                     test_losses=test_losses, test_f1_scores=test_scores[self.metric_to_plot])        
         print("Finish training!")
-
-    
+  
     def check_early_stop(self, loss, score, best_loss, best_score, patience_counter):
         tolerance = 1e-5
         need_stopping = False
@@ -338,7 +357,7 @@ class train:
         print("Model saved!")
         print("-------------------------------------------")
 
-    def plot_loss_and_f1_curves(self, train_losses, test_losses, train_f1_scores, test_f1_scores):
+    def plot_loss_and_f1_curves(self, train_losses, train_f1_scores, val_losses, val_f1_scores, test_losses=None, test_f1_scores=None):
         """Plots and saves training/validation loss and F1 score curves to the model directory."""
         # Ensure the directory exists
         os.makedirs(self.acc_dir, exist_ok=True)
@@ -352,7 +371,9 @@ class train:
         loss_plot_file = os.path.join(self.acc_dir, f"{self.acc_file_name}_loss_curve.png")
         plt.figure(figsize=(10, 6))
         plt.plot(train_losses, label='Training', color='blue')
-        plt.plot(test_losses, label='Validation', color='orange')
+        plt.plot(val_losses, label='Validation', color='orange')
+        if test_losses is not None:
+            plt.plot(test_losses, label='Testing', color='red')
         plt.xlabel('Epochs')
         plt.ylabel('Loss')
         plt.title('Training and Validation Loss Curves')
@@ -366,7 +387,9 @@ class train:
         f1_plot_file = os.path.join(self.acc_dir, f"{self.acc_file_name}_{self.metric_to_plot}.png")
         plt.figure(figsize=(10, 6))
         plt.plot(train_f1_scores, label='Training', color='blue')
-        plt.plot(test_f1_scores, label='Validation', color='orange')
+        plt.plot(val_f1_scores, label='Validation', color='orange')
+        if test_f1_scores is not None:
+            plt.plot(test_f1_scores, label='Testing', color='red')
         plt.xlabel('Epochs')
         plt.ylabel(self.metric_to_plot)
         plt.title(f'Training and Validation {self.metric_to_plot}')
