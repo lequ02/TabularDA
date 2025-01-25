@@ -36,7 +36,7 @@ class DNN_Intrusion(nn.Module):
 
         # Output Layer
         self.output = nn.Linear(hidden_sizes[-1], output_size)
-        self.softmax = nn.Softmax(dim = 1)    
+        #self.softmax = nn.Softmax(dim = 1)    
 
     def forward(self, x):
 
@@ -51,7 +51,7 @@ class DNN_Intrusion(nn.Module):
         x = self.drop3(self.act3(self.layer3(x)))
         x = self.drop4(self.act4(self.layer4(x)))
         x = self.drop5(self.act5(self.layer5(x)))
-        x = self.softmax(x)  # output probabilities
+        x = self.output(x)  # output probabilities
         return x
     
     def train(self, mode=True):
