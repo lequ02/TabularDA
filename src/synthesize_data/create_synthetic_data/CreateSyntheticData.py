@@ -26,18 +26,25 @@ class CreateSyntheticData:
             'test_csv': f'{ds_name}_test.csv',
             'train_csv_onehot': f'onehot_{ds_name}_train.csv',
             'test_csv_onehot': f'onehot_{ds_name}_test.csv',
+
             'sdv_only_synthesizer': f'{ds_name}_synthesizer.pkl',
             'sdv_only_csv': f'onehot_{ds_name}_sdv_100k.csv',
+
             'sdv_gaussian_synthesizer': f'{ds_name}_synthesizer_onlyX.pkl',
             'sdv_gaussian_csv': f'onehot_{ds_name}_sdv_gaussian_100k.csv',
+
             'sdv_categorical_synthesizer': f'{ds_name}_synthesizer_onlyX.pkl',
-            'sdv_categorical_csv': f'onehot_{ds_name}_sdv_categorical_100k.csv'
+            'sdv_categorical_csv': f'onehot_{ds_name}_sdv_categorical_100k.csv',
+
+            'sdv_pca_gmm_synthesizer': f'{ds_name}_synthesizer_onlyX.pkl',
+            'sdv_pca_gmm_csv': f'onehot_{ds_name}_sdv_pca_gmm_100k.csv',
         }
 
     def create_synthetic_data(self):
         self.create_synthetic_data_sdv_only()
         self.create_synthetic_data_sdv_gaussian()
         self.create_synthetic_data_sdv_categorical()
+        self.create_synthetic_data_pca_gmm()
 
     def create_synthetic_data_sdv_only(self):
         xtrain, xtest, ytrain, ytest, target_name, categorical_columns = self.prepare_train_test()
@@ -53,6 +60,10 @@ class CreateSyntheticData:
     def create_synthetic_data_sdv_categorical(self):
         xtrain, xtest, ytrain, ytest, target_name, categorical_columns = self.read_data()
         self.synthesize_from_trained_model(xtrain, ytrain, categorical_columns, 'sdv_categorical', 'categoricalNB')
+
+    def create_synthetic_data_pca_gmm(self):
+        xtrain, xtest, ytrain, ytest, target_name, categorical_columns = self.read_data()
+        self.synthesize_from_trained_model(xtrain, ytrain, categorical_columns, 'sdv_pca_gmm', 'pca_gmm')
 
     def prepare_train_test(self):
         """

@@ -168,7 +168,7 @@ class DNN_News(nn.Module):
         self.drop4 = nn.Dropout(0.7)
         
         # Output layer
-        self.output = nn.Linear(hidden_sizes[3], output_size)
+        self.output = nn.ReLU(hidden_sizes[3], output_size)
 
     def forward(self, x):
         x = self.drop1(self.act1(self.bn1(self.layer1(x))))

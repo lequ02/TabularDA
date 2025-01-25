@@ -1,128 +1,33 @@
 import sys
 import os
 import pandas as pd
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from synthesizer import *
+from create_synthetic_data import CreateSyntheticData
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from datasets import load_adult, load_news, load_census, load_covertype
-from commons import create_train_test, handle_missing_values, check_directory, read_train_test_csv, onehot
 
+class CreateSyntheticDataCovertype(CreateSyntheticData.CreateSyntheticData):
+    def __init__(self):
+        ds_name = 'covertype'
 
-def create_synthetic_data_covertype():
-  """
-  create train-test data for covertype dataset
-  synthesize data using SDV only, SDV with GaussianNB, and SDV with CategoricalNB
-  """
-  ds_name = 'covertype'
-  # synthesize data for the covertype dataset
-  paths = {'synthesizer_dir': f'../sdv trained model/{ds_name}/',
-            'data_dir': f'../data/{ds_name}/',
+        ### sdv, gaussian, categorical originally generated with using empty categorical_columns [] 
+        # categorical_columns = []
 
-            'train_csv': f'{ds_name}_train.csv',
-            'test_csv': f'{ds_name}_test.csv',
+        # numerical_columns = ['Elevation', 'Aspect', 'Slope', 'Horizontal_Distance_To_Hydrology', 'Vertical_Distance_To_Hydrology', 'Horizontal_Distance_To_Roadways', 'Hillshade_9am', 'Hillshade_Noon', 'Hillshade_3pm', 'Horizontal_Distance_To_Fire_Points']
+        # all_columns = x_original.columns
+        # categorical_columns = [col for col in all_columns if col not in numerical_columns]
 
-            'train_csv_onehot': f'onehot_{ds_name}_train.csv',
-            'test_csv_onehot': f'onehot_{ds_name}_test.csv',
+        categorical_columns = ['Wilderness_Area1', 'Soil_Type1',
+       'Soil_Type2', 'Soil_Type3', 'Soil_Type4', 'Soil_Type5', 'Soil_Type6',
+       'Soil_Type7', 'Soil_Type8', 'Soil_Type9', 'Soil_Type10', 'Soil_Type11',
+       'Soil_Type12', 'Soil_Type13', 'Soil_Type14', 'Soil_Type15',
+       'Soil_Type16', 'Soil_Type17', 'Soil_Type18', 'Soil_Type19',
+       'Soil_Type20', 'Soil_Type21', 'Soil_Type22', 'Soil_Type23',
+       'Soil_Type24', 'Soil_Type25', 'Soil_Type26', 'Soil_Type27',
+       'Soil_Type28', 'Soil_Type29', 'Soil_Type30', 'Soil_Type31',
+       'Soil_Type32', 'Soil_Type33', 'Soil_Type34', 'Soil_Type35',
+       'Soil_Type36', 'Soil_Type37', 'Soil_Type38', 'Soil_Type39',
+       'Soil_Type40', 'Wilderness_Area2', 'Wilderness_Area3',
+       'Wilderness_Area4']
 
-            'sdv_only_synthesizer': f'{ds_name}_synthesizer.pkl',
-            'sdv_only_csv': f'onehot_{ds_name}_sdv_100k.csv',
-
-            'sdv_gaussian_synthesizer': f'{ds_name}_synthesizer_onlyX.pkl',
-            'sdv_gaussian_csv': f'onehot_{ds_name}_sdv_gaussian_100k.csv',
-
-            'sdv_categorical_synthesizer': f'{ds_name}_synthesizer_onlyX.pkl',
-            'sdv_categorical_csv': f'onehot_{ds_name}_sdv_categorical_100k.csv'
-            }
-
-  # save train-test data to csv files
-  xtrain, xtest, ytrain, ytest, target_name, categorical_columns = prepare_train_test_covertype(paths['data_dir']+paths['train_csv'], paths['data_dir']+paths['test_csv'],
-                                                                                                paths['data_dir']+paths['train_csv_onehot'], paths['data_dir']+paths['test_csv_onehot'])
-
-  # sdv only
-  xytrain = pd.concat([xtrain, ytrain], axis=1)
-  synthesize_covertype_sdv = synthesize_data(xytrain, ytrain, categorical_columns,
-                            sample_size=100_000, target_synthesizer='',
-                            target_name=target_name, synthesizer_file_name= paths['synthesizer_dir']+paths['sdv_only_synthesizer'],
-                            csv_file_name= paths['data_dir']+paths['sdv_only_csv'], verbose=True,
-                            # show_network=True
-                            )
-
-  # sdv gaussian
-  xtrain, xtest, ytrain, ytest, target_name, categorical_columns = read_covertype_data(paths['data_dir']+paths['train_csv'], paths['data_dir']+paths['test_csv'],
-                                                                                    target_name=target_name, categorical_columns=categorical_columns)
-  synthesize_covertype_sdv_gaussian_100k = synthesize_data(xtrain, ytrain, categorical_columns,
-                            sample_size=100_000, target_synthesizer='gaussianNB',
-                            target_name=target_name, synthesizer_file_name= paths['synthesizer_dir']+paths['sdv_gaussian_synthesizer'],
-                            csv_file_name= paths['data_dir']+paths['sdv_gaussian_csv'], verbose=True,
-                            # show_network=True
-                            )
-
-  # sdv categorical
-  xtrain, xtest, ytrain, ytest, target_name, categorical_columns = read_covertype_data(paths['data_dir']+paths['train_csv'], paths['data_dir']+paths['test_csv'],
-                                                                                    target_name=target_name, categorical_columns=categorical_columns)
-  synthesize_covertype_sdv_categorical_100k = synthesize_from_trained_model(xtrain, ytrain, categorical_columns,
-                            sample_size=100_000, target_synthesizer='categoricalNB',
-                            target_name=target_name, synthesizer_file_name= paths['synthesizer_dir']+paths['sdv_categorical_synthesizer'],
-                            csv_file_name= paths['data_dir']+paths['sdv_categorical_csv'], verbose=True,
-                            # show_network=True
-                            )
-
-
-def prepare_train_test_covertype(save_train_as, save_test_as, save_train_as_onehot, save_test_as_onehot):
-  """
-  train-test split the covertype data
-  handle missing values
-  save the train-test data to csv
-  train-test csv files are NOT one-hot encoded
-  """
-  # process data
-  x_original, y_original = load_covertype()
-  target_name = y_original.columns[0]
-  categorical_columns = []
-
-  # train test split
-  data = pd.concat([x_original, y_original], axis=1)
-  xtrain, xtest, ytrain, ytest = create_train_test.create_train_test(data, target_name=target_name, test_size=0.2, random_state=42)
-
-  # handle missing values
-  xtrain, ytrain = handle_missing_values.handle_missing_values(xtrain, ytrain, target_name=target_name, strategy='drop')
-  xtest, ytest = handle_missing_values.handle_missing_values(xtest, ytest, target_name=target_name, strategy='drop')
-
-  # save train-test to csv
-  train_set = pd.concat([xtrain, ytrain], axis=1)
-  test_set = pd.concat([xtest, ytest], axis=1)
-  check_directory.check_directory(save_train_as) # check if the directory exists, if not create it
-  check_directory.check_directory(save_test_as)
-  train_set.to_csv(save_train_as, index=False)
-  test_set.to_csv(save_test_as, index=False)
-  print(f"train data saved to csv at {save_train_as}")
-  print(f"test data saved to csv at {save_test_as}")
-
-  # one-hot encode the train-test data
-  xtrain, xtest = onehot.onehot(xtrain, xtest, categorical_columns, verbose=True)
-  train_set = pd.concat([xtrain, ytrain], axis=1)
-  test_set = pd.concat([xtest, ytest], axis=1)
-  check_directory.check_directory(save_train_as_onehot) # check if the directory exists, if not create it
-  check_directory.check_directory(save_test_as_onehot)
-  train_set.to_csv(save_train_as_onehot, index=False)
-  test_set.to_csv(save_test_as_onehot, index=False)
-  print(f"train data saved to csv at {save_train_as_onehot}")
-  print(f"test data saved to csv at {save_test_as_onehot}")
-  
-  return xtrain, xtest, ytrain, ytest, target_name, categorical_columns
-
-
-def read_covertype_data(train_csv, test_csv, target_name, categorical_columns):
-  """
-  read train and test data from csv files
-  """
-  # train_csv="..\\data\\covertype\\covertype_train.csv"
-  # test_csv="..\\data\\covertype\\covertype_test.csv"
-  # target_name=' shares'
-  # categorical_columns=[]
-
-  xtrain, xtest, ytrain, ytest, target_name, categorical_columns = read_train_test_csv.read_train_test_csv(train_csv, test_csv,
-   target_name=target_name, categorical_columns=categorical_columns)
-
-  return xtrain, xtest, ytrain, ytest, target_name, categorical_columns
+        super().__init__(ds_name, load_covertype, 'Cover_Type', categorical_columns=categorical_columns,
+                            sample_size_to_synthesize=100_000, missing_values_strategy='drop', test_size=0.2)

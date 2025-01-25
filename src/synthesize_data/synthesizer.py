@@ -1,6 +1,7 @@
 from sdv.single_table import CTGANSynthesizer
 from sdv.metadata import SingleTableMetadata
 from naive_bayes import create_label_gaussianNB, create_label_categoricalNB, create_label_gmmNB
+from pca_gmm import PCA_GMM
 from bayes_net import create_label_BN, create_label_BN_from_trained
 import pickle
 import torch
@@ -74,8 +75,17 @@ def synthesize_data(x_original, y_original, categorical_columns, target_name,
     synthesized_data = create_label_gaussianNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
   elif target_synthesizer == 'categoricalNB':
     synthesized_data = create_label_categoricalNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
+  elif target_synthesizer == 'pca_gmm':
+    pca_gmm = PCA_GMM(x_original, y_original, x_synthesized, 
+                      numerical_cols =  x_original_backup.columns.difference(categorical_columns),
+                      pca_n_components=0.99, gmm_n_components=10, verbose=verbose,
+                      target_name = target_name, filename=csv_file_name)
+    pca_gmm.fit()
+
   elif target_synthesizer == 'gmmNB':
-    synthesized_data = create_label_gmmNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
+    raise ValueError("gmmNB is not implemented yet")
+    synthesized_data = create_label_gmmNB(x_original, y_original, x_synthesized,
+                                          target_name = target_name, filename=csv_file_name)
 
   # create y' using a Bayesian Network model
   # train a new BN model
@@ -176,7 +186,15 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns, t
     synthesized_data = create_label_gaussianNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
   elif target_synthesizer == 'categoricalNB':
     synthesized_data = create_label_categoricalNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
+  elif target_synthesizer == 'pca_gmm':
+    # print("num cols: ", x_original_backup.columns.difference(categorical_columns))
+    pca_gmm = PCA_GMM(x_original, y_original, x_synthesized, 
+                      numerical_cols =  x_original_backup.columns.difference(categorical_columns),
+                      pca_n_components=0.99, gmm_n_components=10, verbose=verbose,
+                      target_name = target_name, filename=csv_file_name)
+    _, synthesized_data = pca_gmm.fit()
   elif target_synthesizer == 'gmmNB':
+    raise ValueError("gmmNB is not implemented yet")
     synthesized_data = create_label_gmmNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
 
   # create y' using a Bayesian Network model
@@ -204,12 +222,12 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns, t
     synthesized_data = pd.concat([x_synthesized_backup, synthesized_data[target_name]], axis=1)
 
 
-  # check if user want to return one-hot encoded X'
-  if return_onehot == False:
-    # for i in synthesized_data.columns:
-    #   print(i)
-    x_synthesized_backup = x_synthesized_backup.reindex(sorted(x_synthesized_backup.columns), axis=1)
-    synthesized_data = pd.concat([x_synthesized_backup, synthesized_data[target_name]], axis=1)
+  # # check if user want to return one-hot encoded X'
+  # if return_onehot == False:
+  #   # for i in synthesized_data.columns:
+  #   #   print(i)
+  #   x_synthesized_backup = x_synthesized_backup.reindex(sorted(x_synthesized_backup.columns), axis=1)
+  #   synthesized_data = pd.concat([x_synthesized_backup, synthesized_data[target_name]], axis=1)
   
   # save synthesized data to csv
   check_directory(csv_file_name) # create directory if not exist

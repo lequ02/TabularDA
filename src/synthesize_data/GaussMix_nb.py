@@ -4,7 +4,7 @@ from sklearn.preprocessing import LabelEncoder
 import pandas as pd
 
 class GMMNaiveBayes:
-    def __init__(self, n_components=1):
+    def __init__(self, n_components=5):
         """
         Initialize the GMM Naive Bayes classifier.
 
@@ -58,8 +58,8 @@ class GMMNaiveBayes:
         - y: array-like of shape (n_samples,), class labels.
         - numeric_cols: list of column names or indices for numeric features.
         """
-        self.classes_ = np.unique(y)
         y_encoded = self.label_encoder_.fit_transform(y)
+        self.classes_ = np.unique(y_encoded)
 
         # Resolve numeric columns to indices
         self.numeric_cols = self._resolve_numeric_cols(X, numeric_cols)
@@ -80,7 +80,14 @@ class GMMNaiveBayes:
             # Ensure all categorical columns are one-hot encoded
             for col in categorical_cols:
                 unique_values = np.unique(X_cls[:, col])
-                if not np.array_equal(unique_values, [0, 1]):
+                # print("unique_values: ", unique_values)
+                # # print(np.array_equal(unique_values, [0, 1]))
+                # # print(np.array_equal(unique_values, [0., 1.]))
+                # print(set(unique_values))
+                # print(set([0, 1]))
+                # print(set(unique_values) <= set([0, 1]))
+                # # if not (np.array_equal(unique_values, [0, 1]) or np.array_equal(unique_values, [0., 1.])):
+                if not (set(unique_values) <= set([0, 1]) or set(unique_values) <= set([0., 1.])):
                     raise ValueError(f"Categorical column at index {col} is not one-hot encoded.")
             # Calculate mean probabilities for one-hot encoded categorical features
             categorical_probs = np.mean(X_cls[:, categorical_cols], axis=0)

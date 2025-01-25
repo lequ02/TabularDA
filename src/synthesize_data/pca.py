@@ -14,12 +14,20 @@ def pca_df(df_original, df_synthesized, target_name, verbose=True, n_components=
     DataFrames: Transformed datasets in PCA space.
     df_original_pca, df_synthesized_pca
     """
+    only_num_flag = False
+    if target_name not in df_original.columns or target_name not in df_synthesized.columns:
+        print(f"Warning: Target column {target_name} not found in the dataset.")
+        print("Assumes the dfs only contain numerical columns.")
+        only_num_flag = True
+        x_original = df_original.values
+        x_synthesized = df_synthesized.values
 
-    y_original = df_original[target_name]
-    y_synthesized = df_synthesized[target_name]
+    else:
+        y_original = df_original[target_name]
+        y_synthesized = df_synthesized[target_name]
 
-    x_original = df_original.drop(columns=[target_name]).values
-    x_synthesized = df_synthesized.drop(columns=[target_name]).values
+        x_original = df_original.drop(columns=[target_name]).values
+        x_synthesized = df_synthesized.drop(columns=[target_name]).values
     
     # Initialize PCA with the specified number of components
     pca = PCA(n_components=n_components)
@@ -29,17 +37,35 @@ def pca_df(df_original, df_synthesized, target_name, verbose=True, n_components=
 
     if verbose:
         print(f"Explained variance ratio: {pca.explained_variance_ratio_}")
+        print(f"Cumulative explained variance: {pca.explained_variance_ratio_.cumsum()}")
         print(f"Number of components: {pca.n_components_}")
 
     x_original_pca = pca.transform(x_original)
     x_synthesized_pca = pca.transform(x_synthesized)
 
-    df_original_pca = pd.DataFrame(x_original_pca, columns=[f'PC{i+1}' for i in range(x_original_pca.shape[1])])
-    df_original_pca[target_name] = y_original.values
+    # print("\n\n pre df")
+    # print(type(x_original_pca))
+    # print(x_original_pca)
 
-    df_synthesized_pca = pd.DataFrame(x_synthesized_pca, columns=[f'PC{i+1}' for i in range(x_synthesized_pca.shape[1])])
-    df_synthesized_pca[target_name] = y_synthesized.values
+    # check if x_original_pca & df_synthesized_pca is a numpy array or a dataframe. 
+    # If it is a numpy array, convert it to a dataframe
+    # If it is a dataframe, do nothing
+    if isinstance(x_original_pca, pd.DataFrame):
+        df_original_pca = x_original_pca
+        df_synthesized_pca = x_synthesized_pca
+    else:
+        df_original_pca = pd.DataFrame(x_original_pca, columns=[f'PC{i+1}' for i in range(x_original_pca.shape[1])])
+        df_synthesized_pca = pd.DataFrame(x_synthesized_pca, columns=[f'PC{i+1}' for i in range(x_synthesized_pca.shape[1])])
+
+    # Add the target column back to the dataframes if needed
+    if not only_num_flag:
+        df_original_pca[target_name] = y_original.values
+        df_synthesized_pca[target_name] = y_synthesized.values
     
+    # print("\n\n post df")
+    # print(type(df_original_pca))
+    # print(df_original_pca)
+
     return df_original_pca, df_synthesized_pca, pca
 
 
