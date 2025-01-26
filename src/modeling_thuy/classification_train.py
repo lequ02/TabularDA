@@ -12,7 +12,7 @@ from torch import nn
 from torchsummary import summary
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, classification_report
 
-from models_folder import model_mnist12, model_mnist28, model_intrusion,model_adult,model_census
+from models_folder import model_mnist12, model_mnist28, model_intrusion, model_adult, model_census, model_credit
 from trainer import trainer
 import constants
 
@@ -45,7 +45,7 @@ class train:
         
         if dataset_name.lower() in ['mnist12', 'mnist28', 'intrusion', 'covertype']: #more than 2 classes
             self.multi_y = True
-        elif dataset_name.lower() in ['adult', 'census']: #binary
+        elif dataset_name.lower() in ['adult', 'census', 'credit']: #binary
             self.multi_y = False
 
         self.dataset_name = dataset_name
@@ -110,12 +110,12 @@ class train:
                 model = model_adult.DNN_Adult(input_size=input_size).to(device)
                 self.model_name = "DNN_Adult"
             criterion = nn.BCELoss()
+
         elif self.dataset_name.lower() == "census":
             if self.train_option.lower() == "mix"  :
                 model = model_census.DNN_Census_mix(input_size=input_size).to(device)
                 self.model_name = "DNN_Census_mix"
             else:
-
                 model = model_census.DNN_Census(input_size=input_size).to(device)
                 self.model_name = "DNN_Census"
             criterion = nn.BCELoss()
@@ -133,11 +133,16 @@ class train:
             model = model_intrusion.DNN_Intrusion(input_size=input_size).to(device)
             self.model_name = "DNN_Intrusion"
             criterion = nn.CrossEntropyLoss()
-        # elif self.dataset_name.lower() == "covertype":
-        #     model = DNN_Covertype(input_size=input_size).to(device)
-        #     self.model_name = "DNN_Covertype"
-        #     #self.multi_y = True
-        #     criterion = nn.CrossEntropyLoss()
+        elif self.dataset_name.lower() == "covertype":
+            model = DNN_Covertype(input_size=input_size).to(device)
+            self.model_name = "DNN_Covertype"
+            criterion = nn.CrossEntropyLoss()
+
+        elif self.dataset_name.lower() == "credit":
+            model = model_credit.DNN_Credit(input_size=input_size).to(device)
+            self.model_name = "DNN_Credit"
+            criterion = nn.BCELoss()
+
         else:
             raise ValueError("Unknown dataset name")
 

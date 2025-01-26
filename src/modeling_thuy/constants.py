@@ -25,7 +25,8 @@ IN_DATA_PATHS = {
         'synthetic': {
             'ctgan': '../../data/news/onehot_news_sdv_100k.csv',
             'categorical': '../../data/news/onehot_news_sdv_categorical_100k.csv',
-            'gaussian': '../../data/news/onehot_news_sdv_gaussian_100k.csv'
+            'gaussian': '../../data/news/onehot_news_sdv_gaussian_100k.csv',
+            'pca_gmm': '../../data/news/onehot_news_sdv_pca_gmm_100k.csv'
         },
         'target_name': ' shares'
     },
@@ -70,6 +71,18 @@ IN_DATA_PATHS = {
             'gaussian': '../../data/intrusion/onehot_intrusion_sdv_gaussian_100k.csv'
         },
         'target_name': 'target'
+    },
+
+    'credit': {
+        'train_original': '../../data/credit/onehot_credit_train.csv',
+        'test': '../../data/credit/onehot_credit_test.csv',
+        'synthetic': {
+            'ctgan': '../../data/credit/onehot_credit_sdv_100k.csv',
+            'categorical': '../../data/credit/onehot_credit_sdv_categorical_100k.csv',
+            'gaussian': '../../data/credit/onehot_credit_sdv_gaussian_100k.csv',
+            'pca_gmm': '../../data/credit/onehot_credit_sdv_pca_gmm_100k.csv'
+        },
+        'target_name': 'Class'
     },
 }
 
