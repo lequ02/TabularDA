@@ -142,7 +142,7 @@ class train:
 
         if pre_trained_w_file is not None:
             print(f"Loading weight from {pre_trained_w_file}")
-            model.load_state_dict(torch.load(self.w_dir + pre_trained_w_file))
+            model.load_state_dict(torch.load(pre_trained_w_file))
 
         mtrainer = trainer(model, self.train_data, criterion, self.learning_rate, dataset_name=self.dataset_name, device=device, multi_y = self.multi_y)
         mtrainer.data = self.train_data
