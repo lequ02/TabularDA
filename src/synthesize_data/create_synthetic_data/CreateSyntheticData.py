@@ -11,7 +11,7 @@ from commons import create_train_test, handle_missing_values, check_directory, r
 
 class CreateSyntheticData:
     def __init__(self, ds_name, load_data_func, target_name, categorical_columns, 
-                 sample_size_to_synthesize=100_000, missing_values_strategy='drop', test_size=0.2):
+                 sample_size_to_synthesize=100_000, missing_values_strategy='drop', test_size=0.2, is_classification=True):
         self.ds_name = ds_name
         self.load_data_func = load_data_func
         self.target_name = target_name
@@ -19,6 +19,7 @@ class CreateSyntheticData:
         self.sample_size_to_synthesize = sample_size_to_synthesize
         self.missing_values_strategy = missing_values_strategy
         self.test_size = test_size
+        self.is_classification = is_classification
         self.paths = {
             'synthesizer_dir': f'../sdv trained model/{ds_name}/',
             'data_dir': f'../data/{ds_name}/',
@@ -91,12 +92,12 @@ class CreateSyntheticData:
         # xytrain = pd.concat([xtrain, ytrain], axis=1)
         synthesize_data(xtrain, ytrain, categorical_columns, sample_size=self.sample_size_to_synthesize, target_synthesizer=target_synthesizer,
                         target_name=self.target_name, synthesizer_file_name=self.paths['synthesizer_dir'] + self.paths[f'{synth_type}_synthesizer'],
-                        csv_file_name=self.paths['data_dir'] + self.paths[f'{synth_type}_csv'], verbose=True)
+                        csv_file_name=self.paths['data_dir'] + self.paths[f'{synth_type}_csv'], verbose=True, is_classification=self.is_classification)
         
     def synthesize_from_trained_model(self, xtrain, ytrain, categorical_columns, synth_type, target_synthesizer):
         synthesize_from_trained_model(xtrain, ytrain, categorical_columns, sample_size=self.sample_size_to_synthesize, target_synthesizer=target_synthesizer,
                                       target_name=self.target_name, synthesizer_file_name=self.paths['synthesizer_dir'] + self.paths[f'{synth_type}_synthesizer'],
-                                      csv_file_name=self.paths['data_dir'] + self.paths[f'{synth_type}_csv'], verbose=True)
+                                      csv_file_name=self.paths['data_dir'] + self.paths[f'{synth_type}_csv'], verbose=True, is_classification=self.is_classification)
 
     def save_to_csv(self, xtrain, ytrain, xtest, ytest, train_csv, test_csv):
         train_set = pd.concat([xtrain, ytrain], axis=1)

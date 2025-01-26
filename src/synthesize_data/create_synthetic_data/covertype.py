@@ -12,10 +12,6 @@ class CreateSyntheticDataCovertype(CreateSyntheticData.CreateSyntheticData):
         ### sdv, gaussian, categorical originally generated with using empty categorical_columns [] 
         # categorical_columns = []
 
-        # numerical_columns = ['Elevation', 'Aspect', 'Slope', 'Horizontal_Distance_To_Hydrology', 'Vertical_Distance_To_Hydrology', 'Horizontal_Distance_To_Roadways', 'Hillshade_9am', 'Hillshade_Noon', 'Hillshade_3pm', 'Horizontal_Distance_To_Fire_Points']
-        # all_columns = x_original.columns
-        # categorical_columns = [col for col in all_columns if col not in numerical_columns]
-
         categorical_columns = ['Wilderness_Area1', 'Soil_Type1',
        'Soil_Type2', 'Soil_Type3', 'Soil_Type4', 'Soil_Type5', 'Soil_Type6',
        'Soil_Type7', 'Soil_Type8', 'Soil_Type9', 'Soil_Type10', 'Soil_Type11',

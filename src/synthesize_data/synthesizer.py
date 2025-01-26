@@ -20,7 +20,7 @@ def synthesize_data(x_original, y_original, categorical_columns, target_name,
                     target_synthesizer=None,
                     synthesizer_file_name='synthesizer_onlyX.pkl', 
                     csv_file_name=None, BN_filename=None,
-                    npz_file_name=None):
+                    npz_file_name=None, is_classification=True):
   """
   input: original data
   output: synthesized data.
@@ -79,7 +79,7 @@ def synthesize_data(x_original, y_original, categorical_columns, target_name,
     pca_gmm = PCA_GMM(x_original, y_original, x_synthesized, 
                       numerical_cols =  x_original_backup.columns.difference(categorical_columns),
                       pca_n_components=0.99, gmm_n_components=10, verbose=verbose,
-                      target_name = target_name, filename=csv_file_name)
+                      target_name = target_name, filename=csv_file_name, is_classification=is_classification)
     pca_gmm.fit()
 
   elif target_synthesizer == 'gmmNB':
@@ -130,7 +130,8 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns, t
                   verbose=False, show_network=False,
                   target_synthesizer=None, 
                   synthesizer_file_name='synthesizer_onlyX.pkl', BN_model = None,
-                  BN_filename=None, csv_file_name=None, npz_file_name=None):
+                  BN_filename=None, csv_file_name=None, npz_file_name=None,
+                  is_classification=True):
   """
   input: original data
   output: synthesized data.
@@ -191,7 +192,7 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns, t
     pca_gmm = PCA_GMM(x_original, y_original, x_synthesized, 
                       numerical_cols =  x_original_backup.columns.difference(categorical_columns),
                       pca_n_components=0.99, gmm_n_components=10, verbose=verbose,
-                      target_name = target_name, filename=csv_file_name)
+                      target_name = target_name, filename=csv_file_name, is_classification=is_classification)
     _, synthesized_data = pca_gmm.fit()
   elif target_synthesizer == 'gmmNB':
     raise ValueError("gmmNB is not implemented yet")

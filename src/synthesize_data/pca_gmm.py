@@ -8,7 +8,7 @@ from sklearn.preprocessing import MinMaxScaler
 class PCA_GMM:
     def __init__(self, X_original, y_original, X_synthesized, numerical_cols, target_name, 
                  pca_n_components=0.99, gmm_n_components=10, verbose=True,
-                 filename = None):
+                 filename = None, is_classification=True):
         self.X_original = X_original
         self.y_original = y_original
         self.X_synthesized = X_synthesized
@@ -18,6 +18,7 @@ class PCA_GMM:
         self.gmm_n_components = gmm_n_components
         self.verbose = verbose
         self.filename = filename
+        self.is_classification = is_classification
 
     def fit(self):
         """
@@ -92,22 +93,34 @@ class PCA_GMM:
 
         if self.verbose:
             print('Fitting GMM...')
-        gmm = GMMNaiveBayes(n_components=self.gmm_n_components)
+        gmm = GMMNaiveBayes(n_components=self.gmm_n_components, is_classification=self.is_classification)
         gmm.fit(pca_X_original, self.y_original, numeric_cols=pca_numeric_cols) # use pca_numeric_cols instead of self.numerical_cols because after pca, number of numerical columns may have changed
 
         # Train results
         # y_train = pca_X_original[self.target_name]
         y_train = self.y_original
         y_hat_train = gmm.predict(pca_X_original)
-        train_accuracy = np.mean(y_hat_train == y_train)
-        train_f1 = {}
-        train_f1['weighted'] = sklearn.metrics.f1_score(y_train, y_hat_train, average='weighted')
-        train_f1['macro'] = sklearn.metrics.f1_score(y_train, y_hat_train, average='macro')
-        train_f1['micro'] = sklearn.metrics.f1_score(y_train, y_hat_train, average='micro')
-        if self.verbose:
-            print('Train Accuracy: ', train_accuracy)
-            print('Train F1', train_f1)
 
+        if self.is_classification:
+            train_accuracy = np.mean(y_hat_train == y_train)
+            train_f1 = {}
+            train_f1['weighted'] = sklearn.metrics.f1_score(y_train, y_hat_train, average='weighted')
+            train_f1['macro'] = sklearn.metrics.f1_score(y_train, y_hat_train, average='macro')
+            train_f1['micro'] = sklearn.metrics.f1_score(y_train, y_hat_train, average='micro')
+
+            eval_metrics = {'accuracy': train_accuracy, 'f1': train_f1}
+            if self.verbose:
+                print('Train Accuracy: ', train_accuracy)
+                print('Train F1', train_f1)
+
+        else: # regression
+            train_mape = np.mean(np.abs(y_hat_train - y_train) / y_train)
+            train_r2 = sklearn.metrics.r2_score(y_train, y_hat_train)
+
+            eval_metrics = {'mape': train_mape, 'r2': train_r2}
+            if self.verbose:
+                print('Train MAPE: ', train_mape)
+                print('Train R2: ', train_r2)
 
         # Predict target of synthesized data
         # if synthesized data has target column, drop it
@@ -125,4 +138,4 @@ class PCA_GMM:
         if self.filename:
             synthesized_df.to_csv(self.filename, index=False)
 
-        return (train_accuracy, train_f1), synthesized_df
+        return eval_metrics, synthesized_df

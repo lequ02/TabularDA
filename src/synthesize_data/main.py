@@ -21,9 +21,13 @@ def single_run():
 
 
 
-  adult.CreateSyntheticDataAdult().create_synthetic_data_pca_gmm()
+  # adult.CreateSyntheticDataAdult().create_synthetic_data_pca_gmm()
   census.CreateSyntheticDataCensus().create_synthetic_data_pca_gmm()
-  covertype.CreateSyntheticDataCovertype().create_synthetic_data_pca_gmm()
+  # covertype.CreateSyntheticDataCovertype().create_synthetic_data_pca_gmm()
+  # credit.CreateSyntheticDataCredit().create_synthetic_data_pca_gmm()
+
+  # news.CreateSyntheticDataNews().create_synthetic_data_pca_gmm()
+
 
 def main():
   # adult.create_synthetic_data_adult()
