@@ -12,7 +12,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 def single_run():
   # adult.CreateSyntheticDataAdult().create_synthetic_data()
   # census.CreateSyntheticDataCensus().create_synthetic_data()
-  credit.CreateSyntheticDataCredit().create_synthetic_data()
+  # credit.CreateSyntheticDataCredit().create_synthetic_data()
   # news.create_synthetic_data_news()
   # covertype.create_synthetic_data_covertype()
   # intrusion.create_synthetic_data_intrusion()
@@ -26,6 +26,7 @@ def single_run():
   # census.CreateSyntheticDataCensus().create_synthetic_data_pca_gmm()
   # covertype.CreateSyntheticDataCovertype().create_synthetic_data_pca_gmm()
   # credit.CreateSyntheticDataCredit().create_synthetic_data_pca_gmm()
+  intrusion.CreateSyntheticDataIntrusion().create_synthetic_data_pca_gmm()
 
   # news.CreateSyntheticDataNews().create_synthetic_data_pca_gmm()
 
