@@ -26,8 +26,9 @@ def single_run():
   # census.CreateSyntheticDataCensus().create_synthetic_data_pca_gmm()
   # covertype.CreateSyntheticDataCovertype().create_synthetic_data_pca_gmm()
   # credit.CreateSyntheticDataCredit().create_synthetic_data_pca_gmm()
-  intrusion.CreateSyntheticDataIntrusion().create_synthetic_data_pca_gmm()
-
+  # intrusion.CreateSyntheticDataIntrusion().create_synthetic_data_pca_gmm()
+  mnist12.CreateSyntheticDataMnist12().create_synthetic_data_pca_gmm()
+  mnist28.CreateSyntheticDataMnist28().create_synthetic_data_pca_gmm()
   # news.CreateSyntheticDataNews().create_synthetic_data_pca_gmm()
 
 
