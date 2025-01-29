@@ -46,36 +46,54 @@ class PCA_GMM:
         X_original_backup = self.X_original.copy()
         X_synthesized_backup = self.X_synthesized.copy()
 
-        # Normalize the original and synthesized data
-        if self.verbose:
-            print('Normalizing data...')
-        scaler = MinMaxScaler()
-        self.X_original[self.numerical_cols] = scaler.fit_transform(self.X_original[self.numerical_cols])
-        self.X_synthesized[self.numerical_cols] = scaler.transform(self.X_synthesized[self.numerical_cols])
+        print("\n\n original")
+        print(X_original_backup.head())
+        print("\n\n synthesized")
+        print(X_synthesized_backup.head())
+        print(X_original_backup.columns)
+        # Check if columns order in synthetic and original are the same
+        if list(X_original_backup.columns) != list(X_synthesized_backup.columns):
+            raise ValueError("Columns order in synthetic and original data are not the same")
 
-        # print("\n\nBefore PCA: NaN values in data: ", np.isnan(X_original_backup).sum())
+        print("\n\nnumerical cols: ", self.numerical_cols)
+        print(type(self.numerical_cols))
+        if (self.numerical_cols != []) and (self.numerical_cols != pd.Index([])):
+            
+            # Normalize the original and synthesized data
+            if self.verbose:
+                print('Normalizing data...')
+            scaler = MinMaxScaler()
+            self.X_original[self.numerical_cols] = scaler.fit_transform(self.X_original[self.numerical_cols])
+            self.X_synthesized[self.numerical_cols] = scaler.transform(self.X_synthesized[self.numerical_cols])
+
+            # print("\n\nBefore PCA: NaN values in data: ", np.isnan(X_original_backup).sum())
 
 
 
-        # Perform PCA on the original and synthetic data numerical columns
-        if self.verbose:
-            print('Performing PCA...')
-        pca_X_original, pca_synthesized_df= self.X_original.copy(), self.X_synthesized.copy()
+            # Perform PCA on the original and synthetic data numerical columns
+            if self.verbose:
+                print('Performing PCA...')
+            pca_X_original, pca_synthesized_df= self.X_original.copy(), self.X_synthesized.copy()
 
-        # after pca, number of numerical columns may have changed
-        pca_numeric_original, pca_numeric_synthesized, _ = pca_df(self.X_original[self.numerical_cols], self.X_synthesized[self.numerical_cols], self.target_name, n_components=self.pca_n_components)
+            # after pca, number of numerical columns may have changed
+            pca_numeric_original, pca_numeric_synthesized, _ = pca_df(self.X_original[self.numerical_cols], self.X_synthesized[self.numerical_cols], self.target_name, n_components=self.pca_n_components)
 
-        pca_X_original.drop(columns=self.numerical_cols, inplace=True)
-        pca_synthesized_df.drop(columns=self.numerical_cols, inplace=True)
+            pca_X_original.drop(columns=self.numerical_cols, inplace=True)
+            pca_synthesized_df.drop(columns=self.numerical_cols, inplace=True)
 
-        pca_X_original = pd.concat([pca_X_original, pca_numeric_original], axis=1)
-        pca_synthesized_df = pd.concat([pca_synthesized_df, pca_numeric_synthesized], axis=1)
+            pca_X_original = pd.concat([pca_X_original, pca_numeric_original], axis=1)
+            pca_synthesized_df = pd.concat([pca_synthesized_df, pca_numeric_synthesized], axis=1)
 
-        pca_numeric_cols = pca_numeric_original.columns
+            pca_numeric_cols = pca_numeric_original.columns
 
-        print("\n\n")
-        print(pca_X_original.head())
-        print(pca_numeric_cols)
+            print("\n\n")
+            print(pca_X_original.head())
+            print(pca_numeric_cols)
+
+        else:
+            pca_X_original = self.X_original.copy()
+            pca_synthesized_df = self.X_synthesized.copy()
+            pca_numeric_cols = []
 
         # pca_X_original[self.numerical_cols], pca_synthesized_df[self.numerical_cols], pca = pca_df(self.X_original[self.numerical_cols], self.X_synthesized[self.numerical_cols], 
         #                                                   self.target_name, n_components=self.pca_n_components)
@@ -137,5 +155,8 @@ class PCA_GMM:
 
         if self.filename:
             synthesized_df.to_csv(self.filename, index=False)
+
+        print("\n\nsynthesized data pca_gmm")
+        print(synthesized_df.head())
 
         return eval_metrics, synthesized_df

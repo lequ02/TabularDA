@@ -23,7 +23,7 @@ class data_loader:
         return df
     
     def load_train_augment_data(self, train_option, augment_option, mix_ratio = -1, n_sample = -1, validation = 0):
-        if train_option not in ['original', 'synthetic', 'mix'] or augment_option not in [None, 'ctgan', 'categorical', 'gaussian']:
+        if train_option not in ['original', 'synthetic', 'mix'] or augment_option not in [None, 'ctgan', 'categorical', 'gaussian', 'pca_gmm', 'pca_gmm_cat', 'pca_gmm_num']:
             raise ValueError("Invalid train_option or augment_option")
         if train_option == 'original':
             train_df = pd.read_csv(self.paths['train_original'])

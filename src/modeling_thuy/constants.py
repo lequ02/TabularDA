@@ -36,7 +36,9 @@ IN_DATA_PATHS = {
         'synthetic': {
             'ctgan': '../../data/mnist12/onehot_mnist12_sdv_100k.csv',
             'categorical': '../../data/mnist12/onehot_mnist12_sdv_categorical_100k.csv',
-            'gaussian': '../../data/mnist12/onehot_mnist12_sdv_gaussian_100k.csv'
+            'gaussian': '../../data/mnist12/onehot_mnist12_sdv_gaussian_100k.csv',
+            'pca_gmm_num': '../../data/mnist12/onehot_mnist12_sdv_pca_gmm_num_100k.csv',
+            'pca_gmm_cat': '../../data/mnist12/onehot_mnist12_sdv_pca_gmm_cat_100k.csv'
         },
         'target_name': 'label'
     },
@@ -46,7 +48,9 @@ IN_DATA_PATHS = {
         'synthetic': {
             'ctgan': '../../data/mnist28/onehot_mnist28_sdv_100k.csv',
             'categorical': '../../data/mnist28/onehot_mnist28_sdv_categorical_100k.csv',
-            'gaussian': '../../data/mnist28/onehot_mnist28_sdv_gaussian_100k.csv'
+            'gaussian': '../../data/mnist28/onehot_mnist28_sdv_gaussian_100k.csv',
+            'pca_gmm_num': '../../data/mnist28/onehot_mnist28_sdv_pca_gmm_num_100k.csv',
+            'pca_gmm_cat': '../../data/mnist28/onehot_mnist28_sdv_pca_gmm_cat_100k.csv'
         },
         'target_name': 'label'
     },

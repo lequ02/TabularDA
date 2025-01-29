@@ -67,6 +67,9 @@ class GMMNaiveBayes:
         # Resolve numeric columns to indices
         self.numeric_cols = self._resolve_numeric_cols(X, numeric_cols)
 
+        print('\n\n X in GaussMix_nb')
+        print(X.head())
+
         if isinstance(X, pd.DataFrame):
             X = X.values  # Convert DataFrame to NumPy array for processing
         if isinstance(y, pd.Series):
@@ -92,23 +95,13 @@ class GMMNaiveBayes:
                 print("cls_idx: ", cls_idx)
                 print("X_cls: ", X_cls)
 
-                # Fit a Bayesian Gaussian Mixture Model for numeric features for each class
-                bgmm = BayesianGaussianMixture(n_components=self.n_components, random_state=42, max_iter=self.max_iter_gmm)
-                bgmm.fit(X_cls[:, self.numeric_cols])
+                if self.numeric_cols != []:
+                    # Fit a Bayesian Gaussian Mixture Model for numeric features for each class
+                    bgmm = BayesianGaussianMixture(n_components=self.n_components, random_state=42, max_iter=self.max_iter_gmm)
+                    bgmm.fit(X_cls[:, self.numeric_cols])
+                else:
+                    bgmm = None
 
-
-                # # Ensure all categorical columns are one-hot encoded
-                # for col in self.categorical_cols:
-                #     unique_values = np.unique(X_cls[:, col])
-                #     # print("unique_values: ", unique_values)
-                #     # # print(np.array_equal(unique_values, [0, 1]))
-                #     # # print(np.array_equal(unique_values, [0., 1.]))
-                #     # print(set(unique_values))
-                #     # print(set([0, 1]))
-                #     # print(set(unique_values) <= set([0, 1]))
-                #     # # if not (np.array_equal(unique_values, [0, 1]) or np.array_equal(unique_values, [0., 1.])):
-                #     if not (set(unique_values) <= set([0, 1]) or set(unique_values) <= set([0., 1.])):
-                #         raise ValueError(f"Categorical column at index {col} is not one-hot encoded.")
                 # Calculate mean probabilities for one-hot encoded categorical features
                 categorical_probs = np.mean(X_cls[:, self.categorical_cols], axis=0)
 
@@ -141,12 +134,7 @@ class GMMNaiveBayes:
                 # Estimate prior probability
                 self.priors_[cls] = len(cls_idx) / len(X)
 
-        else: 
-            # # Ensure all categorical columns are one-hot encoded
-            # for col in self.categorical_cols:
-            #     unique_values = np.unique(X[:, col])
-            #     if not (set(unique_values) <= set([0, 1]) or set(unique_values) <= set([0., 1.])):
-            #         raise ValueError(f"Categorical column at index {col} is not one-hot encoded.")
+        else: # Regression
 
             # Fit GMM for numeric features
             self.numeric_gmm_ = BayesianGaussianMixture(n_components=self.n_components, random_state=42, max_iter=self.max_iter_gmm)
@@ -187,7 +175,15 @@ class GMMNaiveBayes:
             prior = self.priors_[cls]
 
             # Compute likelihood for numeric features using Bayesian GMM
-            numeric_likelihood = np.exp(gmm.score_samples(X[:, self.numeric_cols]))
+            # numeric_likelihood = np.exp(gmm.score_samples(X[:, self.numeric_cols]))
+
+            if self.numeric_cols != []:
+                log_probs = gmm.score_samples(X[:, self.numeric_cols])
+                numeric_likelihood = np.exp(log_probs - np.max(log_probs))  # Stabilized likelihood
+                # use log_probs - np.max(log_probs) instead of log_probs to avoid overflow in exp()
+            else:
+                numeric_likelihood = np.ones(n_samples)
+
 
             # Compute likelihood for one-hot encoded categorical features
             # categorical_cols = [i for i in range(X.shape[1]) if i not in self.numeric_cols]

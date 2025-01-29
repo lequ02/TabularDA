@@ -3,7 +3,7 @@ from synthesizer import *
 import sys
 import os
 import pandas as pd
-from create_synthetic_data import news, census, covertype, intrusion, credit, adult, mnist28, mnist12
+from create_synthetic_data import news, census, covertype, intrusion, credit, adult, mnist28, mnist12, census_kdd
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -19,6 +19,7 @@ def single_run():
   # credit.create_synthetic_data_credit()
   # mnist28.CreateSyntheticDataMnist28().create_synthetic_data()
   # mnist12.CreateSyntheticDataMnist12().create_synthetic_data()
+  census_kdd.CreateSyntheticDataCensusKdd().create_synthetic_data()
 
 
 
@@ -27,8 +28,10 @@ def single_run():
   # covertype.CreateSyntheticDataCovertype().create_synthetic_data_pca_gmm()
   # credit.CreateSyntheticDataCredit().create_synthetic_data_pca_gmm()
   # intrusion.CreateSyntheticDataIntrusion().create_synthetic_data_pca_gmm()
-  mnist12.CreateSyntheticDataMnist12().create_synthetic_data_pca_gmm()
-  mnist28.CreateSyntheticDataMnist28().create_synthetic_data_pca_gmm()
+  # mnist12.CreateSyntheticDataMnist12().create_synthetic_data_pca_gmm()
+  # mnist28.CreateSyntheticDataMnist28().create_synthetic_data_pca_gmm()
+  # mnist28.CreateSyntheticDataMnist28().synthesize_categorical_pca_gmm_from_trained_model()
+  # mnist12.CreateSyntheticDataMnist12().synthesize_categorical_pca_gmm_from_trained_model()
   # news.CreateSyntheticDataNews().create_synthetic_data_pca_gmm()
 
 

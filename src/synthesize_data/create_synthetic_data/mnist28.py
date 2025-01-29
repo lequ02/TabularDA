@@ -5,12 +5,13 @@ from create_synthetic_data import CreateSyntheticData
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from datasets import load_mnist28
 import numpy as np
-
+from synthesizer import *
 
 class CreateSyntheticDataMnist28(CreateSyntheticData.CreateSyntheticData):
     def __init__(self):
         ds_name = 'mnist28'
-        super().__init__(ds_name, load_mnist28, 'label', categorical_columns=[],
+        categorical_columns = [f'{i}' for i in range(0, 28*28, 1)]
+        super().__init__(ds_name, load_mnist28, 'label', categorical_columns=categorical_columns,
                             sample_size_to_synthesize=100_000, missing_values_strategy='drop', test_size=0.2)
         
     def binarize(self, data):
@@ -41,3 +42,46 @@ class CreateSyntheticDataMnist28(CreateSyntheticData.CreateSyntheticData):
         # save onehot encoded train, test data to csv
         self.save_to_csv(xtrain_onehot, ytrain, xtest_onehot, ytest, self.paths['data_dir']+self.paths['train_csv_onehot'], self.paths['data_dir']+self.paths['test_csv_onehot'])
         return xtrain, xtest, ytrain, ytest, self.target_name, self.categorical_columns
+    
+    
+    def synthesize_categorical_pca_gmm_from_trained_model(self):
+        """
+        synthesize MNIST28 data from a trained model and pca_gmm. Assuming all the columns follow categorical distribution but don't use onehot.
+        """
+        # if target_synthesizer != 'pca_gmm':
+        #     raise ValueError("This function is only intended to run pca_gmm for MNIST28 with categorical distribution.")
+        print("Warning: This function is only intended to run pca_gmm for MNIST28 with categorical distribution.")
+
+        synth_type, target_synthesizer = 'sdv_pca_gmm', 'pca_gmm'
+
+        xtrain, xtest, ytrain, ytest, target_name, categorical_columns = self.read_data()
+
+        
+        csv_file_name = self.paths['data_dir'] + f'onehot_{self.ds_name}_sdv_pca_gmm_cat_100k.csv'
+
+        # load synthesizer
+        synthesizer_file_name = self.paths['synthesizer_dir'] + self.paths[f'{synth_type}_synthesizer']
+        synthesizer = load_synthesizer(synthesizer_file_name)
+        # synthesize x'
+        x_synthesized = synthesizer.sample(self.sample_size_to_synthesize)
+
+        print(f"Successfully synthesized X data with shape {x_synthesized.shape}. Here are the first 5 rows:")
+        print(x_synthesized.head())
+
+        pca_gmm = PCA_GMM(xtrain, ytrain, x_synthesized, numerical_cols = [],
+                        pca_n_components=0.99, gmm_n_components=10, verbose=True,
+                        target_name = self.target_name, filename=csv_file_name, is_classification=self.is_classification)
+        _, synthesized_data = pca_gmm.fit()
+
+
+        print("\n\nsynthesized data mnist28")
+        print(synthesized_data.head())
+
+        print("csv_file_name: ", csv_file_name)
+
+        # save synthesized data to csv
+        check_directory(csv_file_name) # create directory if not exist
+        synthesized_data.to_csv(csv_file_name, index=False)
+        print(f"Successfully synthesized X and y data with {target_synthesizer}. Here are the first 5 rows:")
+        print(synthesized_data.head())
+        return synthesized_data
