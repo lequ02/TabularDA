@@ -10,7 +10,7 @@ def parse_args():
 #data
   parser.add_argument('--dataset-name', dest='dataset_name', help='Name of the dataset (e.g., adult, census, intrusion)', type=str, required=True)
   parser.add_argument('--train-option', dest='train_option', help='Training data option (original, synthetic or mix)', type=str, required=True)
-  parser.add_argument('--augment-option', dest='augment_option', help='Synthetic data option (ctgan or gaussian or categorical)', type=str, default=None)
+  parser.add_argument('--augment-option', dest='augment_option', help='Synthetic data option (ctgan or gaussian or categorical or pca_gmm)', type=str, default=None)
   parser.add_argument('--mix-ratio', dest='mix_ratio', help='When train_option = mix, you need to specify the percentage|#samples to take from the original data', type=float, default=-1)
   parser.add_argument('--n-sample', dest='n_sample', help='mix_ratio is specified, you need to specify #samples for the whole train set', type=int, default=-1)
   parser.add_argument('--test-option', dest='test_option', help='Test data option (original or mix)', type=str, required=True)
@@ -33,7 +33,11 @@ def main(args):
 
   w_dir = OUT_DIR + dataset_name + "/weight/"
   acc_dir = OUT_DIR + dataset_name + "/acc/"
+<<<<<<< HEAD
   eval_metrics = {"accuracy": None, "f1": ['macro', 'micro', 'weighted']} # add 'binary' to the list for binary classification (i.e: adult, census, credit)
+=======
+  eval_metrics = {"accuracy": None, "f1": ['macro', 'micro', 'weighted', 'binary']} # add 'binary' to the list for binary classification (i.e: adult, census, credit)
+>>>>>>> ed8ca30ba (plots done for adult and census)
   metric_to_plot = "f1_micro"
 
 
