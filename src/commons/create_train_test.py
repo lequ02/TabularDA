@@ -26,6 +26,7 @@ def create_train_test(data, target_name, categorical_columns, test_size=0.2, ran
 
 
     df = data.copy()
+    test_size_frac  = test_size/df.shape[0]
     # initial split
     dftrain, dftest = train_test_split(df, test_size=test_size, random_state=random_state, stratify=stratify)
 
@@ -50,7 +51,7 @@ def create_train_test(data, target_name, categorical_columns, test_size=0.2, ran
                     pass
                 else:
                     dftest = dftest[dftest[cat_col] != val]
-                    temp_train, temp_test = train_test_split(matching_rows, test_size=test_size, random_state=random_state, stratify=stratify)
+                    temp_train, temp_test = train_test_split(matching_rows, test_size=test_size_frac, random_state=random_state, stratify=stratify) # use test_size_frac because if test_size > 1, and matching_rows < test_size, it will cause an error
                     dftrain = pd.concat([dftrain, temp_train]).reset_index(drop=True)
                     dftest = pd.concat([dftest, temp_test]).reset_index(drop=True)
 
@@ -69,7 +70,8 @@ def create_train_test(data, target_name, categorical_columns, test_size=0.2, ran
                     dftest = dftest[dftest[cat_col] != val]
                 else:
                     dftest = dftest[dftest[cat_col] != val]
-                    temp_train, temp_test = train_test_split(matching_rows, test_size=test_size, random_state=random_state, stratify=stratify)
+                    temp_train, temp_test = train_test_split(matching_rows, test_size=test_size_frac, random_state=random_state, stratify=stratify) # use test_size_frac because if test_size > 1, and matching_rows < test_size, it will cause an error
+                    dftrain = pd.concat([dftrain, temp_train]).reset_index(drop=True)
                     dftrain = pd.concat([dftrain, temp_train]).reset_index(drop=True)
                     dftest = pd.concat([dftest, temp_test]).reset_index(drop=True)
 

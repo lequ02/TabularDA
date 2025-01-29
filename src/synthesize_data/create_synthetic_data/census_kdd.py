@@ -28,14 +28,14 @@ class CreateSyntheticDataCensusKdd(CreateSyntheticData.CreateSyntheticData):
         # process census data
         x_original, y_original = self.load_data_func()
         print("Mapping y value to 0 and 1")
-        y_original['income'] = y_original['income'].map({'-50000': 0,  '50000+.': 1})
+        y_original['income'] = y_original['income'].map({'-50000': 0,  ' 50000+.': 1})
 
         # drop columns with 99696/199523 missing values
         x_original = x_original.drop(columns=['MIGMTR1', 'MIGMTR3', 'MIGMTR4', 'MIGSUN'] )
 
         data = pd.concat([x_original, y_original], axis=1)
         # drop rows with missing values
-        # ends up with 190561/199523 rows
+        # ends up with 178904/199523 rows
         xtrain, xtest, ytrain, ytest, xtrain_onehot, xtest_onehot = self.test_split_and_handle_missing_onehot(data, test_size=self.test_size, missing_values_strategy=self.missing_values_strategy) 
         # save train, test data to csv
         self.save_to_csv(xtrain, ytrain, xtest, ytest, self.paths['data_dir']+self.paths['train_csv'], self.paths['data_dir']+self.paths['test_csv'])
