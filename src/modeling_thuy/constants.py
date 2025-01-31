@@ -5,7 +5,8 @@ IN_DATA_PATHS = {
         'synthetic': {
             'ctgan': '../../data/adult/onehot_adult_sdv_100k.csv',
             'categorical': '../../data/adult/onehot_adult_sdv_categorical_100k.csv',
-            'gaussian': '../../data/adult/onehot_adult_sdv_gaussian_100k.csv'
+            'gaussian': '../../data/adult/onehot_adult_sdv_gaussian_100k.csv',
+            'pca_gmm':'../../data/adult/onehot_adult_sdv_pca_gmm_100k.csv'
         },
         'target_name': 'income'
     },
@@ -15,7 +16,9 @@ IN_DATA_PATHS = {
         'synthetic': {
             'ctgan': '../../data/census/onehot_census_sdv_100k.csv',
             'categorical': '../../data/census/onehot_census_sdv_categorical_100k.csv',
-            'gaussian': '../../data/census/onehot_census_sdv_gaussian_100k.csv'
+            'gaussian': '../../data/census/onehot_census_sdv_gaussian_100k.csv',
+            'pca_gmm':'../../data/census/onehot_census_sdv_pca_gmm_100k.csv'
+
         },
         'target_name': 'income'
     },
