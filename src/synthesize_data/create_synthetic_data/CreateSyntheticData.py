@@ -39,6 +39,9 @@ class CreateSyntheticData:
 
             'sdv_pca_gmm_synthesizer': f'{ds_name}_synthesizer_onlyX.pkl',
             'sdv_pca_gmm_csv': f'onehot_{ds_name}_sdv_pca_gmm_100k.csv',
+
+            'sdv_tvae_only_synthesizer': f'{ds_name}_TVAE_synthesizer.pkl',
+            'sdv_tvae_csv': f'onehot_{ds_name}_sdv_tvae_100k.csv'
         }
 
     def create_synthetic_data(self):
@@ -66,6 +69,10 @@ class CreateSyntheticData:
         xtrain, xtest, ytrain, ytest, target_name, categorical_columns = self.read_data()
         self.synthesize_from_trained_model(xtrain, ytrain, categorical_columns, 'sdv_pca_gmm', 'pca_gmm')
 
+    def create_synthetic_data_tvae(self):
+        xtrain, xtest, ytrain, ytest, target_name, categorical_columns = self.read_data()
+        self.synthesize_data(xtrain, ytrain, categorical_columns, 'sdv_tvae_only', '', features_synthesizer='TVAE')
+
     def prepare_train_test(self):
         """
         only for the first time, prepare data, train-test split data, handle missing values, and save to csv
@@ -88,9 +95,10 @@ class CreateSyntheticData:
         return read_train_test_csv.read_train_test_csv(self.paths['data_dir'] + self.paths['train_csv'], self.paths['data_dir'] + self.paths['test_csv'],
                                                        target_name=self.target_name, categorical_columns=self.categorical_columns)
 
-    def synthesize_data(self, xtrain, ytrain, categorical_columns, synth_type, target_synthesizer):
+    def synthesize_data(self, xtrain, ytrain, categorical_columns, synth_type, target_synthesizer, features_synthesizer='CTGAN'):
         # xytrain = pd.concat([xtrain, ytrain], axis=1)
         synthesize_data(xtrain, ytrain, categorical_columns, sample_size=self.sample_size_to_synthesize, target_synthesizer=target_synthesizer,
+                        features_synthesizer=features_synthesizer,
                         target_name=self.target_name, synthesizer_file_name=self.paths['synthesizer_dir'] + self.paths[f'{synth_type}_synthesizer'],
                         csv_file_name=self.paths['data_dir'] + self.paths[f'{synth_type}_csv'], verbose=True, is_classification=self.is_classification)
         

@@ -26,7 +26,11 @@ def create_label_gaussianNB(xtrain, ytrain, xtest, target_name, filename=None):
   return test
 
 
-def create_label_categoricalNB(xtrain, ytrain, xtest, target_name, filename=None):
+def create_label_categoricalNB(xtrain, ytrain, xtest, target_name, filename=None, alpha=1.0, force_alpha=True):
+  """
+  alpha and force_alpha are parameters for Laplace smoothing (sklearn default is alpha=1.0 and force_alpha=True)
+  for no smoothing, set alpha=0 and force_alpha=False
+  """
 
   x_null = xtrain.isnull().sum()
   print("\n\nNull values in xtrain: ", x_null)
@@ -50,7 +54,7 @@ def create_label_categoricalNB(xtrain, ytrain, xtest, target_name, filename=None
   # xtrain_scaled = xtrain_scaled.reindex(sorted(xtrain_scaled.columns), axis=1)
   # xtest_scaled = xtest_scaled.reindex(sorted(xtest_scaled.columns), axis=1)
 
-  cnb = CategoricalNB().fit(xtrain_scaled, ytrain)
+  cnb = CategoricalNB(alpha=alpha, force_alpha=force_alpha).fit(xtrain_scaled, ytrain)
   ytest = cnb.predict(xtest_scaled)
 
   ytest_df = pd.DataFrame(ytest, columns = [target_name])

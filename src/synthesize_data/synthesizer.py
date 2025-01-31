@@ -1,4 +1,4 @@
-from sdv.single_table import CTGANSynthesizer
+from sdv.single_table import CTGANSynthesizer, TVAESynthesizer
 from sdv.metadata import SingleTableMetadata
 from naive_bayes import create_label_gaussianNB, create_label_categoricalNB, create_label_gmmNB
 from pca_gmm import PCA_GMM
@@ -15,6 +15,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../'
 from commons.onehot import onehot
 
 def synthesize_data(x_original, y_original, categorical_columns, target_name,
+                    features_synthesizer='CTGAN',
                     sample_size=100_000, return_onehot=True,
                     verbose=False, show_network=False,
                     target_synthesizer=None,
@@ -40,7 +41,14 @@ def synthesize_data(x_original, y_original, categorical_columns, target_name,
       raise ValueError("Target name is not in x_original.")
 
   # train synthesizer & create x'
-  synthesizer = train_synthesizer(x_original, verbose)
+  if features_synthesizer.lower() == 'tvae':
+    print("Using TVAE synthesizer")
+    synthesizer = train_tvae_synthesizer(x_original, verbose)
+  elif features_synthesizer.lower() == 'ctgan':
+    print("Using CTGAN synthesizer")
+    synthesizer = train_synthesizer_ctgan(x_original, verbose)
+  else:
+    raise ValueError("features_synthesizer must be 'CTGAN' or 'TVAE'")
   x_synthesized = synthesizer.sample(sample_size)
   if verbose:
     print(f"Successfully synthesized X data with shape {x_synthesized.shape}. Here are the first 5 rows:")
@@ -126,6 +134,7 @@ def synthesize_data(x_original, y_original, categorical_columns, target_name,
 
 
 def synthesize_from_trained_model(x_original, y_original, categorical_columns, target_name,
+                  # features_synthesizer='CTGAN', # doesn't matter because we are loading a trained model
                   sample_size=100_000, return_onehot=True,
                   verbose=False, show_network=False,
                   target_synthesizer=None, 
@@ -260,9 +269,9 @@ def load_synthesizer(link):
     model = pickle.load(file)
   return model
 
-def train_synthesizer(data, verbose=False):
+def train_synthesizer_ctgan(data, verbose=False):
   metadata = get_metadata(data)
-  synthesizer = create_synthesizer(metadata)
+  synthesizer = create_synthesizer_ctgan(metadata)
   synthesizer.auto_assign_transformers(data)
   synthesizer.fit(data)
   if verbose:
@@ -282,7 +291,7 @@ def get_metadata(data, verbose=False):
     )
   return metadata
 
-def create_synthesizer(metadata):
+def create_synthesizer_ctgan(metadata):
   synthesizer = CTGANSynthesizer(
       metadata, # required
       # enforce_rounding=True,
@@ -298,3 +307,24 @@ def check_directory(file_path):
     if not os.path.exists(directory_path):
         os.makedirs(directory_path)
         print(f"Directory {directory_path} created.")
+
+
+def train_tvae_synthesizer(data, verbose=False):
+  metadata = get_metadata(data)
+  synthesizer = create_synthesizer_tvae(metadata)
+  synthesizer.auto_assign_transformers(data)
+  synthesizer.fit(data)
+  if verbose:
+    fig = synthesizer.get_loss_values_plot()
+    fig.show()
+  return synthesizer
+
+def create_synthesizer_tvae(metadata):
+  synthesizer = TVAESynthesizer(
+      metadata, # required
+      # enforce_rounding=True,
+      # epochs=500,
+      verbose=True,
+      cuda=True
+  )
+  return synthesizer
