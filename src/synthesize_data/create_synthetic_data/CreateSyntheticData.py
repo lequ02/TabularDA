@@ -41,7 +41,7 @@ class CreateSyntheticData:
             'sdv_pca_gmm_csv': f'onehot_{ds_name}_sdv_pca_gmm_100k.csv',
 
             'sdv_tvae_only_synthesizer': f'{ds_name}_TVAE_synthesizer.pkl',
-            'sdv_tvae_csv': f'onehot_{ds_name}_sdv_tvae_100k.csv'
+            'sdv_tvae_only_csv': f'onehot_{ds_name}_sdv_tvae_100k.csv'
         }
 
     def create_synthetic_data(self):
@@ -69,9 +69,10 @@ class CreateSyntheticData:
         xtrain, xtest, ytrain, ytest, target_name, categorical_columns = self.read_data()
         self.synthesize_from_trained_model(xtrain, ytrain, categorical_columns, 'sdv_pca_gmm', 'pca_gmm')
 
-    def create_synthetic_data_tvae(self):
+    def create_synthetic_data_tvae_only(self):
         xtrain, xtest, ytrain, ytest, target_name, categorical_columns = self.read_data()
-        self.synthesize_data(xtrain, ytrain, categorical_columns, 'sdv_tvae_only', '', features_synthesizer='TVAE')
+        xytrain = pd.concat([xtrain, ytrain], axis=1)
+        self.synthesize_data(xytrain, ytrain, categorical_columns, 'sdv_tvae_only', '', features_synthesizer='TVAE')
 
     def prepare_train_test(self):
         """

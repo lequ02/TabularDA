@@ -34,10 +34,17 @@ def single_run():
   # mnist12.CreateSyntheticDataMnist12().synthesize_categorical_pca_gmm_from_trained_model()
   # news.CreateSyntheticDataNews().create_synthetic_data_pca_gmm()
 
-  adult.CreateSyntheticDataAdult().create_synthetic_data_tvae()
-  covertype.CreateSyntheticDataCovertype().create_synthetic_data_tvae()
-  mnist28.CreateSyntheticDataMnist28().create_synthetic_data_tvae()
-  mnist12.CreateSyntheticDataMnist12().create_synthetic_data_tvae()
+  adult.CreateSyntheticDataAdult().create_synthetic_data_tvae_only()
+  census.CreateSyntheticDataCensus().create_synthetic_data_tvae_only()
+  census_kdd.CreateSyntheticDataCensusKdd().create_synthetic_data_tvae_only()
+  credit.CreateSyntheticDataCredit().create_synthetic_data_tvae_only()
+  covertype.CreateSyntheticDataCovertype().create_synthetic_data_tvae_only()
+  intrusion.CreateSyntheticDataIntrusion().create_synthetic_data_tvae_only()
+  mnist28.CreateSyntheticDataMnist28().create_synthetic_data_tvae_only()
+  mnist12.CreateSyntheticDataMnist12().create_synthetic_data_tvae_only()
+  news.CreateSyntheticDataNews().create_synthetic_data_tvae_only()
+
+
 
 def main():
   # adult.create_synthetic_data_adult()
