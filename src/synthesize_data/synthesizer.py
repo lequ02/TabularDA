@@ -92,7 +92,8 @@ def synthesize_data(x_original, y_original, categorical_columns, target_name,
     _, synthesized_data = pca_gmm.fit()
 
   elif target_synthesizer in ['xgb', 'rf']:
-    ensemble = Ensemble(x_original, y_original, x_synthesized, target_name=target_name, model_type=target_synthesizer)
+    ensemble = Ensemble(x_original, y_original, x_synthesized, target_name=target_name, target_synthesizer=target_synthesizer,
+                        filename=csv_file_name, verbose=verbose)
     _, synthesized_data = ensemble.fit()
 
   elif target_synthesizer == 'gmmNB':
@@ -210,7 +211,8 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns, t
     _, synthesized_data = pca_gmm.fit()
 
   elif target_synthesizer in ['xgb', 'rf']:
-    ensemble = Ensemble(x_original, y_original, x_synthesized, target_name=target_name, model_type=target_synthesizer)
+    ensemble = Ensemble(x_original, y_original, x_synthesized, target_name=target_name, target_synthesizer=target_synthesizer,
+                        filename=csv_file_name, verbose=verbose)
     _, synthesized_data = ensemble.fit()
   elif target_synthesizer == 'gmmNB':
     raise ValueError("gmmNB is not implemented yet")
