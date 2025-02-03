@@ -5,7 +5,11 @@ IN_DATA_PATHS = {
         'synthetic': {
             'ctgan': '../../data/adult/onehot_adult_sdv_100k.csv',
             'categorical': '../../data/adult/onehot_adult_sdv_categorical_100k.csv',
-            'gaussian': '../../data/adult/onehot_adult_sdv_gaussian_100k.csv'
+            'gaussian': '../../data/adult/onehot_adult_sdv_gaussian_100k.csv',
+            'pca_gmm': '../../data/adult/onehot_adult_sdv_pca_gmm_100k.csv',
+            'tvae_only': '../../data/adult/onehot_adult_sdv_tvae_only_100k.csv',
+            'xgb': '../../data/adult/onehot_adult_sdv_xgb_100k.csv',
+            'rf': '../../data/adult/onehot_adult_sdv_rf_100k.csv'
         },
         'target_name': 'income'
     },
@@ -50,7 +54,10 @@ IN_DATA_PATHS = {
             'categorical': '../../data/mnist28/onehot_mnist28_sdv_categorical_100k.csv',
             'gaussian': '../../data/mnist28/onehot_mnist28_sdv_gaussian_100k.csv',
             'pca_gmm_num': '../../data/mnist28/onehot_mnist28_sdv_pca_gmm_num_100k.csv',
-            'pca_gmm_cat': '../../data/mnist28/onehot_mnist28_sdv_pca_gmm_cat_100k.csv'
+            'pca_gmm_cat': '../../data/mnist28/onehot_mnist28_sdv_pca_gmm_cat_100k.csv',
+            'tvae_only': '../../data/mnist28/onehot_mnist28_sdv_tvae_only_100k.csv',
+            'xgb': '../../data/mnist28/onehot_mnist28_sdv_xgb_100k.csv',
+            'rf': '../../data/mnist28/onehot_mnist28_sdv_rf_100k.csv',
         },
         'target_name': 'label'
     },

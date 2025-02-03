@@ -8,6 +8,7 @@ import torch
 import pandas as pd
 import numpy as np
 import os
+from ensemble import *
 
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
@@ -88,7 +89,11 @@ def synthesize_data(x_original, y_original, categorical_columns, target_name,
                       numerical_cols =  x_original_backup.columns.difference(categorical_columns),
                       pca_n_components=0.99, gmm_n_components=10, verbose=verbose,
                       target_name = target_name, filename=csv_file_name, is_classification=is_classification)
-    pca_gmm.fit()
+    _, synthesized_data = pca_gmm.fit()
+
+  elif target_synthesizer in ['xgb', 'rf']:
+    ensemble = Ensemble(x_original, y_original, x_synthesized, target_name=target_name, model_type=target_synthesizer)
+    _, synthesized_data = ensemble.fit()
 
   elif target_synthesizer == 'gmmNB':
     raise ValueError("gmmNB is not implemented yet")
@@ -203,6 +208,10 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns, t
                       pca_n_components=0.99, gmm_n_components=10, verbose=verbose,
                       target_name = target_name, filename=csv_file_name, is_classification=is_classification)
     _, synthesized_data = pca_gmm.fit()
+
+  elif target_synthesizer in ['xgb', 'rf']:
+    ensemble = Ensemble(x_original, y_original, x_synthesized, target_name=target_name, model_type=target_synthesizer)
+    _, synthesized_data = ensemble.fit()
   elif target_synthesizer == 'gmmNB':
     raise ValueError("gmmNB is not implemented yet")
     synthesized_data = create_label_gmmNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
