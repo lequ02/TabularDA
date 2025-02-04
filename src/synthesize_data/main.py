@@ -44,15 +44,19 @@ def single_run():
   # mnist12.CreateSyntheticDataMnist12().create_synthetic_data_tvae_only()
   # news.CreateSyntheticDataNews().create_synthetic_data_tvae_only()
 
-  adult.CreateSyntheticDataAdult().create_synthetic_data_ensemble()
-  census.CreateSyntheticDataCensus().create_synthetic_data_ensemble()
-  census_kdd.CreateSyntheticDataCensusKdd().create_synthetic_data_ensemble()
-  credit.CreateSyntheticDataCredit().create_synthetic_data_ensemble()
-  covertype.CreateSyntheticDataCovertype().create_synthetic_data_ensemble()
-  intrusion.CreateSyntheticDataIntrusion().create_synthetic_data_ensemble()
-  mnist28.CreateSyntheticDataMnist28().create_synthetic_data_ensemble()
-  mnist12.CreateSyntheticDataMnist12().create_synthetic_data_ensemble()
-  news.CreateSyntheticDataNews().create_synthetic_data_ensemble()
+  # adult.CreateSyntheticDataAdult().create_synthetic_data_ensemble()
+  # census.CreateSyntheticDataCensus().create_synthetic_data_ensemble()
+  # census_kdd.CreateSyntheticDataCensusKdd().create_synthetic_data_ensemble()
+  # credit.CreateSyntheticDataCredit().create_synthetic_data_ensemble()
+  # covertype.CreateSyntheticDataCovertype().create_synthetic_data_ensemble() # done
+  # intrusion.CreateSyntheticDataIntrusion().create_synthetic_data_ensemble()
+  # mnist28.CreateSyntheticDataMnist28().create_synthetic_data_ensemble()
+  # mnist12.CreateSyntheticDataMnist12().create_synthetic_data_ensemble()
+  # news.CreateSyntheticDataNews().create_synthetic_data_ensemble()
+  
+  
+  
+  pass
 
 
 
