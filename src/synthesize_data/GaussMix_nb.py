@@ -136,17 +136,66 @@ class GMMNaiveBayes:
 
         else: # Regression
 
-            # Fit GMM for numeric features
-            self.numeric_gmm_ = BayesianGaussianMixture(n_components=self.n_components, random_state=42, max_iter=self.max_iter_gmm)
-            self.numeric_gmm_.fit(X[:, self.numeric_cols])
+            # # Fit GMM for numeric features
+            # self.numeric_gmm_ = BayesianGaussianMixture(n_components=self.n_components, random_state=42, max_iter=self.max_iter_gmm)
+            # self.numeric_gmm_.fit(X[:, self.numeric_cols])
 
-            # Calculate mean probabilities for one-hot encoded categorical features
-            self.categorical_probs_ = np.mean(X[:, self.categorical_cols], axis=0)
+            # # Calculate mean probabilities for one-hot encoded categorical features
+            # self.categorical_probs_ = np.mean(X[:, self.categorical_cols], axis=0)
 
+            # # Fit GMM for the target variable
+            # y = y.reshape(-1, 1)  # Ensure y is 2D
+            # self.target_gmm_ = BayesianGaussianMixture(n_components=self.n_components, random_state=42, max_iter=self.max_iter_gmm)
+            # self.target_gmm_.fit(y)
+
+            
             # Fit GMM for the target variable
             y = y.reshape(-1, 1)  # Ensure y is 2D
             self.target_gmm_ = BayesianGaussianMixture(n_components=self.n_components, random_state=42, max_iter=self.max_iter_gmm)
             self.target_gmm_.fit(y)
+
+            print('n_components: ', self.n_components)
+            print("number of components in gmm: ", self.target_gmm_.n_components)
+            print("means", self.target_gmm_.means_)
+            print("weights", self.target_gmm_.weights_)
+
+            # For each component of the target GMM, fit a GMM to the numeric features and calculate mean probabilities for one-hot encoded categorical features of the corresponding samples
+            for component_num in range(self.target_gmm_.n_components):
+                # Get the indices of the samples that belong to the current component
+                component_mask = self.target_gmm_.predict(y) == component_num
+                component_idx = np.where(component_mask)[0]
+                
+                # Skip components with no samples
+                if len(component_idx) == 0:
+                    print(f"Skipping component {component_num} as it has no samples.")
+                    continue
+                
+                X_component = X[component_idx]
+
+                print("unique components: ", np.unique(self.target_gmm_.predict(y)))
+                print(f"Checking component {component_num}: Predict mask sum: {np.sum(component_mask)}")
+                print("component_idx: ", component_idx)
+                print("X_component shape: ", X_component.shape)
+
+                bgmm = None
+                if self.numeric_cols:
+                    # Check if there are enough samples to fit the BGMM (at least 2)
+                    if len(component_idx) >= 2:
+                        # Dynamically adjust n_components based on available samples
+                        n_components_bgmm = min(self.n_components, len(component_idx)) # Ensure n_components does not exceed number of samples (n_components must be <= n_samples)
+                        bgmm = BayesianGaussianMixture(n_components=n_components_bgmm, random_state=42, max_iter=self.max_iter_gmm)
+                        bgmm.fit(X_component[:, self.numeric_cols])
+                    else:
+                        print(f"Not enough samples ({len(component_idx)}) in component {component_num} to fit BGMM.")
+                
+                # Calculate mean probabilities for one-hot encoded categorical features
+                categorical_probs = np.mean(X_component[:, self.categorical_cols], axis=0)
+
+                self.models_[component_num] = {
+                    'gmm': bgmm,
+                    'categorical_probs': categorical_probs
+                }
+
 
     def predict_proba(self, X):
         """
@@ -224,22 +273,67 @@ class GMMNaiveBayes:
             return self.label_encoder_.inverse_transform(predictions)
             
         else:
-            # Compute posterior probabilities for numeric features
-            numeric_probs = self.numeric_gmm_.predict_proba(X[:, self.numeric_cols])
+            # # Compute posterior probabilities for numeric features
+            # numeric_probs = self.numeric_gmm_.predict_proba(X[:, self.numeric_cols])
 
-            # Incorporate one-hot categorical probabilities
-            categorical_probs = np.prod(np.where(X[:, self.categorical_cols] == 1, 
-                                                self.categorical_probs_, 
-                                                1 - self.categorical_probs_), axis=1)
+            # # Incorporate one-hot categorical probabilities
+            # categorical_probs = np.prod(np.where(X[:, self.categorical_cols] == 1, 
+            #                                     self.categorical_probs_, 
+            #                                     1 - self.categorical_probs_), axis=1)
 
-            # Combine numeric and categorical probabilities
-            combined_probs = numeric_probs * categorical_probs[:, np.newaxis]
+            # # Combine numeric and categorical probabilities
+            # combined_probs = numeric_probs * categorical_probs[:, np.newaxis]
 
-            # Compute expected value of y given the combined probabilities
-            target_means = self.target_gmm_.means_.flatten()  # Means of y for each component
-            predictions = np.dot(combined_probs, target_means)
+            # # Compute expected value of y given the combined probabilities
+            # target_means = self.target_gmm_.means_.flatten()  # Means of y for each component
+            # predictions = np.dot(combined_probs, target_means)
 
+            # return predictions
+
+            n_samples = X.shape[0]
+            n_components = self.target_gmm_.means_.shape[0]  # Use actual components count
+            probs = np.zeros((n_samples, n_components))
+
+            for component_num in range(n_components):
+                if component_num not in self.models_:
+                    continue  # Skip components that had no training samples
+
+                model = self.models_[component_num]
+                gmm = model['gmm']
+                categorical_probs = model['categorical_probs']
+
+                # Compute numeric likelihood if applicable
+                if self.numeric_cols and gmm is not None:
+                    log_probs = gmm.score_samples(X[:, self.numeric_cols])
+                    numeric_likelihood = np.exp(log_probs - np.max(log_probs))
+                else:
+                    numeric_likelihood = np.ones(n_samples)
+
+                # Compute categorical likelihood
+                cat_likelihood = np.prod(
+                    np.where(X[:, self.categorical_cols] == 1,
+                            categorical_probs,
+                            1 - categorical_probs),
+                    axis=1
+                )
+
+                # Combine probabilities with component weight
+                probs[:, component_num] = (
+                    numeric_likelihood * 
+                    cat_likelihood * 
+                    self.target_gmm_.weights_[component_num]
+                )
+
+            # Normalize probabilities across components
+            probs = probs / probs.sum(axis=1, keepdims=True)
+            
+            # Calculate weighted average using target means
+            target_means = self.target_gmm_.means_.flatten()
+            predictions = np.dot(probs, target_means)
+            
             return predictions
+                    
+            
 
 
 

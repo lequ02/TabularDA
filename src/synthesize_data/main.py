@@ -32,7 +32,7 @@ def single_run():
   # mnist28.CreateSyntheticDataMnist28().create_synthetic_data_pca_gmm()
   # mnist28.CreateSyntheticDataMnist28().synthesize_categorical_pca_gmm_from_trained_model()
   # mnist12.CreateSyntheticDataMnist12().synthesize_categorical_pca_gmm_from_trained_model()
-  # news.CreateSyntheticDataNews().create_synthetic_data_pca_gmm()
+  news.CreateSyntheticDataNews().create_synthetic_data_pca_gmm()
 
   # adult.CreateSyntheticDataAdult().create_synthetic_data_tvae_only()
   # census.CreateSyntheticDataCensus().create_synthetic_data_tvae_only()
@@ -56,7 +56,7 @@ def single_run():
   
   
   
-  pass
+  # pass
 
 
 

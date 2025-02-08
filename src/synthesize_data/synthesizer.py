@@ -21,6 +21,7 @@ def synthesize_data(x_original, y_original, categorical_columns, target_name,
                     verbose=False, show_network=False,
                     target_synthesizer=None,
                     synthesizer_file_name='synthesizer_onlyX.pkl', 
+                    numerical_columns_pca_gmm=None,
                     csv_file_name=None, BN_filename=None,
                     npz_file_name=None, is_classification=True):
   """
@@ -85,8 +86,10 @@ def synthesize_data(x_original, y_original, categorical_columns, target_name,
   elif target_synthesizer == 'categoricalNB':
     synthesized_data = create_label_categoricalNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
   elif target_synthesizer == 'pca_gmm':
+    if numerical_columns_pca_gmm is None:
+      numerical_columns_pca_gmm =  x_original_backup.columns.difference(categorical_columns)
     pca_gmm = PCA_GMM(x_original, y_original, x_synthesized, 
-                      numerical_cols =  x_original_backup.columns.difference(categorical_columns),
+                      numerical_cols =  numerical_columns_pca_gmm,
                       pca_n_components=0.99, gmm_n_components=10, verbose=verbose,
                       target_name = target_name, filename=csv_file_name, is_classification=is_classification)
     _, synthesized_data = pca_gmm.fit()
@@ -144,8 +147,10 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns, t
                   sample_size=100_000, return_onehot=True,
                   verbose=False, show_network=False,
                   target_synthesizer=None, 
-                  synthesizer_file_name='synthesizer_onlyX.pkl', BN_model = None,
-                  BN_filename=None, csv_file_name=None, npz_file_name=None,
+                  synthesizer_file_name='synthesizer_onlyX.pkl', 
+                  numerical_columns_pca_gmm=None,
+                  BN_model = None, BN_filename=None,
+                  csv_file_name=None, npz_file_name=None,
                   is_classification=True):
   """
   input: original data
@@ -204,8 +209,11 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns, t
     synthesized_data = create_label_categoricalNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
   elif target_synthesizer == 'pca_gmm':
     # print("num cols: ", x_original_backup.columns.difference(categorical_columns))
+    if numerical_columns_pca_gmm is None:
+      numerical_columns_pca_gmm =  x_original_backup.columns.difference(categorical_columns)
+
     pca_gmm = PCA_GMM(x_original, y_original, x_synthesized, 
-                      numerical_cols =  x_original_backup.columns.difference(categorical_columns),
+                      numerical_cols =  numerical_columns_pca_gmm,
                       pca_n_components=0.99, gmm_n_components=10, verbose=verbose,
                       target_name = target_name, filename=csv_file_name, is_classification=is_classification)
     _, synthesized_data = pca_gmm.fit()

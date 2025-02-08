@@ -57,8 +57,9 @@ class PCA_GMM:
 
         print("\n\nnumerical cols: ", self.numerical_cols)
         print(type(self.numerical_cols))
-        if (self.numerical_cols != []) and (self.numerical_cols != pd.Index([])):
-            
+        # if (self.numerical_cols != []) and (self.numerical_cols != pd.Index([])):
+        if len(self.numerical_cols) > 0:  # check if numerical_cols is not empty, works for both list and pd.Index 
+        
             # Normalize the original and synthesized data
             if self.verbose:
                 print('Normalizing data...')
