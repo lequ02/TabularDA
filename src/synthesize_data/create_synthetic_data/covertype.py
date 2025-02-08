@@ -30,7 +30,7 @@ class CreateSyntheticDataCovertype(CreateSyntheticData.CreateSyntheticData):
                             'Horizontal_Distance_To_Fire_Points']
         
 
-        # originally used test_size=0.2, but changed to 10,000
+        # originally used test_size=0.2
         super().__init__(ds_name, load_covertype, 'Cover_Type', categorical_columns=categorical_columns,
                         numerical_cols_pca_gmm=numerical_columns,
-                        sample_size_to_synthesize=100_000, missing_values_strategy='drop', test_size=10000, is_classification=True)
+                        sample_size_to_synthesize=100_000, missing_values_strategy='drop', test_size=0.2, is_classification=True)
