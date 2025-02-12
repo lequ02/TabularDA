@@ -12,7 +12,9 @@ from synthesizer import *
 class CreateSyntheticDataMnist12(CreateSyntheticData.CreateSyntheticData):
     def __init__(self):
         ds_name = 'mnist12'
-        super().__init__(ds_name, load_mnist28, 'label', categorical_columns=[],
+        categorical_columns = []
+        numerical_columns_pca_gmm = []
+        super().__init__(ds_name, load_mnist28, 'label', categorical_columns=[], numerical_cols_pca_gmm=numerical_columns_pca_gmm,
                             sample_size_to_synthesize=100_000, missing_values_strategy='drop', test_size=0.2)
         
     def binarize(self, data):
