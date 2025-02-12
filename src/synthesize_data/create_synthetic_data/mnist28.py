@@ -13,7 +13,7 @@ class CreateSyntheticDataMnist28(CreateSyntheticData.CreateSyntheticData):
         categorical_columns = []
         numerical_columns_pca_gmm = []
         super().__init__(ds_name, load_mnist28, 'label', categorical_columns=categorical_columns, numerical_cols_pca_gmm=numerical_columns_pca_gmm,
-                            sample_size_to_synthesize=100_000, missing_values_strategy='drop', test_size=0.2)
+                            sample_size_to_synthesize=100_000, missing_values_strategy='drop', test_size=10000)
         
     def binarize(self, data):
         """

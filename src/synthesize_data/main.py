@@ -17,8 +17,8 @@ def single_run():
   # covertype.create_synthetic_data_covertype()
   # intrusion.create_synthetic_data_intrusion()
   # credit.create_synthetic_data_credit()
-  # mnist28.CreateSyntheticDataMnist28().create_synthetic_data()
-  # mnist12.CreateSyntheticDataMnist12().create_synthetic_data()
+  mnist28.CreateSyntheticDataMnist28().create_synthetic_data()
+  mnist12.CreateSyntheticDataMnist12().create_synthetic_data()
   # census_kdd.CreateSyntheticDataCensusKdd().create_synthetic_data()
 
 
@@ -28,8 +28,8 @@ def single_run():
   # covertype.CreateSyntheticDataCovertype().create_synthetic_data_pca_gmm()
   # credit.CreateSyntheticDataCredit().create_synthetic_data_pca_gmm()
   # intrusion.CreateSyntheticDataIntrusion().create_synthetic_data_pca_gmm()
-  mnist12.CreateSyntheticDataMnist12().create_synthetic_data_pca_gmm()
-  mnist28.CreateSyntheticDataMnist28().create_synthetic_data_pca_gmm()
+  # mnist12.CreateSyntheticDataMnist12().create_synthetic_data_pca_gmm()
+  # mnist28.CreateSyntheticDataMnist28().create_synthetic_data_pca_gmm()
   # mnist28.CreateSyntheticDataMnist28().synthesize_categorical_pca_gmm_from_trained_model()
   # mnist12.CreateSyntheticDataMnist12().synthesize_categorical_pca_gmm_from_trained_model()
   # news.CreateSyntheticDataNews().create_synthetic_data_pca_gmm()
@@ -40,8 +40,8 @@ def single_run():
   # credit.CreateSyntheticDataCredit().create_synthetic_data_tvae_only()
   # covertype.CreateSyntheticDataCovertype().create_synthetic_data_tvae_only()
   # intrusion.CreateSyntheticDataIntrusion().create_synthetic_data_tvae_only()
-  mnist28.CreateSyntheticDataMnist28().create_synthetic_data_tvae_only()
-  mnist12.CreateSyntheticDataMnist12().create_synthetic_data_tvae_only()
+  # mnist28.CreateSyntheticDataMnist28().create_synthetic_data_tvae_only()
+  # mnist12.CreateSyntheticDataMnist12().create_synthetic_data_tvae_only()
   # news.CreateSyntheticDataNews().create_synthetic_data_tvae_only()
 
   # adult.CreateSyntheticDataAdult().create_synthetic_data_ensemble()
@@ -50,8 +50,8 @@ def single_run():
   # credit.CreateSyntheticDataCredit().create_synthetic_data_ensemble()
   # covertype.CreateSyntheticDataCovertype().create_synthetic_data_ensemble() # done
   # intrusion.CreateSyntheticDataIntrusion().create_synthetic_data_ensemble()
-  mnist28.CreateSyntheticDataMnist28().create_synthetic_data_ensemble()
-  mnist12.CreateSyntheticDataMnist12().create_synthetic_data_ensemble()
+  # mnist28.CreateSyntheticDataMnist28().create_synthetic_data_ensemble()
+  # mnist12.CreateSyntheticDataMnist12().create_synthetic_data_ensemble()
   # news.CreateSyntheticDataNews().create_synthetic_data_ensemble()
   
   
