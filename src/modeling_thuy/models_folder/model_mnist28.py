@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torch.nn.init as init
 
 
 ######################## MNIST12 Dataset ################
@@ -140,6 +141,7 @@ import torch.nn.functional as F
 #         return self
 
 
+## most results are run using this model
 #### MODEL 4 #### 
 class DNN_MNIST28(nn.Module):
     def __init__(self, input_size=784, hidden_sizes=[512, 1024, 256, 128], output_size=10):
@@ -208,10 +210,10 @@ class DNN_MNIST28(nn.Module):
     
 # #### MODEL 0: CNN ####
 
-# class DNN_MNIST28(nn.Module):
+# class CNN_MNIST28(nn.Module):
 #     def __init__(self, input_size=784, hidden_sizes=[9216, 128], output_size=10):
 
-#         super(DNN_MNIST28, self).__init__()
+#         super(CNN_MNIST28, self).__init__()
 #         self.conv1 = nn.Conv2d(1, 32, 3, 1)
 #         self.conv2 = nn.Conv2d(32, 64, 3, 1)
 #         self.dropout1 = nn.Dropout(0.25)
@@ -237,3 +239,85 @@ class DNN_MNIST28(nn.Module):
 #     def train(self, mode=True):
 #         super().train(mode)
 #         return self
+
+
+# class EfficientNetWideSE(nn.Module):
+#     def __init__(self, input_size=None, pretrained=True):
+#         super(EfficientNetWideSE, self).__init__()
+#         # Load the EfficientNet-WideSE model
+#         # self.model = torch.hub.load('NVIDIA/DeepLearningExamples:torchhub', 'nvidia_efficientnet_widese_b0', pretrained=pretrained)
+#         self.model = torch.hub.load('NVIDIA/DeepLearningExamples:torchhub', 'nvidia_efficientnet_b0', pretrained=pretrained)
+
+
+#     def forward(self, x):
+#         # Repeat the single channel 3 times to make it RGB
+#         x = x.repeat(1, 3, 1, 1)  # This converts (batch_size, 1, 28, 28) to (batch_size, 3, 28, 28)
+#         # Forward pass through the model
+#         x = self.model(x)
+#         return x
+
+#     def train(self, mode=True):
+#         super().train(mode)
+#         return self
+
+
+
+
+# # https://machinelearningmastery.com/how-to-develop-a-convolutional-neural-network-from-scratch-for-mnist-handwritten-digit-classification/
+# class CNN_MNIST28(nn.Module):
+#     def __init__(self, input_size=(1, 28, 28), hidden_size=100, output_size=10):
+#         super(CNN_MNIST28, self).__init__()
+
+#         self.conv1 = nn.Conv2d(1, 32, kernel_size=3, padding=0)
+#         self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=0)
+#         self.conv3 = nn.Conv2d(64, 64, kernel_size=3, padding=0)
+#         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
+
+#         self.dropout = nn.Dropout(0.5)
+
+#         # Compute the correct flattened size dynamically
+#         self.flatten_size = self._get_flattened_size(input_size)
+
+#         self.fc1 = nn.Linear(self.flatten_size, hidden_size)
+#         self.fc2 = nn.Linear(hidden_size, output_size)
+
+#         # Apply He Initialization (Kaiming Uniform)
+#         self._initialize_weights()
+
+#     def forward(self, x):
+#         x = F.relu(self.conv1(x))
+#         x = self.pool(x)
+#         x = F.relu(self.conv2(x))
+#         x = F.relu(self.conv3(x))
+#         x = self.pool(x)
+#         x = torch.flatten(x, 1)  # Flatten before passing into FC layers
+#         x = F.relu(self.fc1(x))
+#         x = self.dropout(x)
+#         x = self.fc2(x)
+#         output = F.log_softmax(x, dim=1)
+#         return output
+
+#     def train(self, mode=True):
+#         super().train(mode)
+#         return self
+
+#     def _initialize_weights(self):
+#         for m in self.modules():
+#             if isinstance(m, nn.Conv2d):
+#                 init.kaiming_uniform_(m.weight, nonlinearity='relu')
+#                 if m.bias is not None:
+#                     init.zeros_(m.bias)
+#             elif isinstance(m, nn.Linear):
+#                 init.kaiming_uniform_(m.weight, nonlinearity='relu')
+#                 init.zeros_(m.bias)
+
+#     def _get_flattened_size(self, input_size):
+#         """ Pass a dummy input through conv layers to compute the output size dynamically. """
+#         with torch.no_grad():
+#             dummy_input = torch.zeros(1, *input_size)  # Create a fake batch of size 1
+#             x = F.relu(self.conv1(dummy_input))
+#             x = self.pool(x)
+#             x = F.relu(self.conv2(x))
+#             x = F.relu(self.conv3(x))
+#             x = self.pool(x)
+#             return x.numel()  # Compute the total number of features

@@ -283,6 +283,124 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns, t
   return synthesized_data
 
 
+def synthesize_comparison_from_trained_model(x_original, y_original, categorical_columns, target_name,
+                  # features_synthesizer='CTGAN', # doesn't matter because we are loading a trained model
+                  sample_size=100_000, return_onehot=True,
+                  verbose=False, show_network=False,
+                  target_synthesizer=None,
+                  synthesizer_file_name='synthesizer_onlyX.pkl',
+                  numerical_columns_pca_gmm=None,
+                  BN_model = None, BN_filename=None,
+                  csv_file_name=None, npz_file_name=None,
+                  is_classification=True):
+  
+  """
+  This function is going to create synthetic data using a trained synthesizer (trained model includes Y). 
+  The target column (Y) is then going to be dropped and replaced with the Y predicted by the target synthesizer.
+  The purpose is to compare the generated data with Y vs. without Y.
+  """
+
+  if csv_file_name is None:
+    csv_file_name = f'synthesized_data_{target_synthesizer}_compare.csv'
+
+  if not target_synthesizer:
+    raise ValueError("Target synthesizer must be specified for comparison function")
+
+  # load synthesizer
+  synthesizer_file_name = '../sdv trained model/' + synthesizer_file_name
+  synthesizer = load_synthesizer(synthesizer_file_name)
+  if verbose:
+    print(f"Synthesizer loaded from {synthesizer_file_name}")
+
+  # synthesize x'
+  x_synthesized = synthesizer.sample(sample_size)
+  # drop target column from x_synthesized
+  x_synthesized.drop(columns=[target_name], inplace=True)
+  if verbose:
+    print("Successfully synthesized X data and dropped target column")
+    print(f"Shape {x_synthesized.shape}. Here are the first 5 rows:")
+    print(x_synthesized.head())
+
+  # pre-encode backups
+  x_original_backup = x_original.copy()
+  x_synthesized_backup = x_synthesized.copy()
+
+  # one-hot encode
+  x_original, x_synthesized = onehot(x_original, x_synthesized, categorical_columns, verbose=verbose)
+
+  if target_synthesizer == 'gaussianNB':
+    synthesized_data = create_label_gaussianNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
+  elif target_synthesizer == 'categoricalNB':
+    synthesized_data = create_label_categoricalNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
+  elif target_synthesizer == 'pca_gmm':
+    # print("num cols: ", x_original_backup.columns.difference(categorical_columns))
+    if numerical_columns_pca_gmm is None:
+      numerical_columns_pca_gmm =  x_original_backup.columns.difference(categorical_columns)
+
+    pca_gmm = PCA_GMM(x_original, y_original, x_synthesized, 
+                      numerical_cols =  numerical_columns_pca_gmm,
+                      pca_n_components=0.99, gmm_n_components=10, verbose=verbose,
+                      target_name = target_name, filename=csv_file_name, is_classification=is_classification)
+    _, synthesized_data = pca_gmm.fit()
+
+  elif target_synthesizer in ['xgb', 'rf']:
+    ensemble = Ensemble(x_original, y_original, x_synthesized, target_name=target_name, target_synthesizer=target_synthesizer,
+                        filename=csv_file_name, verbose=verbose, is_classification=is_classification)
+    _, synthesized_data = ensemble.fit()
+
+  elif target_synthesizer == 'gmmNB':
+    raise ValueError("gmmNB is not implemented yet")
+    synthesized_data = create_label_gmmNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
+  # create y' using a Bayesian Network model
+  elif BN_model is not None:
+    # check if user want to create label from a pre-trained BN model
+    synthesized_data = create_label_BN_from_trained(x_original, y_original, x_synthesized, target_name = target_name,
+                                                   BN_model=BN_model, filename=csv_file_name, 
+                                                   verbose=show_network)
+  # if not, train a new BN model
+  elif target_synthesizer == 'BN_BE':
+    synthesized_data = create_label_BN(x_original, y_original, x_synthesized, target_name = target_name,
+                                       BN_type='BE', filename=csv_file_name, BN_filename=BN_filename,
+                                       verbose=show_network)
+  elif target_synthesizer == 'BN_MLE':
+    synthesized_data = create_label_BN(x_original, y_original, x_synthesized, target_name = target_name,
+                                       BN_type='MLE', filename=csv_file_name, BN_filename=BN_filename, 
+                                       verbose=show_network)
+    
+
+  # check if user want to return one-hot encoded X'
+  if return_onehot == False:
+    # for i in synthesized_data.columns:
+    #   print(i)
+    x_synthesized_backup = x_synthesized_backup.reindex(sorted(x_synthesized_backup.columns), axis=1)
+    synthesized_data = pd.concat([x_synthesized_backup, synthesized_data[target_name]], axis=1)
+
+  # save synthesized data to csv
+  check_directory(csv_file_name) # create directory if not exist
+  synthesized_data.to_csv(csv_file_name, index=False)
+  if verbose:
+    print(f"Successfully synthesized X and y data with {target_synthesizer}")
+    print(f'Data is saved at {csv_file_name}')
+
+  if npz_file_name is not None:
+    # kwargs_dict = synthesized_data.to_dict('list')
+    # save to npz file
+    # np.savez(npz_file_name, **kwargs_dict)
+
+    # save to npz file, exclude index column
+    synthesized_data_np = synthesized_data.to_numpy()
+    check_directory(npz_file_name) # create directory if not exist
+    np.savez(npz_file_name, syn=synthesized_data_np)
+    synthesized_data.to_csv(csv_file_name, index=False)
+    print(f'Data is saved at {npz_file_name}')
+    print(f'Data is saved at {csv_file_name}, excluding index column')
+  
+  
+  return synthesized_data
+
+    
+
+
 def load_synthesizer(link):
   with open(link, 'rb') as file:
     model = pickle.load(file)
@@ -333,9 +451,10 @@ def train_tvae_synthesizer(data, verbose=False):
   synthesizer = create_synthesizer_tvae(metadata)
   synthesizer.auto_assign_transformers(data)
   synthesizer.fit(data)
-  if verbose:
-    fig = synthesizer.get_loss_values_plot()
-    fig.show()
+  ## doesn't work for tvae
+  # if verbose:
+  #   fig = synthesizer.get_loss_values_plot()
+  #   fig.show()
   return synthesizer
 
 def create_synthesizer_tvae(metadata):

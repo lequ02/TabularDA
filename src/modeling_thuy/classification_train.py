@@ -1,4 +1,4 @@
-from data_loader import data_loader
+from data_loader import data_loader, DataLoaderMNIST
 import matplotlib.pyplot as plt
 import random
 import pandas as pd
@@ -58,9 +58,19 @@ class train:
         self.batch_size = batch_size
         self.validation = validation
 
-        self.data_loader = data_loader(self.dataset_name, self.batch_size, multi_y = self.multi_y, problem_type = 'classification')
-        self.train_data, self.dev_data = self.data_loader.load_train_augment_data(self.train_option, self.augment_option, self.mix_ratio, self.n_sample, self.validation)
-        self.test_data = self.data_loader.load_test_data()
+        if dataset_name.lower() == "mnist28" or dataset_name.lower() == "mnist12":
+            self.data_loader = DataLoaderMNIST(self.dataset_name, self.batch_size)
+            self.train_data, self.dev_data = self.data_loader.load_train_augment_data(self.train_option, self.augment_option, self.mix_ratio, self.n_sample, self.validation)
+            self.test_data = self.data_loader.load_test_data()
+        else:
+
+            self.data_loader = data_loader(self.dataset_name, self.batch_size, multi_y = self.multi_y, problem_type = 'classification')
+            self.train_data, self.dev_data = self.data_loader.load_train_augment_data(self.train_option, self.augment_option, self.mix_ratio, self.n_sample, self.validation)
+            self.test_data = self.data_loader.load_test_data()
+
+        # self.data_loader = data_loader(self.dataset_name, self.batch_size, multi_y = self.multi_y, problem_type = 'classification')
+        # self.train_data, self.dev_data = self.data_loader.load_train_augment_data(self.train_option, self.augment_option, self.mix_ratio, self.n_sample, self.validation)
+        # self.test_data = self.data_loader.load_test_data()
 
         print(f"Dataset name:{self.dataset_name}")
         print(f"train_option:{self.train_option}")
@@ -120,17 +130,33 @@ class train:
                 self.model_name = "DNN_Census"
             criterion = nn.BCELoss()
             
+        # elif self.dataset_name.lower() == "mnist28":
+        #     # model = model_mnist28.DNN_MNIST28(input_size=input_size).to(device)
+        #     # self.model_name = "DNN_MNIST28"
+
+        #     input_size = tuple(next(iter(self.train_data))[0].shape[1:])  # This gives (1, 28, 28)
+        #     # model = model_mnist28.EfficientNetWideSE(input_size=input_size).to(device)
+        #     # self.model_name = "EfficientNetWideSE_MNIST28"
+
+        #     model = model_mnist28.CNN_MNIST28().to(device)
+        #     self.model_name = "CNN_MNIST28"
+
+        #     criterion = nn.CrossEntropyLoss()
+
+        # elif self.dataset_name.lower() == "mnist12":
+        #     # model = model_mnist12.DNN_MNIST12(input_size=input_size).to(device)
+        #     model = model_mnist12.EfficientNetWideSE(input_size=input_size).to(device)
+        #     self.model_name = "DNN_MNIST12"
+        #     criterion = nn.CrossEntropyLoss()
+
         elif self.dataset_name.lower() == "mnist28":
             model = model_mnist28.DNN_MNIST28(input_size=input_size).to(device)
             self.model_name = "DNN_MNIST28"
             criterion = nn.CrossEntropyLoss()
-
         elif self.dataset_name.lower() == "mnist12":
             model = model_mnist12.DNN_MNIST12(input_size=input_size).to(device)
             self.model_name = "DNN_MNIST12"
             criterion = nn.CrossEntropyLoss()
-        
-            
 
 
         elif self.dataset_name.lower() == "intrusion":
@@ -155,7 +181,10 @@ class train:
         print(f"input_size: {input_size}")
         print(f"model: {self.model_name}")
         
-        summary(model, (input_size,))
+        if self.dataset_name.lower() == "mnist28" or self.dataset_name.lower() == "mnist12":
+            summary(model, input_size)
+        else:
+            summary(model, (input_size,))
         self.trainer = mtrainer
 
     def setup_output(self, w_dir, acc_dir):

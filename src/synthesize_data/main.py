@@ -17,8 +17,8 @@ def single_run():
   # covertype.create_synthetic_data_covertype()
   # intrusion.create_synthetic_data_intrusion()
   # credit.create_synthetic_data_credit()
-  mnist28.CreateSyntheticDataMnist28().create_synthetic_data()
-  mnist12.CreateSyntheticDataMnist12().create_synthetic_data()
+  # mnist28.CreateSyntheticDataMnist28().create_synthetic_data()
+  # mnist12.CreateSyntheticDataMnist12().create_synthetic_data()
   # census_kdd.CreateSyntheticDataCensusKdd().create_synthetic_data()
 
 
@@ -54,7 +54,16 @@ def single_run():
   # mnist12.CreateSyntheticDataMnist12().create_synthetic_data_ensemble()
   # news.CreateSyntheticDataNews().create_synthetic_data_ensemble()
   
-  
+  adult.CreateSyntheticDataAdult().create_comparison_from_trained_model()
+  census.CreateSyntheticDataCensus().create_comparison_from_trained_model()
+  census_kdd.CreateSyntheticDataCensusKdd().create_comparison_from_trained_model()
+  credit.CreateSyntheticDataCredit().create_comparison_from_trained_model()
+  covertype.CreateSyntheticDataCovertype().create_comparison_from_trained_model()
+  # intrusion.CreateSyntheticDataIntrusion().create_comparison_from_trained_model()
+  mnist28.CreateSyntheticDataMnist28().create_comparison_from_trained_model()
+  mnist12.CreateSyntheticDataMnist12().create_comparison_from_trained_model()
+  news.CreateSyntheticDataNews().create_comparison_from_trained_model()
+
   
   # pass
 

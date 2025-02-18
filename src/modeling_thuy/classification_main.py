@@ -33,7 +33,7 @@ def main(args):
 
   w_dir = OUT_DIR + dataset_name + "/weight/"
   acc_dir = OUT_DIR + dataset_name + "/acc/"
-  eval_metrics = {"accuracy": None, "f1": ['macro', 'micro', 'weighted', 'binary']} # add 'binary' to the list for binary classification (i.e: adult, census, credit)
+  eval_metrics = {"accuracy": None, "f1": ['macro', 'micro', 'weighted']} # add 'binary' to the list for binary classification (i.e: adult, census, credit)
   metric_to_plot = "f1_micro"
 
 

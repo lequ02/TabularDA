@@ -227,3 +227,160 @@ class data_loader:
 
 
 
+
+
+
+
+import pandas as pd
+import torch
+from torch.utils.data import TensorDataset, DataLoader, ConcatDataset
+from sklearn.model_selection import train_test_split
+import numpy as np
+
+
+class DataLoaderMNIST:
+    def __init__(self, dataset_name, batch_size, multi_y=True, problem_type="classification"):
+        self.dataset_name = dataset_name
+        self.batch_size = batch_size
+        self.paths = constants.IN_DATA_PATHS[dataset_name]
+        self.train_columns = None  # Store train columns for alignment
+        self.multi_y = multi_y
+        self.problem_type = problem_type
+
+    def drop_index_col(self, df):
+        if "Unnamed: 0" in df.columns:
+            df.drop("Unnamed: 0", axis=1, inplace=True)
+        return df
+
+    def load_train_augment_data(self, train_option, augment_option, mix_ratio=-1, n_sample=-1, validation=0):
+        if train_option == "original":
+            train_df = pd.read_csv(self.paths["train_original"])
+            train_df = self.drop_index_col(train_df)
+        elif train_option == "synthetic":
+            train_df = pd.read_csv(self.paths[train_option][augment_option])
+            train_df = self.drop_index_col(train_df)
+        else:  # 'mix' option
+            # original_df = pd.read_csv(self.paths["train_original"])
+            # original_df = self.drop_index_col(original_df)
+
+            raise NotImplementedError("Mixing not implemented for MNIST.")
+
+        # Sort columns alphabetically and store for test alignment
+        target_col = self.paths["target_name"]
+        self.train_columns = sorted(train_df.columns.drop(target_col))
+        train_df = train_df[[target_col] + self.train_columns]
+
+        # Separate features and labels
+        y = train_df[target_col].values
+        X = train_df.drop(columns=[target_col]).values
+        print(f"Shape of X after loading: {X.shape}")
+
+        # Check dimensions of X
+        if X.shape[1] != 784:
+            raise ValueError(f"Expected 784 features for MNIST but got {X.shape[1]} features")
+
+        # Split into training and validation sets
+        train_X, val_X, train_y, val_y = self.split_data(X, y, validation=validation)
+
+        # Return DataLoaders for training and validation
+        train_loader = self._load_data_in_batches(train_X, train_y)
+        val_loader = self._load_data_in_batches(val_X, val_y)
+        return train_loader, val_loader
+
+
+    def load_test_data(self):
+        """
+        Load test data, align with training data columns, and return a DataLoader.
+        """
+        # Load test data
+        test_df = pd.read_csv(self.paths["test"])
+        test_df = self.drop_index_col(test_df)
+
+        # Check if training columns are defined
+        if self.train_columns is None:
+            raise ValueError("Training data must be loaded before test data to align columns.")
+
+        # Align test columns with training columns
+        target_col = self.paths["target_name"]
+        test_features = sorted(self.train_columns)  # Ensure the same order as training data
+
+        # Add missing columns as 0
+        for col in test_features:
+            if col not in test_df.columns:
+                test_df[col] = 0
+
+        # Drop extra columns not in training data
+        test_df = test_df[[target_col] + test_features]
+
+        # Separate features and labels
+        y = test_df[target_col].values
+        X = test_df.drop(columns=[target_col]).values
+
+        # Check dimensions of X
+        if X.shape[1] != 784:
+            raise ValueError(f"Unexpected number of features: {X.shape[1]}. Expected 784 for MNIST.")
+
+        # Return DataLoader
+        return self._load_data_in_batches(X, y, shuffle=False)
+
+
+    def _load_data_in_batches(self, X, y, shuffle=True):
+        # Reshape X to [batch_size, channels, height, width] for MNIST
+        num_samples = X.shape[0]
+        num_features = X.shape[1]
+
+        # Ensure the input has 784 features (28x28)
+        if num_features != 784:
+            raise ValueError(f"Unexpected number of features: {num_features}. Expected 784 for MNIST.")
+
+        # # Normalize the data to [0, 1] range if it isn't already
+        # X = X / 255.0 if X.max() > 1.0 else X
+
+        # Reshape into [N, 1, 28, 28] - Note the order of dimensions
+        X = X.reshape(num_samples, 784)  # First ensure it's flat
+        X = X.reshape(num_samples, 1, 28, 28)  # Then reshape to correct dimensions
+
+        # Convert to PyTorch tensors
+        X_tensor = torch.tensor(X, dtype=torch.float32)
+        if not self.multi_y:
+            y_tensor = torch.tensor(y, dtype=torch.float32)
+        else:
+            y_tensor = torch.tensor(y, dtype=torch.long)
+
+        # Create TensorDataset
+        dataset = TensorDataset(X_tensor, y_tensor)
+        return DataLoader(dataset, batch_size=self.batch_size, shuffle=shuffle)
+
+
+
+    def split_data(self, X, y, validation=0, stratify_column=None):
+        """
+        Splits the dataset into training and validation sets.
+        :param X: Features (numpy array or pandas DataFrame).
+        :param y: Labels (numpy array or pandas Series).
+        :param validation: Fraction or number of samples to use for validation.
+        :param stratify_column: Column to use for stratification.
+        :return: train_X, val_X, train_y, val_y
+        """
+        if validation > 1:  # If validation is given as an absolute number
+            validation = int(validation)
+        elif 0 < validation <= 1:  # If validation is a fraction
+            validation = validation
+        else:
+            raise ValueError("Validation must be a positive integer or a float in the range (0, 1].")
+
+        if stratify_column is not None:
+            stratify = y
+        else:
+            stratify = None
+
+        # Split into train and validation sets
+        train_X, val_X, train_y, val_y = train_test_split(
+            X, y, test_size=validation, stratify=stratify, random_state=42
+        )
+        return train_X, val_X, train_y, val_y
+
+
+    def concat(self, df1, df2, axis=0, concat_ratio=-1, n_sample=-1):
+        raise NotImplementedError("Concat functionality is not required for MNIST.")
+
