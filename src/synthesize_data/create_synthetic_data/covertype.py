@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 from datasets import load_adult, load_news, load_census, load_covertype
 
 class CreateSyntheticDataCovertype(CreateSyntheticData.CreateSyntheticData):
-    def __init__(self):
+    def __init__(self, feature_synthesizer = 'CTGAN'):
         ds_name = 'covertype'
 
         ## sdv, gaussian, categorical originally generated with using empty categorical_columns [] 
@@ -31,6 +31,6 @@ class CreateSyntheticDataCovertype(CreateSyntheticData.CreateSyntheticData):
         
 
         # originally used test_size=0.2
-        super().__init__(ds_name, load_covertype, 'Cover_Type', categorical_columns=categorical_columns,
+        super().__init__(ds_name, load_covertype, 'Cover_Type', categorical_columns=categorical_columns, features_synthesizer=feature_synthesizer,
                         numerical_cols_pca_gmm=numerical_columns,
-                        sample_size_to_synthesize=100_000, missing_values_strategy='drop', test_size=0.2, is_classification=True)
+                        sample_size_to_synthesize=100_000, missing_values_strategy='drop', test_size=10000, is_classification=True)

@@ -10,7 +10,7 @@ from commons import create_train_test, handle_missing_values, check_directory, r
 
 
 class CreateSyntheticData:
-    def __init__(self, ds_name, load_data_func, target_name, categorical_columns, 
+    def __init__(self, ds_name, load_data_func, target_name, categorical_columns, features_synthesizer='CTGAN',
                  sample_size_to_synthesize=100_000, missing_values_strategy='drop', test_size=0.2, is_classification=True,
                  numerical_cols_pca_gmm=None):
         self.ds_name = ds_name
@@ -22,6 +22,13 @@ class CreateSyntheticData:
         self.test_size = test_size
         self.is_classification = is_classification
         self.numerical_cols_pca_gmm = numerical_cols_pca_gmm
+        self.features_synthesizer = features_synthesizer
+
+        if features_synthesizer == 'CTGAN':
+            fsyn = ''
+        else:
+            fsyn = features_synthesizer
+
         self.paths = {
             'synthesizer_dir': f'../sdv trained model/{ds_name}/',
             'data_dir': f'../data/{ds_name}/',
@@ -33,22 +40,24 @@ class CreateSyntheticData:
             'sdv_only_synthesizer': f'{ds_name}_synthesizer.pkl',
             'sdv_only_csv': f'onehot_{ds_name}_sdv_100k.csv',
 
-            'sdv_gaussian_synthesizer': f'{ds_name}_synthesizer_onlyX.pkl',
-            'sdv_gaussian_csv': f'onehot_{ds_name}_sdv_gaussian_100k.csv',
+            f'sdv_{fsyn}_gaussian_synthesizer': f'{ds_name}_{fsyn}_synthesizer_onlyX.pkl',
+            f'sdv_{fsyn}_gaussian_csv': f'onehot_{ds_name}_sdv_{fsyn}_gaussian_100k.csv',
 
-            'sdv_categorical_synthesizer': f'{ds_name}_synthesizer_onlyX.pkl',
-            'sdv_categorical_csv': f'onehot_{ds_name}_sdv_categorical_100k.csv',
+            f'sdv_{fsyn}_categorical_synthesizer': f'{ds_name}_{fsyn}_synthesizer_onlyX.pkl',
+            f'sdv_{fsyn}_categorical_csv': f'onehot_{ds_name}_sdv_{fsyn}_categorical_100k.csv',
 
-            'sdv_pca_gmm_synthesizer': f'{ds_name}_synthesizer_onlyX.pkl',
-            'sdv_pca_gmm_csv': f'onehot_{ds_name}_sdv_pca_gmm_100k.csv',
+            f'sdv_{fsyn}_pca_gmm_synthesizer': f'{ds_name}_{fsyn}_synthesizer_onlyX.pkl',
+            f'sdv_{fsyn}_pca_gmm_csv': f'onehot_{ds_name}_sdv_{fsyn}_pca_gmm_100k.csv',
 
-            'sdv_xgb_synthesizer': f'{ds_name}_synthesizer_onlyX.pkl',
-            'sdv_xgb_csv': f'onehot_{ds_name}_sdv_xgb_100k.csv',
-            'sdv_rf_synthesizer': f'{ds_name}_synthesizer_onlyX.pkl',
-            'sdv_rf_csv': f'onehot_{ds_name}_sdv_rf_100k.csv',
+            f'sdv_{fsyn}_xgb_synthesizer': f'{ds_name}_{fsyn}_synthesizer_onlyX.pkl',
+            f'sdv_{fsyn}_xgb_csv': f'onehot_{ds_name}_sdv_{fsyn}_xgb_100k.csv',
+            f'sdv_{fsyn}_rf_synthesizer': f'{ds_name}_{fsyn}_synthesizer_onlyX.pkl',
+            f'sdv_{fsyn}_rf_csv': f'onehot_{ds_name}_sdv_{fsyn}_rf_100k.csv',
 
             'sdv_tvae_only_synthesizer': f'{ds_name}_TVAE_synthesizer.pkl',
             'sdv_tvae_only_csv': f'onehot_{ds_name}_sdv_tvae_100k.csv',
+
+            
 
             ## don't need. file names for comparison is defined in synthesize_comparison_from_trained_model()
             # 'sdv_compare_synthesizer': f'{ds_name}_synthesizer.pkl',
@@ -59,12 +68,21 @@ class CreateSyntheticData:
         """
         wrapper function to create synthetic data, including: CTGAN (SDV), GaussianNB, CategoricalNB, PCA-GMM, Ensemble methods (XGBoost, RandomForest), and TVAE
         """
-        self.create_synthetic_data_sdv_only()
+        if self.features_synthesizer == 'CTGAN':
+            self.create_synthetic_data_sdv_only()
+        elif self.features_synthesizer == 'TVAE':
+            # this function does not do train-test split. 
+            # Assumes the data is already split and saved to csv through running ctgan's create_synthetic_data_sdv_only()
+            self.create_synthetic_data_tvae_only()
+
         self.create_synthetic_data_sdv_gaussian()
         self.create_synthetic_data_sdv_categorical()
         self.create_synthetic_data_pca_gmm()
         self.create_synthetic_data_ensemble()
         self.create_synthetic_data_tvae_only()
+
+        self.create_comparison_from_trained_model()
+
 
     def create_synthetic_data_sdv_only(self):
         xtrain, xtest, ytrain, ytest, target_name, categorical_columns = self.prepare_train_test()
@@ -75,34 +93,39 @@ class CreateSyntheticData:
 
     def create_synthetic_data_sdv_gaussian(self):
         xtrain, xtest, ytrain, ytest, target_name, categorical_columns = self.read_data()
-        self.synthesize_data(xtrain, ytrain, categorical_columns, 'sdv_gaussian', 'gaussianNB')
+        self.synthesize_data(xtrain, ytrain, categorical_columns, 'sdv_gaussian', 'gaussianNB', features_synthesizer=self.features_synthesizer)
 
     def create_synthetic_data_sdv_categorical(self):
         xtrain, xtest, ytrain, ytest, target_name, categorical_columns = self.read_data()
-        self.synthesize_from_trained_model(xtrain, ytrain, categorical_columns, 'sdv_categorical', 'categoricalNB')
+        self.synthesize_from_trained_model(xtrain, ytrain, categorical_columns, 'sdv_categorical', 'categoricalNB', features_synthesizer=self.features_synthesizer)
 
     def create_synthetic_data_pca_gmm(self):
         xtrain, xtest, ytrain, ytest, target_name, categorical_columns = self.read_data()
-        self.synthesize_from_trained_model(xtrain, ytrain, categorical_columns, 'sdv_pca_gmm', 'pca_gmm')
+        self.synthesize_from_trained_model(xtrain, ytrain, categorical_columns, 'sdv_pca_gmm', 'pca_gmm', features_synthesizer=self.features_synthesizer)
 
     def create_synthetic_data_ensemble(self):
         xtrain, xtest, ytrain, ytest, target_name, categorical_columns = self.read_data()
         emsemble_methods = ['xgb', 'rf']
         for method in emsemble_methods:
-            self.synthesize_from_trained_model(xtrain, ytrain, categorical_columns, f'sdv_{method}', method)
+            self.synthesize_from_trained_model(xtrain, ytrain, categorical_columns, f'sdv_{method}', method, features_synthesizer=self.features_synthesizer)
 
     def create_synthetic_data_tvae_only(self):
         xtrain, xtest, ytrain, ytest, target_name, categorical_columns = self.read_data()
         xytrain = pd.concat([xtrain, ytrain], axis=1)
         self.synthesize_data(xytrain, ytrain, categorical_columns, 'sdv_tvae_only', '', features_synthesizer='TVAE')
 
-    def create_comparison_from_trained_model(self, features_synthesizer='CTGAN'):
+    def create_comparison_from_trained_model(self):
         xtrain, xtest, ytrain, ytest, target_name, categorical_columns = self.read_data()
-        print(f"Creating comparison from trained model for '{self.ds_name}' with features synthesizer: {features_synthesizer}")
+        print(f"Creating comparison from trained model for '{self.ds_name}' with features synthesizer: {self.features_synthesizer}")
         target_synthesizers = ['gaussianNB', 'categoricalNB', 'pca_gmm', 'xgb', 'rf']
 
+        if self.features_synthesizer == 'CTGAN':
+            fsyn = ''
+        else:
+            fsyn = self.features_synthesizer
+
         for target_synthesizer in target_synthesizers:
-            self.synthesize_comparison_from_trained_model(xtrain, ytrain, categorical_columns, f'sdv_compare_{target_synthesizer}', features_synthesizer, target_synthesizer)
+            self.synthesize_comparison_from_trained_model(xtrain, ytrain, categorical_columns, f'sdv_{fsyn}compare_{target_synthesizer}', self.features_synthesizer, target_synthesizer)
 
 
     def prepare_train_test(self):

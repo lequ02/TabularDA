@@ -7,10 +7,10 @@ from datasets import load_adult, load_news, load_census, load_covertype
 
 
 class CreateSyntheticDataAdult(CreateSyntheticData.CreateSyntheticData):
-    def __init__(self):
+    def __init__(self, feature_synthesizer = 'CTGAN'):
         ds_name = 'adult'
         categorical_columns = ['workclass', 'education', 'marital-status', 'occupation', 'relationship', 'race', 'sex', 'native-country']
-        super().__init__(ds_name, load_adult, 'income', categorical_columns=categorical_columns,                         
+        super().__init__(ds_name, load_adult, 'income', categorical_columns=categorical_columns, features_synthesizer=feature_synthesizer,                    
                             sample_size_to_synthesize=100_000, missing_values_strategy='drop', test_size=0.2)
         
 

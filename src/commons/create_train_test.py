@@ -26,7 +26,12 @@ def create_train_test(data, target_name, categorical_columns, test_size=0.2, ran
 
 
     df = data.copy()
-    test_size_frac  = test_size/df.shape[0]
+    # if test_size is not a fraction, calculate the fraction
+    if test_size > 1:
+        # test_size is the number of rows
+        test_size_frac = test_size / df.shape[0]
+    else:
+        test_size_frac = test_size
     print("\ntest_size_frac", test_size_frac)
     print("stratify", stratify)
     # initial split

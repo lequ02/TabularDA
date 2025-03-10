@@ -10,6 +10,12 @@ def create_path_dict(dataset_name, target_name):
             'xgb': f'../../data/{dataset_name}/onehot_{dataset_name}_sdv_xgb_100k.csv',
             'rf': f'../../data/{dataset_name}/onehot_{dataset_name}_sdv_rf_100k.csv',
             'tvae': f'../../data/{dataset_name}/onehot_{dataset_name}_sdv_tvae_100k.csv',
+            
+            'compare_categorical': f'../../data/{dataset_name}/onehot_{dataset_name}_sdv_compare_categoricalNB_100k.csv',
+            'compare_gaussian': f'../../data/{dataset_name}/onehot_{dataset_name}_sdv_compare_gaussianNB_100k.csv',
+            'compare_pca_gmm': f'../../data/{dataset_name}/onehot_{dataset_name}_sdv_compare_pca_gmm_100k.csv',
+            'compare_xgb': f'../../data/{dataset_name}/onehot_{dataset_name}_sdv_compare_xgb_100k.csv',
+            'compare_rf': f'../../data/{dataset_name}/onehot_{dataset_name}_sdv_compare_rf_100k.csv',
 
         },
         'target_name': target_name
@@ -23,7 +29,7 @@ IN_DATA_PATHS = {
 
     'adult' : create_path_dict('adult', 'income'),
     'census' : create_path_dict('census', 'income'),
-    'census_kdd' : create_path_dict('census', 'income'),
+    'census_kdd' : create_path_dict('census_kdd', 'income'),
     'news' : create_path_dict('news', ' shares'),
     # 'mnist12' : create_path_dict('mnist12', 'label'),
     # 'mnist28' : create_path_dict('mnist28', 'label'),
