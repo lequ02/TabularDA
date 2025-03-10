@@ -54,15 +54,28 @@ def single_run():
   # mnist12.CreateSyntheticDataMnist12().create_synthetic_data_ensemble()
   # news.CreateSyntheticDataNews().create_synthetic_data_ensemble()
   
-  adult.CreateSyntheticDataAdult().create_comparison_from_trained_model()
-  census.CreateSyntheticDataCensus().create_comparison_from_trained_model()
-  census_kdd.CreateSyntheticDataCensusKdd().create_comparison_from_trained_model()
-  credit.CreateSyntheticDataCredit().create_comparison_from_trained_model()
-  covertype.CreateSyntheticDataCovertype().create_comparison_from_trained_model()
+  # adult.CreateSyntheticDataAdult().create_comparison_from_trained_model()
+  # census.CreateSyntheticDataCensus().create_comparison_from_trained_model()
+  # census_kdd.CreateSyntheticDataCensusKdd().create_comparison_from_trained_model()
+  # credit.CreateSyntheticDataCredit().create_comparison_from_trained_model()
+  # covertype.CreateSyntheticDataCovertype().create_comparison_from_trained_model()
   # intrusion.CreateSyntheticDataIntrusion().create_comparison_from_trained_model()
-  mnist28.CreateSyntheticDataMnist28().create_comparison_from_trained_model()
-  mnist12.CreateSyntheticDataMnist12().create_comparison_from_trained_model()
-  news.CreateSyntheticDataNews().create_comparison_from_trained_model()
+  # mnist28.CreateSyntheticDataMnist28().create_comparison_from_trained_model()
+  # mnist12.CreateSyntheticDataMnist12().create_comparison_from_trained_model()
+  # news.CreateSyntheticDataNews().create_comparison_from_trained_model()
+
+
+
+  adult.CreateSyntheticDataAdult(feature_synthesizer='TVAE').create_synthetic_data()
+  census.CreateSyntheticDataCensus(feature_synthesizer='TVAE').create_synthetic_data()
+  census_kdd.CreateSyntheticDataCensusKdd(feature_synthesizer='TVAE').create_synthetic_data()
+  credit.CreateSyntheticDataCredit(feature_synthesizer='TVAE').create_synthetic_data()
+  covertype.CreateSyntheticDataCovertype(feature_synthesizer='TVAE').create_synthetic_data()
+  # intrusion.CreateSyntheticDataIntrusion(feature_synthesizer='TVAE').create_synthetic_data()
+  mnist28.CreateSyntheticDataMnist28(feature_synthesizer='TVAE').create_synthetic_data()
+  mnist12.CreateSyntheticDataMnist12(feature_synthesizer='TVAE').create_synthetic_data()
+  news.CreateSyntheticDataNews(feature_synthesizer='TVAE').create_synthetic_data()
+
 
   
   # pass

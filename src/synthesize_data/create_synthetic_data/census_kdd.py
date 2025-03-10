@@ -7,14 +7,14 @@ from datasets import load_adult, load_news, load_census, load_covertype, load_ce
 
 
 class CreateSyntheticDataCensusKdd(CreateSyntheticData.CreateSyntheticData):
-    def __init__(self):
+    def __init__(self, feature_synthesizer = 'CTGAN'):
         ds_name = 'census_kdd'
         categorical_columns = ['ACLSWKR', 'AHGA', 'AHSCOL', 'AMARITL', 'AMJIND', 'AMJOCC', 'ARACE',
        'AREORGN', 'ASEX', 'AUNMEM', 'AUNTYPE', 'AWKSTAT', 'FILESTAT',
        'GRINREG', 'GRINST', 'HHDFMX', 'HHDREL', 'MIGSAME', 'PARENT',
        'PEFNTVTY', 'PEMNTVTY', 'PENATVTY', 'PRCITSHP', 'VETQVA']
 
-        super().__init__(ds_name, load_census_kdd, 'income', categorical_columns=categorical_columns,
+        super().__init__(ds_name, load_census_kdd, 'income', categorical_columns=categorical_columns, features_synthesizer=feature_synthesizer,
                          sample_size_to_synthesize=100_000, missing_values_strategy='drop', test_size=10000)
         
     def prepare_train_test(self):

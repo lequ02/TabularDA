@@ -8,11 +8,11 @@ import numpy as np
 from synthesizer import *
 
 class CreateSyntheticDataMnist28(CreateSyntheticData.CreateSyntheticData):
-    def __init__(self):
+    def __init__(self, feature_synthesizer = 'CTGAN'):
         ds_name = 'mnist28'
         categorical_columns = []
         numerical_columns_pca_gmm = []
-        super().__init__(ds_name, load_mnist28, 'label', categorical_columns=categorical_columns, numerical_cols_pca_gmm=numerical_columns_pca_gmm,
+        super().__init__(ds_name, load_mnist28, 'label', categorical_columns=categorical_columns, numerical_cols_pca_gmm=numerical_columns_pca_gmm, features_synthesizer=feature_synthesizer,
                             sample_size_to_synthesize=100_000, missing_values_strategy='drop', test_size=10000)
         
     def binarize(self, data):
