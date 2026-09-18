@@ -22,12 +22,12 @@ class CreateSyntheticData:
         self.test_size = test_size
         self.is_classification = is_classification
         self.numerical_cols_pca_gmm = numerical_cols_pca_gmm
-        self.features_synthesizer = features_synthesizer
+        self.features_synthesizer = features_synthesizer.lower()
 
-        if features_synthesizer == 'CTGAN':
-            fsyn = ''
+        if self.features_synthesizer == 'ctgan':
+            self.fsyn_name = ''
         else:
-            fsyn = features_synthesizer
+            self.fsyn_name = self.features_synthesizer+"_" # e.g: 'TVAE' will be 'TVAE_'
 
         self.paths = {
             'synthesizer_dir': f'../sdv trained model/{ds_name}/',
@@ -40,19 +40,19 @@ class CreateSyntheticData:
             'sdv_only_synthesizer': f'{ds_name}_synthesizer.pkl',
             'sdv_only_csv': f'onehot_{ds_name}_sdv_100k.csv',
 
-            f'sdv_{fsyn}_gaussian_synthesizer': f'{ds_name}_{fsyn}_synthesizer_onlyX.pkl',
-            f'sdv_{fsyn}_gaussian_csv': f'onehot_{ds_name}_sdv_{fsyn}_gaussian_100k.csv',
+            f'sdv_{self.fsyn_name}gaussian_synthesizer': f'{ds_name}_{self.fsyn_name}synthesizer_onlyX.pkl',
+            f'sdv_{self.fsyn_name}gaussian_csv': f'onehot_{ds_name}_sdv_{self.fsyn_name}gaussian_100k.csv',
 
-            f'sdv_{fsyn}_categorical_synthesizer': f'{ds_name}_{fsyn}_synthesizer_onlyX.pkl',
-            f'sdv_{fsyn}_categorical_csv': f'onehot_{ds_name}_sdv_{fsyn}_categorical_100k.csv',
+            f'sdv_{self.fsyn_name}categorical_synthesizer': f'{ds_name}_{self.fsyn_name}synthesizer_onlyX.pkl',
+            f'sdv_{self.fsyn_name}categorical_csv': f'onehot_{ds_name}_sdv_{self.fsyn_name}categorical_100k.csv',
 
-            f'sdv_{fsyn}_pca_gmm_synthesizer': f'{ds_name}_{fsyn}_synthesizer_onlyX.pkl',
-            f'sdv_{fsyn}_pca_gmm_csv': f'onehot_{ds_name}_sdv_{fsyn}_pca_gmm_100k.csv',
+            f'sdv_{self.fsyn_name}pca_gmm_synthesizer': f'{ds_name}_{self.fsyn_name}synthesizer_onlyX.pkl',
+            f'sdv_{self.fsyn_name}pca_gmm_csv': f'onehot_{ds_name}_sdv_{self.fsyn_name}pca_gmm_100k.csv',
 
-            f'sdv_{fsyn}_xgb_synthesizer': f'{ds_name}_{fsyn}_synthesizer_onlyX.pkl',
-            f'sdv_{fsyn}_xgb_csv': f'onehot_{ds_name}_sdv_{fsyn}_xgb_100k.csv',
-            f'sdv_{fsyn}_rf_synthesizer': f'{ds_name}_{fsyn}_synthesizer_onlyX.pkl',
-            f'sdv_{fsyn}_rf_csv': f'onehot_{ds_name}_sdv_{fsyn}_rf_100k.csv',
+            f'sdv_{self.fsyn_name}xgb_synthesizer': f'{ds_name}_{self.fsyn_name}synthesizer_onlyX.pkl',
+            f'sdv_{self.fsyn_name}xgb_csv': f'onehot_{ds_name}_sdv_{self.fsyn_name}xgb_100k.csv',
+            f'sdv_{self.fsyn_name}rf_synthesizer': f'{ds_name}_{self.fsyn_name}synthesizer_onlyX.pkl',
+            f'sdv_{self.fsyn_name}rf_csv': f'onehot_{ds_name}_sdv_{self.fsyn_name}rf_100k.csv',
 
             'sdv_tvae_only_synthesizer': f'{ds_name}_TVAE_synthesizer.pkl',
             'sdv_tvae_only_csv': f'onehot_{ds_name}_sdv_tvae_100k.csv',
@@ -68,12 +68,13 @@ class CreateSyntheticData:
         """
         wrapper function to create synthetic data, including: CTGAN (SDV), GaussianNB, CategoricalNB, PCA-GMM, Ensemble methods (XGBoost, RandomForest), and TVAE
         """
-        if self.features_synthesizer == 'CTGAN':
+        if self.features_synthesizer == 'ctgan':
             self.create_synthetic_data_sdv_only()
-        elif self.features_synthesizer == 'TVAE':
+        elif self.features_synthesizer == 'tvae':
             # this function does not do train-test split. 
             # Assumes the data is already split and saved to csv through running ctgan's create_synthetic_data_sdv_only()
-            self.create_synthetic_data_tvae_only()
+            # self.create_synthetic_data_tvae_only()
+            pass
 
         self.create_synthetic_data_sdv_gaussian()
         self.create_synthetic_data_sdv_categorical()
@@ -93,21 +94,21 @@ class CreateSyntheticData:
 
     def create_synthetic_data_sdv_gaussian(self):
         xtrain, xtest, ytrain, ytest, target_name, categorical_columns = self.read_data()
-        self.synthesize_data(xtrain, ytrain, categorical_columns, 'sdv_gaussian', 'gaussianNB', features_synthesizer=self.features_synthesizer)
+        self.synthesize_data(xtrain, ytrain, categorical_columns, f'sdv_{self.fsyn_name}gaussian', 'gaussianNB', features_synthesizer=self.features_synthesizer)
 
     def create_synthetic_data_sdv_categorical(self):
         xtrain, xtest, ytrain, ytest, target_name, categorical_columns = self.read_data()
-        self.synthesize_from_trained_model(xtrain, ytrain, categorical_columns, 'sdv_categorical', 'categoricalNB', features_synthesizer=self.features_synthesizer)
+        self.synthesize_from_trained_model(xtrain, ytrain, categorical_columns, f'sdv_{self.fsyn_name}categorical', 'categoricalNB', features_synthesizer=self.features_synthesizer)
 
     def create_synthetic_data_pca_gmm(self):
         xtrain, xtest, ytrain, ytest, target_name, categorical_columns = self.read_data()
-        self.synthesize_from_trained_model(xtrain, ytrain, categorical_columns, 'sdv_pca_gmm', 'pca_gmm', features_synthesizer=self.features_synthesizer)
+        self.synthesize_from_trained_model(xtrain, ytrain, categorical_columns, f'sdv_{self.fsyn_name}pca_gmm', 'pca_gmm', features_synthesizer=self.features_synthesizer)
 
     def create_synthetic_data_ensemble(self):
         xtrain, xtest, ytrain, ytest, target_name, categorical_columns = self.read_data()
         emsemble_methods = ['xgb', 'rf']
         for method in emsemble_methods:
-            self.synthesize_from_trained_model(xtrain, ytrain, categorical_columns, f'sdv_{method}', method, features_synthesizer=self.features_synthesizer)
+            self.synthesize_from_trained_model(xtrain, ytrain, categorical_columns, f'sdv_{self.fsyn_name}{method}', method, features_synthesizer=self.features_synthesizer)
 
     def create_synthetic_data_tvae_only(self):
         xtrain, xtest, ytrain, ytest, target_name, categorical_columns = self.read_data()
@@ -119,13 +120,9 @@ class CreateSyntheticData:
         print(f"Creating comparison from trained model for '{self.ds_name}' with features synthesizer: {self.features_synthesizer}")
         target_synthesizers = ['gaussianNB', 'categoricalNB', 'pca_gmm', 'xgb', 'rf']
 
-        if self.features_synthesizer == 'CTGAN':
-            fsyn = ''
-        else:
-            fsyn = self.features_synthesizer
 
         for target_synthesizer in target_synthesizers:
-            self.synthesize_comparison_from_trained_model(xtrain, ytrain, categorical_columns, f'sdv_{fsyn}compare_{target_synthesizer}', self.features_synthesizer, target_synthesizer)
+            self.synthesize_comparison_from_trained_model(xtrain, ytrain, categorical_columns, f'sdv_{self.fsyn_name}compare_{target_synthesizer}', self.features_synthesizer, target_synthesizer)
 
 
     def prepare_train_test(self):
@@ -157,7 +154,7 @@ class CreateSyntheticData:
                         target_name=self.target_name, synthesizer_file_name=self.paths['synthesizer_dir'] + self.paths[f'{synth_type}_synthesizer'],
                         csv_file_name=self.paths['data_dir'] + self.paths[f'{synth_type}_csv'], verbose=True, is_classification=self.is_classification)
         
-    def synthesize_from_trained_model(self, xtrain, ytrain, categorical_columns, synth_type, target_synthesizer):
+    def synthesize_from_trained_model(self, xtrain, ytrain, categorical_columns, synth_type, target_synthesizer, features_synthesizer='CTGAN'):
         synthesize_from_trained_model(xtrain, ytrain, categorical_columns, sample_size=self.sample_size_to_synthesize, target_synthesizer=target_synthesizer,
                                       numerical_columns_pca_gmm=self.numerical_cols_pca_gmm,
                                       target_name=self.target_name, synthesizer_file_name=self.paths['synthesizer_dir'] + self.paths[f'{synth_type}_synthesizer'],
@@ -166,9 +163,9 @@ class CreateSyntheticData:
 
     def synthesize_comparison_from_trained_model(self, xtrain, ytrain, categorical_columns, synth_type, feature_synthesizer, target_synthesizer):
         # xytrain = pd.concat([xtrain, ytrain], axis=1)
-        if feature_synthesizer == 'CTGAN':
+        if feature_synthesizer.lower() == 'ctgan':
             synthesizer_file_name = self.paths['synthesizer_dir'] + f'{self.ds_name}_synthesizer.pkl'
-        elif feature_synthesizer == 'TVAE':
+        elif feature_synthesizer.lower() == 'tvae':
             synthesizer_file_name = self.paths['synthesizer_dir'] + f'{self.ds_name}_TVAE_synthesizer.pkl'
         else:
             raise ValueError(f"Unknown feature synthesizer: {feature_synthesizer}")
