@@ -70,6 +70,16 @@ def synthesize_data(x_original, y_original, categorical_columns, target_name,
   x_original, x_synthesized = onehot(x_original, x_synthesized, categorical_columns, verbose=verbose)
 
 
+    # safe guard
+  if not x_original.columns.equals(x_synthesized.columns):
+    print("The columns are not the same.")
+    print("x_original columns: ")
+    print(x_original.columns)
+    print("x_synthesized columns: ")
+    print(x_synthesized.columns)
+    raise ValueError("x_original and x_synthesized have different columns or the columns are in different orders")
+
+
   # if a target synthesizer is not specified, assume that the user wants to synthesize X' and y' using CTGAN only
   if not target_synthesizer:
     synthesized_data = x_synthesized.reindex(sorted(x_synthesized.columns), axis=1)
@@ -190,7 +200,14 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns, t
   # one-hot encode
   x_original, x_synthesized = onehot(x_original, x_synthesized, categorical_columns, verbose=verbose)
 
-
+  # safe guard
+  if not x_original.columns.equals(x_synthesized.columns):
+    print("The columns are not the same.")
+    print("x_original columns: ")
+    print(x_original.columns)
+    print("x_synthesized columns: ")
+    print(x_synthesized.columns)
+    raise ValueError("x_original and x_synthesized have different columns or the columns are in different orders")
 
   # if a target synthesizer is not specified, assume that the user wants to synthesize X' and y' using CTGAN only
   if not target_synthesizer:
@@ -249,14 +266,6 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns, t
     #   print(i)
     x_synthesized_backup = x_synthesized_backup.reindex(sorted(x_synthesized_backup.columns), axis=1)
     synthesized_data = pd.concat([x_synthesized_backup, synthesized_data[target_name]], axis=1)
-
-
-  # # check if user want to return one-hot encoded X'
-  # if return_onehot == False:
-  #   # for i in synthesized_data.columns:
-  #   #   print(i)
-  #   x_synthesized_backup = x_synthesized_backup.reindex(sorted(x_synthesized_backup.columns), axis=1)
-  #   synthesized_data = pd.concat([x_synthesized_backup, synthesized_data[target_name]], axis=1)
   
   # save synthesized data to csv
   check_directory(csv_file_name) # create directory if not exist
@@ -327,6 +336,15 @@ def synthesize_comparison_from_trained_model(x_original, y_original, categorical
 
   # one-hot encode
   x_original, x_synthesized = onehot(x_original, x_synthesized, categorical_columns, verbose=verbose)
+
+      # safe guard
+  if not x_original.columns.equals(x_synthesized.columns):
+    print("The columns are not the same.")
+    print("x_original columns: ")
+    print(x_original.columns)
+    print("x_synthesized columns: ")
+    print(x_synthesized.columns)
+    raise ValueError("x_original and x_synthesized have different columns or the columns are in different orders")
 
   if target_synthesizer == 'gaussianNB':
     synthesized_data = create_label_gaussianNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
