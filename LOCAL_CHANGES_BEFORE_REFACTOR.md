@@ -23,7 +23,7 @@ Installed dependencies in audit/results_review/node_modules (a directory link) a
 
 Existing ignored raw CSV datasets and pickle models remain on disk, outside this Git checkpoint. The old MNIST split/model folders total about 3.8 GiB, including the ZIP now captured through Git LFS. Audit CSV evidence is explicitly included. Other pre-existing ignored files elsewhere in the repository are also outside the checkpoint.
 
-The original checkpoint and nested backups were pushed to lequ02/TabularDA. A sanitized replacement is prepared locally; see audit/SECRET_SCAN.md for its scope and publication status. The repository already used GLRM/pyglrm Git links without a .gitmodules file; preserve those local repositories with the parent repository. The tag records the parent commit, both nested repository states and the archive LFS pointer.
+The original checkpoint and nested backups were pushed to lequ02/TabularDA. This document records the sanitized replacement; see audit/SECRET_SCAN.md for its scope and GitHub history/cache cleanup requirements. The repository already used GLRM/pyglrm Git links without a .gitmodules file; preserve those local repositories with the parent repository. The tag records the parent commit, both nested repository states and the archive LFS pointer.
 
 ## Main repository commits
 

@@ -23,7 +23,7 @@ This scans every changed commit in the replacement checkpoint, not all pre-exist
 
 ## Publication status
 
-This is a prepared replacement history. Replacing the already-published checkpoint branch and tag requires approval because it changes shared commit hashes. GLRM and pyglrm backup references need no replacement. Previously published commits may remain retrievable from caches/clones after the references are replaced.
+This replacement reconstructs the affected checkpoint commits without the captured credentials. The user authorized replacement of the published checkpoint branch and tag. GLRM and pyglrm backup references contain no detected credentials and need no replacement. Removing the affected commits from advertised branches and tags does not erase GitHub SHA-based cached views or other clones; GitHub Support must handle server-side garbage collection and cache removal.
 
 If an exposed credential belongs to you, revoke or rotate it. See https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository for cache/history cleanup guidance.
 
