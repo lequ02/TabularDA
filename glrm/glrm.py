@@ -1,8 +1,8 @@
-from convergence import Convergence
+from glrm.convergence import Convergence
 from numpy import sqrt, repeat, tile, hstack, array, zeros, ones, sqrt, diag, asarray, hstack, vstack, split, cumsum
 from numpy.random import randn
 from copy import copy
-from numpy.linalg import svd
+from numpy.linalg import svd, norm
 import cvxpy as cp
 
 # XXX does not support splitting over samples yet (only over features to
@@ -43,6 +43,16 @@ class GLRM(object):
     def predict(self):
         # return decode(XY), low-rank approximation of A
         return hstack([L.decode(self.X.dot(yj)) for Aj, yj, L in zip(self.A, self.Y, self.L)])
+    
+    def eval_reconstruction(self, A_list, A_hat):
+        reconstruction_error = norm(A_hat - hstack(A_list))  # Reconstruction error
+        original_magnitude = norm(hstack(A_list))
+        relative_error = reconstruction_error / original_magnitude
+
+        # Information captured = 1 - relative_error
+        information_captured = 1 - relative_error       
+
+        return reconstruction_error, relative_error, information_captured
 
     def fit(self, max_iters=100, eps=1e-2, use_indirect=False, warm_start=False):
         
@@ -79,19 +89,19 @@ class GLRM(object):
         self.X0, self.Y0 = X0, Y0
 
         # cvxpy problems
-        Xv, Yp = cp.Variable(m,k), [cp.Parameter(k+1,ni) for ni in ns]
-        Xp, Yv = cp.Parameter(m,k+1), [cp.Variable(k+1,ni) for ni in ns]
+        Xv, Yp = cp.Variable((m,k)), [cp.Parameter((k+1,ni)) for ni in ns]
+        Xp, Yv = cp.Parameter((m,k+1)), [cp.Variable((k+1,ni)) for ni in ns]
         Xp.value = copy(X0)
         for yj, yj0 in zip(Yp, Y0): yj.value = copy(yj0)
         onesM = cp.Constant(ones((m,1)))
 
-        obj = sum(L(Aj, cp.mul_elemwise(mask, Xv*yj[:-1,:] \
+        obj = sum(L(Aj, cp.multiply(mask, Xv*yj[:-1,:] \
                 + onesM*yj[-1:,:]) + offset) + ry(yj[:-1,:])\
                 for L, Aj, yj, mask, offset, ry in \
                 zip(self.L, A, Yp, self.masks, self.offsets, regY)) + regX(Xv)
         pX = cp.Problem(cp.Minimize(obj))
         pY = [cp.Problem(cp.Minimize(\
-                L(Aj, cp.mul_elemwise(mask, Xp*yj) + offset) \
+                L(Aj, cp.multiply(mask, Xp*yj) + offset) \
                 + ry(yj[:-1,:]) + regX(Xp))) \
                 for L, Aj, yj, mask, offset, ry in zip(self.L, A, Yv, self.masks, self.offsets, regY)]
 
@@ -133,7 +143,9 @@ class GLRM(object):
 
     def _initialize_XY(self, B, k, missing_list):
         """ Scale by ration of non-missing, SVD, append col of ones, add noise. """
-        A = hstack(bi for bi in B)
+        # A = hstack(bi for bi in B)
+        A = hstack(B)
+
         m, n = A.shape
 
         # normalize entries that are missing
@@ -161,7 +173,8 @@ class GLRM(object):
 
     def _finalize_XY(self, Xv, Yv):
         """ Multiply by std, offset by mean """
-        m, k = Xv.shape.size
+        # m, k = Xv.shape.size
+        m, k = Xv.shape
         self.X = asarray(hstack((Xv.value, ones((m,1)))))
         self.Y = [asarray(yj.value)*tile(mask[0,:],(k+1,1)) \
                 for yj, mask in zip(Yv, self.masks)]
