@@ -19,11 +19,11 @@ Original parent commit: `248cb9b3cdb3ae5ef6783b20c0edbffa8119f847`.
 
 All existing research source changes were preserved as found. Syntax validation passed for the two changed synthesis modules and seven GLRM modules; both notebooks contain valid JSON. Training and experiment reruns were not performed. Known correctness issues remain documented in audit/AUDIT.md.
 
-Installed dependencies in audit/results_review/node_modules (a directory link) and pyglrm/.eggs are excluded from commits. No research files were deleted. Failed Git packing and LFS staging encountered memory/disk limits; stale temporary Git files were removed and the checkpoint commits were completed with automatic packing disabled for the commit commands.
+Installed dependencies in audit/results_review/node_modules (a directory link) and pyglrm/.eggs are excluded from commits. Raw Drive HTML snapshots were subsequently omitted to remove embedded key strings; their parsed listings and research files are retained. Failed Git packing and LFS staging encountered memory/disk limits; stale temporary Git files were removed and the checkpoint commits were completed with automatic packing disabled for the commit commands.
 
 Existing ignored raw CSV datasets and pickle models remain on disk, outside this Git checkpoint. The old MNIST split/model folders total about 3.8 GiB, including the ZIP now captured through Git LFS. Audit CSV evidence is explicitly included. Other pre-existing ignored files elsewhere in the repository are also outside the checkpoint.
 
-This is a local checkpoint. Commits, nested repository commits and LFS objects have not been pushed. The repository already used GLRM/pyglrm Git links without a .gitmodules file; preserve those local repositories with the parent repository. The tag records the parent commit, both nested repository states and the archive LFS pointer.
+The original checkpoint and nested backups were pushed to lequ02/TabularDA. A sanitized replacement is prepared locally; see audit/SECRET_SCAN.md for its scope and publication status. The repository already used GLRM/pyglrm Git links without a .gitmodules file; preserve those local repositories with the parent repository. The tag records the parent commit, both nested repository states and the archive LFS pointer.
 
 ## Main repository commits
 
@@ -36,13 +36,13 @@ This is a local checkpoint. Commits, nested repository commits and LFS objects h
 | `65a9e7e` | Exclude installed research dependencies |
 | `db1f5ff` | Preserve SDGym dataset metadata |
 | `555ee10` | Preserve code and data audit evidence |
-| `c7ee453` | Preserve historical research result reconstruction |
-| `ae9a77b` | Preserve research results review and supporting evidence |
-| `6e77c2b` | Preserve research posters and supporting figures |
-| `062e8ba` | Checkpoint archived MNIST ensemble logs and model bundle |
-| `9384598` | Checkpoint existing tracked Python bytecode |
-| `911d8d3` | Preserve nested GLRM repository checkpoints |
-| `761f180` | Preserve audit CSV tables and experiment logs |
+| `edf5728` | Preserve historical research result reconstruction |
+| `c92edf0` | Preserve research results review and supporting evidence |
+| `8f49fdb` | Preserve research posters and supporting figures |
+| `c9e105b` | Checkpoint archived MNIST ensemble logs and model bundle |
+| `3fe2ea7` | Checkpoint existing tracked Python bytecode |
+| `da84027` | Preserve nested GLRM repository checkpoints |
+| `0e9a1b8` | Preserve audit CSV tables and experiment logs |
 
 A final inventory commit adds this document; the named checkpoint tag includes that commit.
 
@@ -315,59 +315,32 @@ A	audit/results_review/analysis_output.txt
 A	audit/results_review/analyze.py
 A	audit/results_review/archive_manifest.json
 A	audit/results_review/build_comparison.py
-A	audit/results_review/drive/107D2dLcVBlknbsNSFN6yw42Wqo04MR4s.html
 A	audit/results_review/drive/107D2dLcVBlknbsNSFN6yw42Wqo04MR4s.json
-A	audit/results_review/drive/15eDjTcRVcsAgAMeQUjoDt7Q1OkGI1W1Y.html
 A	audit/results_review/drive/15eDjTcRVcsAgAMeQUjoDt7Q1OkGI1W1Y.json
-A	audit/results_review/drive/17AdUQkXb9Jr0kKN6og9NfXV5qS6uwKQ4.html
 A	audit/results_review/drive/17AdUQkXb9Jr0kKN6og9NfXV5qS6uwKQ4.json
-A	audit/results_review/drive/18L3VF2Hfab3b5Xgdd87qEaAnp0X1fhzG.html
 A	audit/results_review/drive/18L3VF2Hfab3b5Xgdd87qEaAnp0X1fhzG.json
-A	audit/results_review/drive/196WozcMkIR6bZET4lu0LI5QWS_q2nKU1.html
 A	audit/results_review/drive/196WozcMkIR6bZET4lu0LI5QWS_q2nKU1.json
-A	audit/results_review/drive/1COKnOxUlPOO2_VCy8ItMUhuCWiucY73S.html
 A	audit/results_review/drive/1COKnOxUlPOO2_VCy8ItMUhuCWiucY73S.json
-A	audit/results_review/drive/1FDGcbQCR6jBwoey2iHu7IOpX056wLdpK.html
 A	audit/results_review/drive/1FDGcbQCR6jBwoey2iHu7IOpX056wLdpK.json
-A	audit/results_review/drive/1FqPwSMx8C9e-iQhonYhb6hIcKbFh82aG.html
 A	audit/results_review/drive/1FqPwSMx8C9e-iQhonYhb6hIcKbFh82aG.json
-A	audit/results_review/drive/1GnYTdAjuhlW_2e9s6JyeM9q0XUHhu2nV.html
 A	audit/results_review/drive/1GnYTdAjuhlW_2e9s6JyeM9q0XUHhu2nV.json
-A	audit/results_review/drive/1HJw5bN1sE3U-ws-Hpu97m5FXxgwJlY65.html
 A	audit/results_review/drive/1HJw5bN1sE3U-ws-Hpu97m5FXxgwJlY65.json
-A	audit/results_review/drive/1I87Rpgt_ro5rLajwXH0oS8O3BD2bteZW.html
 A	audit/results_review/drive/1I87Rpgt_ro5rLajwXH0oS8O3BD2bteZW.json
-A	audit/results_review/drive/1Ic2S7_5cvE7A0M3zBtinNMqQnubGWqMw.html
 A	audit/results_review/drive/1Ic2S7_5cvE7A0M3zBtinNMqQnubGWqMw.json
-A	audit/results_review/drive/1JIzMWt42hemUYcDbEYzQWe5CgPxM-542.html
 A	audit/results_review/drive/1JIzMWt42hemUYcDbEYzQWe5CgPxM-542.json
-A	audit/results_review/drive/1LbwAglbRrSvlBEomeOiAYhrsCiFAxdIx.html
 A	audit/results_review/drive/1LbwAglbRrSvlBEomeOiAYhrsCiFAxdIx.json
-A	audit/results_review/drive/1NGFuyRVRSxubA_LVzhlzee3Y9W1i1Bnh.html
 A	audit/results_review/drive/1NGFuyRVRSxubA_LVzhlzee3Y9W1i1Bnh.json
-A	audit/results_review/drive/1S4KDDgbN5QZbnCtNiZJR3y0Jp7RHIRWm.html
 A	audit/results_review/drive/1S4KDDgbN5QZbnCtNiZJR3y0Jp7RHIRWm.json
-A	audit/results_review/drive/1Vobr0_G65x6p8J80LAdwurphQiga2KQb.html
 A	audit/results_review/drive/1Vobr0_G65x6p8J80LAdwurphQiga2KQb.json
-A	audit/results_review/drive/1WQiJuH6X2cGVlIGFGHYdl1JNXKSCkHBx.html
 A	audit/results_review/drive/1WQiJuH6X2cGVlIGFGHYdl1JNXKSCkHBx.json
-A	audit/results_review/drive/1_HFUiVO69L-symSqTZX1sErVAsORipiC.html
 A	audit/results_review/drive/1_HFUiVO69L-symSqTZX1sErVAsORipiC.json
-A	audit/results_review/drive/1biOfN8us1SZE1FQgBGDF5UVmnNlN49BR.html
 A	audit/results_review/drive/1biOfN8us1SZE1FQgBGDF5UVmnNlN49BR.json
-A	audit/results_review/drive/1kmXKrzcvTVLzwD5_ZySjKYCYGZ8LOeRF.html
 A	audit/results_review/drive/1kmXKrzcvTVLzwD5_ZySjKYCYGZ8LOeRF.json
-A	audit/results_review/drive/1l1Dp6yDA7-OeM5bnA1LF-qm0Op5qrDSH.html
 A	audit/results_review/drive/1l1Dp6yDA7-OeM5bnA1LF-qm0Op5qrDSH.json
-A	audit/results_review/drive/1lY5lnMajCZ_MU09mh3u98IjkiNvBVkiC.html
 A	audit/results_review/drive/1lY5lnMajCZ_MU09mh3u98IjkiNvBVkiC.json
-A	audit/results_review/drive/1m2ajH-MfeiJr4omWZzhYWcrWG8jnfO7m.html
 A	audit/results_review/drive/1m2ajH-MfeiJr4omWZzhYWcrWG8jnfO7m.json
-A	audit/results_review/drive/1qCzp8WPPjk4wh9kxOaqDZQlswpD0KHY6.html
 A	audit/results_review/drive/1qCzp8WPPjk4wh9kxOaqDZQlswpD0KHY6.json
-A	audit/results_review/drive/1sgkvQjAHTv34FHHlkndWHwsdgr3gMHvD.html
 A	audit/results_review/drive/1sgkvQjAHTv34FHHlkndWHwsdgr3gMHvD.json
-A	audit/results_review/drive/1zmeYpVvcR896da3_sU2fhVvuDxiM2S66.html
 A	audit/results_review/drive/1zmeYpVvcR896da3_sU2fhVvuDxiM2S66.json
 A	audit/results_review/drive/best_result_from_csv.ipynb
 A	audit/results_review/drive/final_results.csv
@@ -448,7 +421,6 @@ A	audit/results_review/drive/logs/1vx-qIg0U0VgXgrRkJoove6m74hl1Dazw.csv
 A	audit/results_review/drive/logs/1wVqYFcNj2pWREQPZLJ2RC_Zqmj-YQa21.csv
 A	audit/results_review/drive/logs/1xTU93bKZoSrNMoRMyjuEFNkwRrC9TO9W.csv
 A	audit/results_review/drive/logs/1yq2eyFp1SHkOOOOwg8q9i4b8SKyQEZuH.csv
-A	audit/results_review/drive_folder.html
 A	audit/results_review/drive_read.py
 A	audit/results_review/inspect.mjs
 A	audit/results_review/local_download.py
@@ -648,3 +620,7 @@ These files are outside the Git checkpoint.
 | SDGym/datasets/insurance/insurance.csv | 3927307 |
 | SDGym/datasets/intrusion/intrusion.csv | 50164050 |
 | SDGym/datasets/news/news.csv | 6192526 |
+
+## Secret cleanup
+
+The checkpoint commits were reconstructed to omit 28 raw Drive HTML snapshots and redact eight signed download URL tokens. A final cleanup commit adds ignore rules, prevents raw HTML persistence, configures secret scanning, and records the scan scope in audit/SECRET_SCAN.md.

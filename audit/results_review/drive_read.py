@@ -7,7 +7,7 @@ OUT.mkdir(exist_ok=True)
 def listing(fid):
     url='https://drive.google.com/drive/folders/'+fid
     with urllib.request.urlopen(url,timeout=40) as r: html=r.read(8000000).decode('utf-8')
-    (OUT/(fid+'.html')).write_text(html,encoding='utf-8')
+    # Keep only the parsed listing. Drive HTML embeds application credentials.
     m=re.search(r"_DRIVE_ivd'\]\s*=\s*'(.*?)';",html,re.S)
     if not m:raise ValueError('No public file listing: '+fid)
     s=re.sub(r'\\x([0-9a-fA-F]{2})',lambda m:chr(int(m[1],16)),m[1])
