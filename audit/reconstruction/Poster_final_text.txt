@@ -1,0 +1,89 @@
+Synthesis and Augmentation for Structured Data
+Minh Le et al.
+Advisor: Dr. Thuy Do
+Department of Computer Science
+Luther College
+Introduction
+Generating high-fidelity synthetic tabular data is
+challenging due to complex column distributions
+(multimodal, imbalanced) and mixed data types
+(discrete/continuous). While generative models like
+GANs (e.g., CTGAN, TVAE) have advanced the field, a
+gap often remains between synthetic and real data
+quality. This work aims to improve the realism of
+generated synthetic structured data.
+References
+1. Breiman, Leo. "Random forests." Machine learning
+45 (2001): 5-32.
+2. Chen, Tianqi, and Carlos Guestrin. "Xgboost: A
+scalable tree boosting system." Proceedings of the
+22nd acm sigkdd international conference on
+knowledge discovery and data mining. 2016.
+3. Goodfellow, Ian, et al. "Generative adversarial
+networks." Communications of the ACM 63.11
+(2020): 139-144.
+4. Xu, Lei, et al. "Modeling tabular data using
+conditional gan." Advances in neural information
+processing systems 32 (2019).
+Conclusion
+Æ Decoupled Synthesis Enhances Utility :
+Generating features (X syn)a n dt a r g e t s
+(ysyn) separately produces higher-quality
+synthetic data compared to end-to-end
+methods, evidenced by significantly
+improved downstream F1-macro scores.
+Æ Optimize Feature Generation :E x c l u d i n g
+the target variable (y) during feature
+synthesis is recommended; it offers
+computational savings with negligible
+impact on final model performance.
+Results
+Our decoupled synthesis approach significantly improves upon
+standard end-to-end generation:
+• Achieved an average F1-macro improvement of 0.0736 ( 10.86%
+relative increase ) over baseline. This significant gain was
+consistent across 6 datasets and various generative models
+• Including target y during feature X synthesis offered negligible
+benefit, yielding only a marginal (+ 0.3% F1-macro) and
+statistically insignificant (p=0.5091) improvement. This indicates
+potential for model simplification without performance loss
+Future Work
+More Validation: Evaluate the proposed
+pipeline across a more extensive and diverse
+range of datasets.
+Task Expansion :A d a p ta n dt e s tt h e
+decoupled approach for regression tasks, not
+just classification.
+Xsynthesizer Research:I m p l e m e n ta d v a n c e d
+techniques (e.g., incorporating Fourier
+features) to further improve the quality of the
+feature synthesizer .
+Data & Evaluation
+We evaluate synthetic data quality using its practical
+utility in a ML task across 6 datasets.
+1. A Deep Neural Network (DNN) is trained only on
+the generated synthetic data.
+2. The DNN is then tested on unseen real data (the
+test set).
+3. We measure this performance using the F1-
+macro score (ranging from 0 to 1), where higher
+scores indicate better recall & precision.
+Strong performance by the DNN on real data
+signifies that the synthetic data realistically captures
+the original data's patterns.
+Method
+We propose a decoupled synthesis pipeline ,s e p a r a t i n gf e a t u r e( Xsyn)a n dt a r g e t( ysyn) generation, to replace the current
+modulus pipeline outlined in Xu et al. [4].
+Additionally, we investigate the impact of excluding the target y during the training of the feature generator (X synthesizerലͿon
+downstream performance and resource usage.
+1. Generate X syn using a chosen
+generative model (e.g., CTGAN,
+TVAE) trained on real features X
+0
+2. Train a predictive model (e.g.,
+XGBoost, Random Forest) on the
+original (X
+0 ,y 0)d a t a
+3. Use the trained target predictor to
+generate ysyn based on Xsyn
+Data Synthesis Pipelines Flowchart

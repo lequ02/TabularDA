@@ -1,0 +1,1702 @@
+PAGE 1
+Statistical Analysis for Research on Synthesis Methods for
+Structured Data
+Minh Le
+2025-04-26
+load_libraries <- function()
+{
+library(emmeans)
+library(car)
+library(lme4)
+library(lmerTest)
+library(ggplot2)
+library(dplyr)
+library(MASS)
+}
+load_libraries()
+## Warning: package 'emmeans' was built under R version 4.4.2
+## Welcome to emmeans.
+## Caution: You lose important information if you filter this package's results.
+## See '? untidy'
+## Loading required package: carData
+## Warning: package 'lme4' was built under R version 4.4.3
+## Loading required package: Matrix
+## Warning: package 'lmerTest' was built under R version 4.4.3
+##
+## Attaching package: 'lmerTest'
+## The following object is masked from 'package:lme4':
+##
+## lmer
+## The following object is masked from 'package:stats':
+##
+## step
+1
+
+PAGE 2
+## Warning: package 'ggplot2' was built under R version 4.4.3
+##
+## Attaching package: 'dplyr'
+## The following object is masked from 'package:car':
+##
+## recode
+## The following objects are masked from 'package:stats':
+##
+## filter, lag
+## The following objects are masked from 'package:base':
+##
+## intersect, setdiff, setequal, union
+##
+## Attaching package: 'MASS'
+## The following object is masked from 'package:dplyr':
+##
+## select
+load_data <- function(csv_path) {
+df = read.csv(csv_path)
+df$has_y = as.factor(df$has_y)
+df$tvae = as.factor(df$tvae)
+df$method = as.factor(df$method)
+df$approach = as.factor(df$approach)
+df$dataset = as.factor(df$dataset)
+df$y_synth = as.factor(df$y_synth)
+return (df)
+}
+summary_table <- function(df, exclude_list_for = c("method", "macro_max")) {
+# Check if the input is a dataframe
+if (!is.data.frame(df)) {
+stop("Input must be a data frame.")
+}
+# Get column names
+col_names <- names(df)
+# Apply the 'unique' function to each column and get the list of unique values
+unique_values_list <- lapply(df, unique)
+# Calculate the count of unique values for each column
+unique_counts <- sapply(unique_values_list, length)
+# Convert the list of unique values to a character string representation
+2
+
+PAGE 3
+# Conditionally exclude the list for specified columns
+unique_values_strings <- sapply(col_names, function(col_name) {
+# Check if the current column name is in the exclusion list
+if (col_name %in% exclude_list_for) {
+# Return an empty string or a placeholder if the list should be excluded
+return("[List Excluded]") # Or use "" or NA_character_ if preferred
+} else {
+# Otherwise, get the unique values for this column
+vals <- unique_values_list[[col_name]]
+# Sort values for consistency. This might error if types can 't be compared.
+vals_sorted <- sort(vals)
+# Paste the sorted values into a single string
+paste(as.character(vals_sorted), collapse = ", ")
+}
+})
+# Create the summary dataframe
+summary_df <- data.frame(
+ColumnName = col_names,
+UniqueCount = unique_counts,
+UniqueValues = unique_values_strings,
+row.names = NULL # Optional: removes row names
+)
+# Return the resulting table
+return(summary_df)
+}
+1. Introduction
+Generating high-fidelity synthetic tabular data is challenging due to complex data distributions (multimodal,
+imbalanced) and mixed data types (discrete/continuous). While generative models like CTGAN & TVAE
+have advanced the field, a gap remains between synthetic and real data quality. We propose a decoupled
+method, improving synthetic data realism by 11% compared to SOTA models.
+2. Data Preparation and Exploration
+df_nog = load_data('April29_macro_max_mfa_no_gauss.csv')
+head(df_nog)
+## method has_y tvae approach dataset macro_max
+## 1 categorical 0 0 new Adult 0.7187077
+## 2 compare_sdv_categorical 1 0 new Adult 0.7184464
+## 3 compare_sdv_pca_gmm 1 0 new Adult 0.7335439
+## 4 compare_sdv_rf 1 0 new Adult 0.7687176
+## 5 compare_sdv_tvae_categoricalNB 1 1 new Adult 0.7137558
+## 6 compare_sdv_tvae_pca_gmm 1 1 new Adult 0.7291849
+## y_synth
+3
+
+PAGE 4
+## 1 categorical
+## 2 categorical
+## 3 pca_gmm
+## 4 rf
+## 5 categorical
+## 6 pca_gmm
+summary_table(df_nog)
+## ColumnName UniqueCount UniqueValues
+## 1 method 18 [List Excluded]
+## 2 has_y 2 0, 1
+## 3 tvae 2 0, 1
+## 4 approach 2 new, old
+## 5 dataset 6 Adult, Census, Census_Kdd, Covertype, MNIST12, MNIST28
+## 6 macro_max 108 [List Excluded]
+## 7 y_synth 6 categorical, ctgan, pca_gmm, rf, tvae, xgb
+# --- Step 1: Reorder y_synth factor levels ---
+desired_order <- c("ctgan", "tvae", "categorical", "pca_gmm", "rf", "xgb")
+df_nog$y_synth <- factor(df_nog$y_synth, levels = desired_order)
+df_nog is data frame containing F1-macro scores without Gaussian y_synth methods.
+y_synth and approach have perfect collinearity Approach is “old” when y_synth is “tvae” or “ctgan”;
+approach is “new” otherwise.
+This is an unbalanced experiment. Each ‘method’ is a unique viable/possible combinations of the factors
+“y_synth”, “has_y”, and “tvae”. Because the count(method)=18 < 622=24, this is an unbalanced experi-
+ment. For example, the combination of (y_synth=ctgan, has_y=0, tvae=1) does not exits.
+df_nog %>% ggplot(aes(x=y_synth, y=macro_max, color=tvae, group=tvae)) +
+geom_point() +
+facet_wrap(~has_y) +
+stat_summary(fun=mean, geom='line')
+4
+
+PAGE 5
+0 1
+ctgan tvaecategoricalpca_gmm rf xgb ctgan tvaecategoricalpca_gmm rf xgb
+0.4
+0.6
+0.8
+y_synth
+macro_max
+tvae
+0
+1
+df_nog %>% ggplot(aes(x=y_synth, y=macro_max, color=dataset, group=dataset)) +
+geom_point() +
+facet_wrap(~has_y+tvae, labeller=label_both) +
+stat_summary(fun=mean, geom='line')
+5
+
+PAGE 6
+has_y: 1
+tvae: 0
+has_y: 1
+tvae: 1
+has_y: 0
+tvae: 0
+has_y: 0
+tvae: 1
+ctgan tvaecategoricalpca_gmm rf xgb ctgan tvaecategoricalpca_gmm rf xgb
+0.4
+0.6
+0.8
+0.4
+0.6
+0.8
+y_synth
+macro_max
+dataset
+Adult
+Census
+Census_Kdd
+Covertype
+MNIST12
+MNIST28
+3. Initial Model Fitting (Full Interaction)
+Model 1: Full Interaction Model (All Interactions)
+full_model <- function(df_nog) {
+# Includes main effects and ALL possible interactions (two-way, three-way, etc.).
+cat("--- Model 1: Full Interaction Model ---\n")
+# The formula `A * B * ... ` expands to main effects + all possible interactions.
+model_full_interactions <- lm(macro_max ~ has_y * tvae * dataset * y_synth, data = df_nog) # not include 'approach' because of collinearity
+cat("--- Summary for Full Interaction Model ---\n")
+# Summary might show NAs for coefficients if the model is over-specified for the data.
+cat("Hidden because it's too long\n")
+#summary(model_full_interactions)
+cat("\n--- ANOVA Table for Full Interaction Model ---\n")
+print(anova(model_full_interactions))
+# library(car)
+# Anova(model_full_interactions, type="III")
+cat("\n")
+#return(model_full_interactions)
+invisible(model_full_interactions) # Return invisibly if called like: new_model <- full_model(df)
+6
+
+PAGE 7
+}
+full_model(df_nog)
+## --- Model 1: Full Interaction Model ---
+## --- Summary for Full Interaction Model ---
+## Hidden because it's too long
+##
+## --- ANOVA Table for Full Interaction Model ---
+## Warning in anova.lm(model_full_interactions): ANOVA F-tests on an essentially
+## perfect fit are unreliable
+## Analysis of Variance Table
+##
+## Response: macro_max
+## Df Sum Sq Mean Sq F value Pr(>F)
+## has_y 1 0.00845 0.008452 NaN NaN
+## tvae 1 0.00956 0.009564 NaN NaN
+## dataset 5 1.21235 0.242470 NaN NaN
+## y_synth 5 0.23215 0.046430 NaN NaN
+## has_y:tvae 1 0.00024 0.000244 NaN NaN
+## has_y:dataset 5 0.00697 0.001393 NaN NaN
+## tvae:dataset 5 0.08339 0.016679 NaN NaN
+## has_y:y_synth 3 0.00019 0.000065 NaN NaN
+## tvae:y_synth 3 0.00241 0.000803 NaN NaN
+## dataset:y_synth 25 0.24035 0.009614 NaN NaN
+## has_y:tvae:dataset 5 0.00016 0.000031 NaN NaN
+## has_y:tvae:y_synth 3 0.00037 0.000122 NaN NaN
+## has_y:dataset:y_synth 15 0.00046 0.000030 NaN NaN
+## tvae:dataset:y_synth 15 0.00773 0.000515 NaN NaN
+## has_y:tvae:dataset:y_synth 15 0.00234 0.000156 NaN NaN
+## Residuals 0 0.00000 NaN
+The full interaction model is too complicated and there is not enough data points for residuals. So, we use
+a simpler and better designed model
+4. Addressing Model Complexity (Blocking Approach)
+Model 2: Dataset as a blocking factor
+full_model_blocking <- function(df_nog) {
+# Includes main effects and ALL possible interactions (two-way, three-way, etc.).
+cat("--- Model 2: Blocking ---\n")
+# The formula `A * B * ... ` expands to main effects + all possible interactions.
+model_block <- lm(macro_max ~ dataset+ has_y * tvae * y_synth, data = df_nog) # not include 'approach' because of collinearity
+cat("--- Summary for Full Interaction Model ---\n")
+# Summary might show NAs for coefficients if the model is over-specified for the data.
+print(summary(model_block))
+7
+
+PAGE 8
+cat("\n--- ANOVA Table (type I) for Blocking Model ---\n")
+print(anova(model_block)) # type I (sequential) ANOVA
+# Check for aliased coefficients directly
+cat("\n--- Alias check for User Blocking Model ---\n")
+print(alias(model_block))
+cat("Cannot compute Type III ANOVA due to collinearity/aliases")
+# commented out because NA in ANOVA type III will return error with NA in model_block
+#library(car)
+#Anova(model_block, type="III")
+#cat("\n")
+invisible(model_block) # Return invisibly if called like: new_model <- full_model(df)
+}
+full_model_blocking(df_nog)
+## --- Model 2: Blocking ---
+## --- Summary for Full Interaction Model ---
+##
+## Call:
+## lm(formula = macro_max ~ dataset + has_y * tvae * y_synth, data = df_nog)
+##
+## Residuals:
+## Min 1Q Median 3Q Max
+## -0.27836 -0.01924 -0.00251 0.01551 0.14768
+##
+## Coefficients: (6 not defined because of singularities)
+## Estimate Std. Error t value Pr(>|t|)
+## (Intercept) 0.639592 0.046841 13.654 < 2e-16 ***
+## datasetCensus 0.001341 0.021125 0.063 0.94952
+## datasetCensus_Kdd 0.001938 0.021125 0.092 0.92712
+## datasetCovertype -0.224874 0.021125 -10.645 < 2e-16 ***
+## datasetMNIST12 0.089083 0.021125 4.217 6.16e-05 ***
+## datasetMNIST28 0.095259 0.021125 4.509 2.07e-05 ***
+## has_y1 -0.011137 0.036589 -0.304 0.76158
+## tvae1 0.012500 0.036589 0.342 0.73347
+## y_synthtvae 0.078286 0.051745 1.513 0.13401
+## y_synthcategorical 0.074696 0.051745 1.444 0.15254
+## y_synthpca_gmm 0.088927 0.051745 1.719 0.08934 .
+## y_synthrf 0.155595 0.051745 3.007 0.00347 **
+## y_synthxgb 0.155552 0.036589 4.251 5.43e-05 ***
+## has_y1:tvae1 0.019659 0.051745 0.380 0.70496
+## has_y1:y_synthtvae NA NA NA NA
+## has_y1:y_synthcategorical 0.011699 0.051745 0.226 0.82167
+## has_y1:y_synthpca_gmm 0.002666 0.051745 0.052 0.95903
+## has_y1:y_synthrf 0.005124 0.051745 0.099 0.92136
+## has_y1:y_synthxgb NA NA NA NA
+## tvae1:y_synthtvae NA NA NA NA
+## tvae1:y_synthcategorical -0.007863 0.051745 -0.152 0.87958
+## tvae1:y_synthpca_gmm -0.019529 0.051745 -0.377 0.70681
+## tvae1:y_synthrf -0.005880 0.051745 -0.114 0.90979
+8
+
+PAGE 9
+## tvae1:y_synthxgb NA NA NA NA
+## has_y1:tvae1:y_synthtvae NA NA NA NA
+## has_y1:tvae1:y_synthcategorical -0.020037 0.073179 -0.274 0.78490
+## has_y1:tvae1:y_synthpca_gmm -0.016800 0.073179 -0.230 0.81898
+## has_y1:tvae1:y_synthrf -0.016311 0.073179 -0.223 0.82416
+## has_y1:tvae1:y_synthxgb NA NA NA NA
+## ---
+## Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+##
+## Residual standard error: 0.06337 on 85 degrees of freedom
+## Multiple R-squared: 0.8111, Adjusted R-squared: 0.7622
+## F-statistic: 16.59 on 22 and 85 DF, p-value: < 2.2e-16
+##
+##
+## --- ANOVA Table (type I) for Blocking Model ---
+## Analysis of Variance Table
+##
+## Response: macro_max
+## Df Sum Sq Mean Sq F value Pr(>F)
+## dataset 5 1.21235 0.242470 60.3706 < 2.2e-16 ***
+## has_y 1 0.00845 0.008452 2.1044 0.1506
+## tvae 1 0.00956 0.009564 2.3813 0.1265
+## y_synth 5 0.23215 0.046430 11.5601 1.566e-08 ***
+## has_y:tvae 1 0.00024 0.000244 0.0606 0.8061
+## has_y:y_synth 3 0.00019 0.000065 0.0161 0.9972
+## tvae:y_synth 3 0.00241 0.000803 0.1999 0.8962
+## has_y:tvae:y_synth 3 0.00037 0.000122 0.0303 0.9928
+## Residuals 85 0.34139 0.004016
+## ---
+## Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+##
+## --- Alias check for User Blocking Model ---
+## Model :
+## macro_max ~ dataset + has_y * tvae * y_synth
+##
+## Complete :
+## (Intercept) datasetCensus datasetCensus_Kdd
+## has_y1:y_synthtvae 0 0 0
+## has_y1:y_synthxgb -1 0 0
+## tvae1:y_synthtvae 0 0 0
+## tvae1:y_synthxgb 0 0 0
+## has_y1:tvae1:y_synthtvae 0 0 0
+## has_y1:tvae1:y_synthxgb 0 0 0
+## datasetCovertype datasetMNIST12 datasetMNIST28 has_y1
+## has_y1:y_synthtvae 0 0 0 0
+## has_y1:y_synthxgb 0 0 0 1
+## tvae1:y_synthtvae 0 0 0 0
+## tvae1:y_synthxgb 0 0 0 0
+## has_y1:tvae1:y_synthtvae 0 0 0 0
+## has_y1:tvae1:y_synthxgb 0 0 0 0
+## tvae1 y_synthtvae y_synthcategorical y_synthpca_gmm
+## has_y1:y_synthtvae 0 1 0 0
+## has_y1:y_synthxgb 0 0 1 1
+## tvae1:y_synthtvae 0 1 0 0
+9
+
+PAGE 10
+## tvae1:y_synthxgb 1 -1 0 0
+## has_y1:tvae1:y_synthtvae 0 1 0 0
+## has_y1:tvae1:y_synthxgb 0 -1 0 0
+## y_synthrf y_synthxgb has_y1:tvae1
+## has_y1:y_synthtvae 0 0 0
+## has_y1:y_synthxgb 1 1 0
+## tvae1:y_synthtvae 0 0 0
+## tvae1:y_synthxgb 0 0 0
+## has_y1:tvae1:y_synthtvae 0 0 0
+## has_y1:tvae1:y_synthxgb 0 0 1
+## has_y1:y_synthcategorical has_y1:y_synthpca_gmm
+## has_y1:y_synthtvae 0 0
+## has_y1:y_synthxgb -1 -1
+## tvae1:y_synthtvae 0 0
+## tvae1:y_synthxgb 0 0
+## has_y1:tvae1:y_synthtvae 0 0
+## has_y1:tvae1:y_synthxgb 0 0
+## has_y1:y_synthrf tvae1:y_synthcategorical
+## has_y1:y_synthtvae 0 0
+## has_y1:y_synthxgb -1 0
+## tvae1:y_synthtvae 0 0
+## tvae1:y_synthxgb 0 -1
+## has_y1:tvae1:y_synthtvae 0 0
+## has_y1:tvae1:y_synthxgb 0 0
+## tvae1:y_synthpca_gmm tvae1:y_synthrf
+## has_y1:y_synthtvae 0 0
+## has_y1:y_synthxgb 0 0
+## tvae1:y_synthtvae 0 0
+## tvae1:y_synthxgb -1 -1
+## has_y1:tvae1:y_synthtvae 0 0
+## has_y1:tvae1:y_synthxgb 0 0
+## has_y1:tvae1:y_synthcategorical
+## has_y1:y_synthtvae 0
+## has_y1:y_synthxgb 0
+## tvae1:y_synthtvae 0
+## tvae1:y_synthxgb 0
+## has_y1:tvae1:y_synthtvae 0
+## has_y1:tvae1:y_synthxgb -1
+## has_y1:tvae1:y_synthpca_gmm has_y1:tvae1:y_synthrf
+## has_y1:y_synthtvae 0 0
+## has_y1:y_synthxgb 0 0
+## tvae1:y_synthtvae 0 0
+## tvae1:y_synthxgb 0 0
+## has_y1:tvae1:y_synthtvae 0 0
+## has_y1:tvae1:y_synthxgb -1 -1
+##
+## Cannot compute Type III ANOVA due to collinearity/aliases
+The table shows the linear dependencies (aliasing) among the coefficients. Specifically:
+has_y1:y_synthctgan, has_y1:y_synthtvae, tvae1:y_synthctgan, tvae1:y_synthtvae: These two-way inter-
+action terms involving the ctgan and tvae levels of y_synth are aliased. They are linearly dependent on their
+corresponding main effects (y_synthctgan, y_synthtvae, tvae1). For example, when it is y_synthctgan, we
+automatically know it is also has_y1 because has_y0 does not exist for y_synthctgan.
+10
+
+PAGE 11
+has_y1:tvae1:y_synthctgan, has_y1:tvae1:y_synthtvae: Similarly, the three-way interaction terms involving
+ctgan and tvae are aliased, depending on lower-order terms like the two-way interaction has_y1:tvae1 and
+the main effect y_synthtvae.
+Thisaliasingisadirectconsequenceofyourunbalancedexperimentaldesignandmissingfactorcombinations.
+Because there is collinearity even with 2-way interactions, the factors “has_y”, “tvae”, “y_synth” cannot
+have any interactions with each other
+The column method is a combination of has_y, tvae, and y_synth
+full_model_blocking_method <- function(df_nog) {
+# Includes main effects and ALL possible interactions (two-way, three-way, etc.).
+cat("--- Model 2: Blocking ---\n")
+# The formula `A * B * ... ` expands to main effects + all possible interactions.
+model_block <- lm(macro_max ~ dataset + method, data = df_nog)
+cat("--- Summary for Full Interaction Model ---\n")
+# Summary might show NAs for coefficients if the model is over-specified for the data.
+print(summary(model_block))
+cat("\n--- ANOVA Table (type I) for Blocking Model ---\n")
+print(anova(model_block)) # type I (sequential) ANOVA
+# Check for aliased coefficients directly
+cat("\n--- Alias check for User Blocking Model ---\n")
+print(alias(model_block))
+print(Anova(model_block, type="III"))
+#cat("\n")
+invisible(model_block) # Return invisibly if called like: new_model <- full_model(df)
+}
+full_model_blocking_method(df_nog)
+## --- Model 2: Blocking ---
+## --- Summary for Full Interaction Model ---
+##
+## Call:
+## lm(formula = macro_max ~ dataset + method, data = df_nog)
+##
+## Residuals:
+## Min 1Q Median 3Q Max
+## -0.27836 -0.01924 -0.00251 0.01551 0.14768
+##
+## Coefficients:
+## Estimate Std. Error t value Pr(>|t|)
+## (Intercept) 0.714288 0.029246 24.423 < 2e-16 ***
+## datasetCensus 0.001341 0.021125 0.063 0.94952
+## datasetCensus_Kdd 0.001938 0.021125 0.092 0.92712
+## datasetCovertype -0.224874 0.021125 -10.645 < 2e-16 ***
+## datasetMNIST12 0.089083 0.021125 4.217 6.16e-05 ***
+## datasetMNIST28 0.095259 0.021125 4.509 2.07e-05 ***
+## methodcompare_sdv_categorical 0.000562 0.036589 0.015 0.98778
+## methodcompare_sdv_pca_gmm 0.005759 0.036589 0.157 0.87531
+11
+
+PAGE 12
+## methodcompare_sdv_rf 0.074885 0.036589 2.047 0.04378 *
+## methodcompare_sdv_tvae_categoricalNB 0.004821 0.036589 0.132 0.89550
+## methodcompare_sdv_tvae_pca_gmm 0.001589 0.036589 0.043 0.96546
+## methodcompare_sdv_tvae_rf 0.084852 0.036589 2.319 0.02279 *
+## methodcompare_sdv_tvae_xgb 0.101878 0.036589 2.784 0.00661 **
+## methodcompare_sdv_xgb 0.069719 0.036589 1.905 0.06010 .
+## methodctgan -0.085834 0.036589 -2.346 0.02131 *
+## methodpca_gmm 0.014230 0.036589 0.389 0.69831
+## methodrf 0.080898 0.036589 2.211 0.02972 *
+## methodsdv_tvae_categorical 0.004637 0.036589 0.127 0.89945
+## methodsdv_tvae_pca_gmm 0.007202 0.036589 0.197 0.84444
+## methodsdv_tvae_rf 0.087518 0.036589 2.392 0.01897 *
+## methodsdv_tvae_xgb 0.093356 0.036589 2.551 0.01252 *
+## methodtvae 0.024611 0.036589 0.673 0.50301
+## methodxgb 0.080856 0.036589 2.210 0.02981 *
+## ---
+## Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+##
+## Residual standard error: 0.06337 on 85 degrees of freedom
+## Multiple R-squared: 0.8111, Adjusted R-squared: 0.7622
+## F-statistic: 16.59 on 22 and 85 DF, p-value: < 2.2e-16
+##
+##
+## --- ANOVA Table (type I) for Blocking Model ---
+## Analysis of Variance Table
+##
+## Response: macro_max
+## Df Sum Sq Mean Sq F value Pr(>F)
+## dataset 5 1.21235 0.242470 60.3706 < 2.2e-16 ***
+## method 17 0.25338 0.014904 3.7109 2.859e-05 ***
+## Residuals 85 0.34139 0.004016
+## ---
+## Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+##
+## --- Alias check for User Blocking Model ---
+## Model :
+## macro_max ~ dataset + method
+##
+## Anova Table (Type III tests)
+##
+## Response: macro_max
+## Sum Sq Df F value Pr(>F)
+## (Intercept) 2.39576 1 596.5002 < 2.2e-16 ***
+## dataset 1.21235 5 60.3706 < 2.2e-16 ***
+## method 0.25338 17 3.7109 2.859e-05 ***
+## Residuals 0.34139 85
+## ---
+## Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+We can see that both method and dataset are statistically significant. However, we don’t know which
+component from method (i.e: has_y, y_synth, tvae) contributes how much to that significance. Therefore,
+we fit a model with dataset interacting with one of the above method (because of colliniarity, interaction of
+the three above can’t be estimated).
+12
+
+PAGE 13
+5. Investigating Key Interactions (Dataset * y_synth)
+Model 3: y_synth*dataset
+one_inter <- function(df_nog) {
+# --- Fit the Original Model ---
+cat("--- Model 3: y_synth interact w/ dataset, has_y & tvae are main effects ---\n")
+# The formula `A * B * ... ` expands to main effects + all possible interactions.
+mod3 <- lm(macro_max ~ y_synth * dataset + has_y + tvae, data = df_nog) # not include 'approach' because of collinearity
+cat("\n--- Summary for Original Model ---\n")
+print(summary(mod3))
+cat("\n--- ANOVA Table (Type I) for Original Model ---\n")
+print(anova(mod3))
+cat("\n--- ANOVA Table (Type III) for Original Model ---\n")
+print(Anova(mod3, type="III"))
+cat("\n--- Diagnostic Plots for Original Model ---\n")
+# Plotting diagnostics for the original model
+par(mfrow = c(2, 2)) # Arrange plots in a 2x2 grid
+plot(mod3)
+par(mfrow = c(1, 1)) # Reset plotting layout
+invisible(mod3)
+}
+model_one_inter = one_inter(df_nog)
+## --- Model 3: y_synth interact w/ dataset, has_y & tvae are main effects ---
+##
+## --- Summary for Original Model ---
+##
+## Call:
+## lm(formula = macro_max ~ y_synth * dataset + has_y + tvae, data = df_nog)
+##
+## Residuals:
+## Min 1Q Median 3Q Max
+## -0.049815 -0.008368 0.000000 0.006255 0.055241
+##
+## Coefficients:
+## Estimate Std. Error t value Pr(>|t|)
+## (Intercept) 0.779209 0.023200 33.587 < 2e-16 ***
+## y_synthtvae -0.033103 0.032480 -1.019 0.311622
+## y_synthcategorical -0.065423 0.025625 -2.553 0.012860 *
+## y_synthpca_gmm -0.044420 0.025625 -1.733 0.087416 .
+## y_synthrf -0.009388 0.025625 -0.366 0.715202
+## y_synthxgb -0.010630 0.025625 -0.415 0.679535
+## datasetCensus -0.002758 0.032147 -0.086 0.931867
+## datasetCensus_Kdd -0.002628 0.032147 -0.082 0.935073
+## datasetCovertype -0.292610 0.032147 -9.102 1.72e-13 ***
+## datasetMNIST12 -0.294535 0.032147 -9.162 1.33e-13 ***
+## datasetMNIST28 -0.330772 0.032147 -10.289 1.20e-15 ***
+## has_y1 -0.003079 0.004640 -0.664 0.509102
+## tvae1 0.007368 0.004640 1.588 0.116815
+13
+
+PAGE 14
+## y_synthtvae:datasetCensus -0.009257 0.045463 -0.204 0.839243
+## y_synthcategorical:datasetCensus 0.002800 0.035941 0.078 0.938124
+## y_synthpca_gmm:datasetCensus 0.002846 0.035941 0.079 0.937107
+## y_synthrf:datasetCensus 0.008801 0.035941 0.245 0.807265
+## y_synthxgb:datasetCensus 0.006315 0.035941 0.176 0.861039
+## y_synthtvae:datasetCensus_Kdd 0.001898 0.045463 0.042 0.966814
+## y_synthcategorical:datasetCensus_Kdd 0.004231 0.035941 0.118 0.906622
+## y_synthpca_gmm:datasetCensus_Kdd 0.001861 0.035941 0.052 0.958843
+## y_synthrf:datasetCensus_Kdd 0.006346 0.035941 0.177 0.860351
+## y_synthxgb:datasetCensus_Kdd 0.007635 0.035941 0.212 0.832396
+## y_synthtvae:datasetCovertype -0.160552 0.045463 -3.532 0.000736 ***
+## y_synthcategorical:datasetCovertype 0.062216 0.035941 1.731 0.087848 .
+## y_synthpca_gmm:datasetCovertype 0.023287 0.035941 0.648 0.519160
+## y_synthrf:datasetCovertype 0.120264 0.035941 3.346 0.001321 **
+## y_synthxgb:datasetCovertype 0.139182 0.035941 3.872 0.000240 ***
+## y_synthtvae:datasetMNIST12 0.468987 0.045463 10.316 1.08e-15 ***
+## y_synthcategorical:datasetMNIST12 0.384507 0.035941 10.698 2.24e-16 ***
+## y_synthpca_gmm:datasetMNIST12 0.361566 0.035941 10.060 3.12e-15 ***
+## y_synthrf:datasetMNIST12 0.428391 0.035941 11.919 < 2e-16 ***
+## y_synthxgb:datasetMNIST12 0.434569 0.035941 12.091 < 2e-16 ***
+## y_synthtvae:datasetMNIST28 0.516003 0.045463 11.350 < 2e-16 ***
+## y_synthcategorical:datasetMNIST28 0.437475 0.035941 12.172 < 2e-16 ***
+## y_synthpca_gmm:datasetMNIST28 0.403793 0.035941 11.235 < 2e-16 ***
+## y_synthrf:datasetMNIST28 0.468417 0.035941 13.033 < 2e-16 ***
+## y_synthxgb:datasetMNIST28 0.478453 0.035941 13.312 < 2e-16 ***
+## ---
+## Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+##
+## Residual standard error: 0.02273 on 70 degrees of freedom
+## Multiple R-squared: 0.98, Adjusted R-squared: 0.9694
+## F-statistic: 92.63 on 37 and 70 DF, p-value: < 2.2e-16
+##
+##
+## --- ANOVA Table (Type I) for Original Model ---
+## Analysis of Variance Table
+##
+## Response: macro_max
+## Df Sum Sq Mean Sq F value Pr(>F)
+## y_synth 5 0.24863 0.049727 96.2370 <2e-16 ***
+## dataset 5 1.21235 0.242470 469.2564 <2e-16 ***
+## has_y 1 0.00023 0.000228 0.4404 0.5091
+## tvae 1 0.00130 0.001303 2.5214 0.1168
+## y_synth:dataset 25 0.30843 0.012337 23.8766 <2e-16 ***
+## Residuals 70 0.03617 0.000517
+## ---
+## Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+##
+## --- ANOVA Table (Type III) for Original Model ---
+## Anova Table (Type III tests)
+##
+## Response: macro_max
+## Sum Sq Df F value Pr(>F)
+## (Intercept) 0.58288 1 1128.0579 <2e-16 ***
+## y_synth 0.00993 5 3.8446 0.0039 **
+14
+
+PAGE 15
+## dataset 0.13971 5 54.0783 <2e-16 ***
+## has_y 0.00023 1 0.4404 0.5091
+## tvae 0.00130 1 2.5214 0.1168
+## y_synth:dataset 0.30843 25 23.8766 <2e-16 ***
+## Residuals 0.03617 70
+## ---
+## Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+##
+## --- Diagnostic Plots for Original Model ---
+## Warning: not plotting observations with leverage one:
+## 10, 17, 28, 35, 46, 53, 64, 71, 82, 89, 100, 107
+0.3 0.4 0.5 0.6 0.7 0.8 0.9
+−0.06 0.02
+Fitted values
+Residuals
+Residuals vs Fitted
+66
+61 99
+−2 −1 0 1 2
+−2 1 3
+Theoretical Quantiles
+Standardized residuals
+Q−Q Residuals
+66
+61 99
+0.3 0.4 0.5 0.6 0.7 0.8 0.9
+0.0 1.0
+Fitted values
+Standardized residuals
+Scale−Location
+6661 99
+0.00 0.10 0.20
+−3 0 2
+Leverage
+Standardized residuals
+Cook's distance
+Residuals vs Leverage
+66
+6199
+There is some non-normal distribution of the residuals –> do Box-Cox
+Box-Cox
+one_inter_boxcox <- function(df_nog, mod3) {
+# --- Perform Box-Cox Transformation Analysis ---
+cat("\n\n--- Performing Box-Cox Analysis ---\n")
+# The boxcox function plots log-likelihood vs lambda and returns the values
+# It requires the MASS package
+bc_results <- boxcox(mod3, plotit = TRUE) # plotit=TRUE is default
+15
+
+PAGE 16
+# Find the lambda that maximizes the log-likelihood
+optimal_lambda <- bc_results$x[which.max(bc_results$y)]
+cat(paste("\nOptimal lambda found by boxcox:", optimal_lambda, "\n"))
+# --- Apply Transformation and Refit Model ---
+lambda_to_apply <- optimal_lambda
+cat(paste("Applying transformation with lambda =", lambda_to_apply, "\n"))
+# Create the transformed response variable
+if (abs(lambda_to_apply) < 1e-6) { # Check if lambda is effectively zero
+df_nog$macro_max_transformed <- log(df_nog$macro_max)
+transform_desc <- "log(macro_max)"
+cat("Lambda is close to 0. Using log transformation.\n")
+} else {
+df_nog$macro_max_transformed <- (df_nog$macro_maxˆlambda_to_apply - 1) / lambda_to_apply
+transform_desc <- paste0("(macro_maxˆ",round(lambda_to_apply, 3), " - 1) / ", round(lambda_to_apply, 3))
+cat(paste("Using Box-Cox transformation with lambda =", lambda_to_apply, "\n"))
+}
+# --- Fit the Model with Transformed Response ---
+cat("\n--- Fitting Model with Transformed Response ---\n")
+# Create the formula string dynamically for clarity
+formula_transformed_str <- paste(transform_desc, "~ y_synth * dataset + has_y + tvae")
+cat("Formula:", formula_transformed_str, "\n")
+# Fit the new model
+# Use reformulate to handle the response string properly
+mod3_transformed <- lm(reformulate(termlabels = c("y_synth * dataset", "has_y", "tvae"),
+response = "macro_max_transformed"),
+data = df_nog)
+cat("\n--- Summary for Transformed Model ---\n")
+print(summary(mod3_transformed))
+cat("\n--- ANOVA Table (Type I) for Transformed Model ---\n")
+print(anova(mod3_transformed))
+cat("\n--- ANOVA Table (Type III) for Transformed Model ---\n")
+# Use car::Anova for Type III SS
+print(Anova(mod3_transformed, type="III"))
+cat("\n--- Diagnostic Plots for Transformed Model ---\n")
+# Check the diagnostic plots for the *new* model
+par(mfrow = c(2, 2)) # Arrange plots in a 2x2 grid
+plot(mod3_transformed)
+par(mfrow = c(1, 1)) # Reset plotting layout
+cat("\n")
+# Return the transformed model (optional)
+# return(list(original_model=mod3, transformed_model=mod3_transformed, lambda=lambda_to_apply))
+invisible(mod3_transformed) # Return invisibly if called like: new_model <- one_inter_boxcox(df)
+}
+model_bc <- one_inter_boxcox(df_nog, model_one_inter)
+##
+16
+
+PAGE 17
+##
+## --- Performing Box-Cox Analysis ---
+##
+## Optimal lambda found by boxcox: 0.626262626262626
+## Applying transformation with lambda = 0.626262626262626
+## Using Box-Cox transformation with lambda = 0.626262626262626
+##
+## --- Fitting Model with Transformed Response ---
+## Formula: (macro_max^0.626 - 1) / 0.626 ~ y_synth * dataset + has_y + tvae
+##
+## --- Summary for Transformed Model ---
+##
+## Call:
+## lm(formula = reformulate(termlabels = c("y_synth * dataset",
+## "has_y", "tvae"), response = "macro_max_transformed"), data = df_nog)
+##
+## Residuals:
+## Min 1Q Median 3Q Max
+## -0.059375 -0.008617 0.000000 0.006447 0.065420
+##
+## Coefficients:
+## Estimate Std. Error t value Pr(>|t|)
+## (Intercept) -0.230842 0.025926 -8.904 3.97e-13 ***
+## y_synthtvae -0.034909 0.036297 -0.962 0.339478
+## y_synthcategorical -0.072149 0.028637 -2.519 0.014038 *
+## y_synthpca_gmm -0.048513 0.028637 -1.694 0.094691 .
+## y_synthrf -0.009556 0.028637 -0.334 0.739595
+## y_synthxgb -0.010925 0.028637 -0.381 0.703990
+## datasetCensus -0.003034 0.035925 -0.084 0.932928
+## datasetCensus_Kdd -0.002891 0.035925 -0.080 0.936086
+## datasetCovertype -0.349441 0.035925 -9.727 1.25e-14 ***
+## datasetMNIST12 -0.351968 0.035925 -9.797 9.29e-15 ***
+## datasetMNIST28 -0.400277 0.035925 -11.142 < 2e-16 ***
+## has_y1 -0.003505 0.005185 -0.676 0.501346
+## tvae1 0.006439 0.005185 1.242 0.218472
+## y_synthtvae:datasetCensus -0.010382 0.050805 -0.204 0.838666
+## y_synthcategorical:datasetCensus 0.003082 0.040165 0.077 0.939064
+## y_synthpca_gmm:datasetCensus 0.003133 0.040165 0.078 0.938040
+## y_synthrf:datasetCensus 0.009680 0.040165 0.241 0.810257
+## y_synthxgb:datasetCensus 0.006952 0.040165 0.173 0.863082
+## y_synthtvae:datasetCensus_Kdd 0.002078 0.050805 0.041 0.967486
+## y_synthcategorical:datasetCensus_Kdd 0.004702 0.040165 0.117 0.907147
+## y_synthpca_gmm:datasetCensus_Kdd 0.002010 0.040165 0.050 0.960223
+## y_synthrf:datasetCensus_Kdd 0.006985 0.040165 0.174 0.862444
+## y_synthxgb:datasetCensus_Kdd 0.008402 0.040165 0.209 0.834901
+## y_synthtvae:datasetCovertype -0.237616 0.050805 -4.677 1.38e-05 ***
+## y_synthcategorical:datasetCovertype 0.069808 0.040165 1.738 0.086602 .
+## y_synthpca_gmm:datasetCovertype 0.022242 0.040165 0.554 0.581508
+## y_synthrf:datasetCovertype 0.150043 0.040165 3.736 0.000378 ***
+## y_synthxgb:datasetCovertype 0.173178 0.040165 4.312 5.20e-05 ***
+## y_synthtvae:datasetMNIST12 0.538537 0.050805 10.600 3.35e-16 ***
+## y_synthcategorical:datasetMNIST12 0.451624 0.040165 11.244 < 2e-16 ***
+## y_synthpca_gmm:datasetMNIST12 0.425874 0.040165 10.603 3.31e-16 ***
+17
+
+PAGE 18
+## y_synthrf:datasetMNIST12 0.494835 0.040165 12.320 < 2e-16 ***
+## y_synthxgb:datasetMNIST12 0.501256 0.040165 12.480 < 2e-16 ***
+## y_synthtvae:datasetMNIST28 0.597921 0.050805 11.769 < 2e-16 ***
+## y_synthcategorical:datasetMNIST28 0.518000 0.040165 12.897 < 2e-16 ***
+## y_synthpca_gmm:datasetMNIST28 0.480567 0.040165 11.965 < 2e-16 ***
+## y_synthrf:datasetMNIST28 0.546909 0.040165 13.617 < 2e-16 ***
+## y_synthxgb:datasetMNIST28 0.557298 0.040165 13.875 < 2e-16 ***
+## ---
+## Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+##
+## Residual standard error: 0.0254 on 70 degrees of freedom
+## Multiple R-squared: 0.9817, Adjusted R-squared: 0.9721
+## F-statistic: 101.6 on 37 and 70 DF, p-value: < 2.2e-16
+##
+##
+## --- ANOVA Table (Type I) for Transformed Model ---
+## Analysis of Variance Table
+##
+## Response: macro_max_transformed
+## Df Sum Sq Mean Sq F value Pr(>F)
+## y_synth 5 0.33195 0.06639 102.8836 <2e-16 ***
+## dataset 5 1.64105 0.32821 508.6249 <2e-16 ***
+## has_y 1 0.00029 0.00029 0.4568 0.5013
+## tvae 1 0.00100 0.00100 1.5420 0.2185
+## y_synth:dataset 25 0.45222 0.01809 28.0318 <2e-16 ***
+## Residuals 70 0.04517 0.00065
+## ---
+## Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+##
+## --- ANOVA Table (Type III) for Transformed Model ---
+## Anova Table (Type III tests)
+##
+## Response: macro_max_transformed
+## Sum Sq Df F value Pr(>F)
+## (Intercept) 0.05116 1 79.2765 3.97e-13 ***
+## y_synth 0.01231 5 3.8151 0.0041 **
+## dataset 0.20176 5 62.5338 < 2.2e-16 ***
+## has_y 0.00029 1 0.4568 0.5013
+## tvae 0.00100 1 1.5420 0.2185
+## y_synth:dataset 0.45222 25 28.0318 < 2.2e-16 ***
+## Residuals 0.04517 70
+## ---
+## Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+##
+## --- Diagnostic Plots for Transformed Model ---
+## Warning: not plotting observations with leverage one:
+## 10, 17, 28, 35, 46, 53, 64, 71, 82, 89, 100, 107
+18
+
+PAGE 19
+−2 −1 0 1 2
+110 120 130 140
+λ
+log−Likelihood
+ 95%
+19
+
+PAGE 20
+−0.8 −0.6 −0.4 −0.2
+−0.05 0.05
+Fitted values
+Residuals
+Residuals vs Fitted
+66
+6169
+−2 −1 0 1 2
+−2 1 3
+Theoretical Quantiles
+Standardized residuals
+Q−Q Residuals
+66
+61 69
+−0.8 −0.6 −0.4 −0.2
+0.0 1.0
+Fitted values
+Standardized residuals
+Scale−Location
+666169
+0.00 0.10 0.20
+−3 0 2
+Leverage
+Standardized residuals
+Cook's distance
+Residuals vs Leverage
+66
+6169
+Box-Cox only barely improve the results by reducing residual skewness –> Use pre-BoxCox model
+6. Mixed-Effects Modeling (LMER)
+Justification for Using LMER
+While the previous linear models (LM) helped explore interactions and main effects, they treat all factors as
+fixed. However, our data has a structure where observations might not be fully independent. Specifically, F1
+scores are likely correlated within the same dataset because different methods are applied to it. Furthermore,
+we might consider y_synth (the synthesizer for the target variable) and tvae (whether TVAE was used for
+feature synthesis) as sources of random variation, representing a sample from a larger population of possible
+datasets or synthesis configurations.
+A Linear Mixed-Effects Regression (LMER) model is well-suited for this situation. LMER allows us to:
+1. Model Non-Independence: Explicitly account for the correlation of scores within the same dataset (or
+other grouping factors) by treating dataset as a random effect. This leads to more accurate standard
+errors and p-values for our fixed effects.
+2. Estimate Variance Components: Quantify how much of the total variation in F1-macro scores is
+attributable to differences between datasets, between y_synth methods (if treated as random), or
+between tvae usage, versus the residual (unexplained) variation.
+3. Generalize Findings: By treating factors like dataset or y_synth as random effects, we aim to make
+inferences about the broader population from which these levels were sampled (e.g., performance across
+20
+
+PAGE 21
+various potential datasets or synthesis methods), rather than just the specific ones included in this
+study.
+Therefore, we transition to LMER to appropriately model the data structure and draw more robust conclu-
+sions about the fixed effects of interest while accounting for random variability.
+Goals:
+1. We want to see if the new > old (for approach), with dataset, tvae, & y_synth as a random ef-
+fect. Meaning, the new approach is better for potentially any dataset, any X_synthesizer, and any
+y_synthesizer.
+2. We want to see if including y when training the X_synthesizer is better than not including y. I.e,
+has_y = 1 > has_y=0
+Intial LMER fit
+# --- Define and Fit Initial LMER Model ---
+# Objective: Test the fixed effects of 'approach', 'has_y', and their interaction.
+# Random Effects: Allow the baseline F1 score (intercept) to vary randomly across
+# levels of 'dataset', 'tvae', and 'y_synth'.
+initial_lmer_fit <- function(df_nog) {
+fit <- lmer(
+macro_max ~ approach * has_y + # Fixed effects including interaction
+(1 | dataset) + # Random intercept for dataset
+(1 | tvae) + # Random intercept for tvae usage
+(1 | y_synth), # Random intercept for y_synth method
+data = df_nog,
+REML = FALSE # Use ML for potential model comparisons
+)
+# Display model summary
+print(summary(fit))
+# Display ANOVA table (Satterthwaite)
+cat("\n--- ANOVA Table (Satterthwaite's method) for Initial LMER ---\n")
+print(anova(fit))
+# Display ANOVA table (Type III Wald Chi-square)
+cat("\n--- ANOVA Table (Type III Wald Chi-square) for Initial LMER ---\n")
+print(Anova(fit, type = "III"))
+print(confint(fit))
+invisible(fit) # Return the fitted model object
+}
+# Fit the initial LMER model
+fit_initial <- initial_lmer_fit(df_nog)
+## fixed-effect model matrix is rank deficient so dropping 1 column / coefficient
+21
+
+PAGE 22
+## boundary (singular) fit: see help('isSingular')
+## Linear mixed model fit by maximum likelihood . t-tests use Satterthwaite's
+## method [lmerModLmerTest]
+## Formula: macro_max ~ approach * has_y + (1 | dataset) + (1 | tvae) + (1 |
+## y_synth)
+## Data: df_nog
+##
+## AIC BIC logLik -2*log(L) df.resid
+## -252.4 -233.6 133.2 -266.4 101
+##
+## Scaled residuals:
+## Min 1Q Median 3Q Max
+## -4.8403 -0.3339 -0.0739 0.2517 2.2623
+##
+## Random effects:
+## Groups Name Variance Std.Dev.
+## y_synth (Intercept) 0.002011 0.04485
+## dataset (Intercept) 0.011322 0.10641
+## tvae (Intercept) 0.000000 0.00000
+## Residual 0.003570 0.05975
+## Number of obs: 108, groups: y_synth, 6; dataset, 6; tvae, 2
+##
+## Fixed effects:
+## Estimate Std. Error df t value Pr(>|t|)
+## (Intercept) 0.754167 0.049641 8.784549 15.192 1.31e-07 ***
+## approachold -0.073619 0.043362 6.170009 -1.698 0.139
+## has_y1 -0.003079 0.012197 96.823809 -0.252 0.801
+## ---
+## Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+##
+## Correlation of Fixed Effects:
+## (Intr) apprch
+## approachold -0.234
+## has_y1 -0.123 -0.141
+## fit warnings:
+## fixed-effect model matrix is rank deficient so dropping 1 column / coefficient
+## optimizer (nloptwrap) convergence code: 0 (OK)
+## boundary (singular) fit: see help('isSingular')
+##
+##
+## --- ANOVA Table (Satterthwaite's method) for Initial LMER ---
+## Missing cells for: approachold:has_y0.
+## Interpret type III hypotheses with care.
+## Type III Analysis of Variance Table with Satterthwaite's method
+## Sum Sq Mean Sq NumDF DenDF F value Pr(>F)
+## approach 0.0102911 0.0102911 1 6.170 2.8825 0.1391
+## has_y 0.0002276 0.0002276 1 96.824 0.0637 0.8012
+## approach:has_y
+##
+## --- ANOVA Table (Type III Wald Chi-square) for Initial LMER ---
+22
+
+PAGE 23
+## Analysis of Deviance Table (Type III Wald chisquare tests)
+##
+## Response: macro_max
+## Chisq Df Pr(>Chisq)
+## (Intercept) 230.8076 1 < 2e-16 ***
+## approach 2.8825 1 0.08955 .
+## has_y 0.0637 1 0.80068
+## approach:has_y 0
+## ---
+## Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## Computing profile confidence intervals ...
+## 2.5 % 97.5 %
+## .sig01 0.02337207 0.09958391
+## .sig02 0.06503841 0.21497894
+## .sig03 0.00000000 0.06125893
+## .sigma 0.05223045 0.06926738
+## (Intercept) 0.64438433 0.86394924
+## approachold -0.17453944 0.02730041
+## has_y1 -0.02722349 0.02106493
+Significance of Random Effects: The confidence intervals for the standard deviations (SD) of the random
+intercepts for dataset and y_synth (when included) do not contain zero. This indicates that there is sta-
+tistically significant variation in the baseline F1-macro score across different datasets and across different
+y-synthesis methods. In other words, the choice of dataset and the choice of y-synthesizer both contribute
+meaningfully to the overall variability in the results.
+Generalizability: Because significant random variation exists between datasets and y-synthesizers, we can
+infer that our findings about the fixed effects (like the comparison between approaches) are likely to generalize
+beyond the specific datasets and synthesizers used in this study to the broader populations they represent.
+Interpretation of Initial LMER: The output from this model (specifically the summary and ANOVA tables)
+likely shows issues such as a “singular fit” warning (due to zero variance estimated for tvae as a random
+effect) and potentially non-estimable interaction effects (approach:has_y). This occurs because approach
+and has_y are perfectly correlated for the ‘old’ approach (which always has has_y=1). This correlation
+makes it impossible for the model to uniquely estimate the separate effects of approach and has_y and their
+interaction. This motivates the creation of the combined appr_has_y factor.
+Testing Combined appr_has_y Factor
+To address the correlation issue, we create a single 3-level factor appr_has_y combining the approach and
+has_y information. This LMER model examines the fixed effect of this combined factor, while initially
+treating dataset, tvae, and y_synth as random intercepts.
+merge_features <- function(df_nog, verbose= FALSE)
+{
+# 3. Create the new 3-level factor 'appr_has_y'
+df_nog <- df_nog %>%
+mutate(
+appr_has_y = case_when(
+approach == "old" ~ "old_appr_has_y",
+approach == "new" & has_y == "0" ~ "new_appr_no_y",
+23
+
+PAGE 24
+approach == "new" & has_y == "1" ~ "new_appr_has_y",
+TRUE ~ NA_character_ # Fallback for unexpected cases
+),
+# Convert the new column to a factor with specified levels for clarity in model output
+appr_has_y = factor(appr_has_y,
+levels = c("old_appr_has_y", "new_appr_no_y", "new_appr_has_y"))
+)
+if (verbose) {
+# Verify the new factor
+cat("Table of the new 'appr_has_y' factor:\n")
+print(table(df_nog$appr_has_y, useNA = "ifany"))
+cat("\nFirst few rows with the new factor:\n")
+print(head(select(df_nog, approach, has_y, appr_has_y)))
+cat("\n")
+}
+invisible(df_nog)
+}
+lmer_contr1 <- function(df_nog)
+{
+fit_new <- lmer(
+macro_max ~ appr_has_y
++ (1 | tvae + dataset + y_synth ),
+data = df_nog,
+REML = FALSE # use ML if you plan likelihood-ratio tests
+)
+# 4. inspect
+summary(fit_new)
+# 5. get ANOVA table for the fixed effects
+print(anova(fit_new)) # from lmerTest, gives you p-values
+# 6. if you want Type III F-tests (for an unbalanced design)
+print(Anova(fit_new, type = "III"))
+return (fit_new)
+}
+df_nog <- merge_features(df_nog)
+fit2 <- lmer_contr1(df_nog)
+## boundary (singular) fit: see help('isSingular')
+## Type III Analysis of Variance Table with Satterthwaite's method
+## Sum Sq Mean Sq NumDF DenDF F value Pr(>F)
+## appr_has_y 0.01117 0.005585 2 9.7455 1.5643 0.2575
+## Analysis of Deviance Table (Type III Wald chisquare tests)
+##
+## Response: macro_max
+## Chisq Df Pr(>Chisq)
+24
+
+PAGE 25
+## (Intercept) 143.8675 1 <2e-16 ***
+## appr_has_y 3.1287 2 0.2092
+## ---
+## Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+The effect of appr_has_y is not significant. This might be due to the fact that y_synth is considered a
+random factor in the model above. Because approach and y_synth is correlated (approach is a collapsed
+version of y_synth), if we account the variation in F1 as due to random variation in y_synth, the effect of
+approach is therefore insignificant.
+We try getting rid of y_synth in the model.
+lmer_contr2 <- function (df_nog)
+{
+fit_new <- lmer(
+macro_max ~ appr_has_y
++ (1 | dataset + tvae), # get rid of y_synth as a random factor
+data = df_nog,
+REML = FALSE # use ML if you plan likelihood-ratio tests
+)
+# 4. inspect
+summary(fit_new)
+# 5. get ANOVA table for the fixed effects
+print(anova(fit_new)) # from lmerTest, gives you p-values
+# 6. if you want Type III F-tests (for an unbalanced design)
+print(Anova(fit_new, type = "III"))
+invisible(fit_new)
+}
+fit_new <- lmer_contr2(df_nog)
+## Type III Analysis of Variance Table with Satterthwaite's method
+## Sum Sq Mean Sq NumDF DenDF F value Pr(>F)
+## appr_has_y 0.060482 0.030241 2 100.95 5.8195 0.004055 **
+## ---
+## Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## Analysis of Deviance Table (Type III Wald chisquare tests)
+##
+## Response: macro_max
+## Chisq Df Pr(>Chisq)
+## (Intercept) 199.673 1 < 2.2e-16 ***
+## appr_has_y 11.639 2 0.002969 **
+## ---
+## Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+25
+
+PAGE 26
+7. Contrast Analysis
+contrast between old vs. new Aprroach
+has_y_and_appr_contr <- function(fit_new)
+{
+# 8. Define and test contrasts using emmeans
+cat("Contrast analysis using emmeans:\n")
+# First, get the estimated marginal means for the factor
+emm_fit <- emmeans(fit_new, ~ appr_has_y)
+cat("Estimated Marginal Means for approach_has_y_combo:\n")
+print(emm_fit)
+cat("\n")
+# Define the contrasts
+# Contrast 1: has_y vs. no_y (within new approach)
+# Compares 'new_approach_has_y' vs 'new_approach_no_y'
+# Levels are: "old_approach", "new_approach_no_y", "new_approach_has_y"
+contrast_has_vs_no_y <- c(0, -1, 1)
+# Contrast 2: new_approach vs. old_approach
+# Compares ( 'new_approach_no_y' + 'new_approach_has_y')/2 vs 'old_approach'
+contrast_new_vs_old <- c(-1, 0.5, 0.5)
+# Contrast 3: has_y vs. no_y (regardless of new or old approach)
+contrast_has_vs_no_y2 <- c(1, -2, 1)
+# Combine contrasts into a list
+custom_contrasts <- list(
+new_hasY_vs_new_noY = contrast_has_vs_no_y,
+newApproach_vs_oldApproach = contrast_new_vs_old,
+hasY_vs_no_Y = contrast_has_vs_no_y2
+)
+# Test the contrasts
+contrast_results <- contrast(emm_fit, method = custom_contrasts, adjust = "tukey") # adjust p-values if needed
+cat("Results of custom contrasts:\n")
+print(contrast_results)
+cat("\n")
+# You can also get pairwise comparisons if desired
+cat("Pairwise comparisons for approach_has_y_combo (for reference):\n")
+print(pairs(emm_fit, adjust = "tukey"))
+cat("\n")
+}
+has_y_and_appr_contr(fit_new)
+26
+
+PAGE 27
+## Contrast analysis using emmeans:
+## Estimated Marginal Means for approach_has_y_combo:
+## appr_has_y emmean SE df lower.CL upper.CL
+## old_appr_has_y 0.677 0.0517 10.54 0.563 0.792
+## new_appr_no_y 0.754 0.0484 7.79 0.642 0.866
+## new_appr_has_y 0.751 0.0484 7.79 0.639 0.863
+##
+## Degrees-of-freedom method: kenward-roger
+## Confidence level used: 0.95
+##
+## Results of custom contrasts:
+## Note: adjust = "tukey" was changed to "sidak"
+## because "tukey" is only appropriate for one set of pairwise comparisons
+## contrast estimate SE df t.ratio p.value
+## new_hasY_vs_new_noY -0.00308 0.0149 103 -0.207 0.9956
+## newApproach_vs_oldApproach 0.07516 0.0223 103 3.372 0.0032
+## hasY_vs_no_Y -0.07978 0.0315 103 -2.531 0.0382
+##
+## Degrees-of-freedom method: kenward-roger
+## P value adjustment: sidak method for 3 tests
+##
+## Pairwise comparisons for approach_has_y_combo (for reference):
+## contrast estimate SE df t.ratio p.value
+## old_appr_has_y - new_appr_no_y -0.07670 0.0235 103 -3.264 0.0042
+## old_appr_has_y - new_appr_has_y -0.07362 0.0235 103 -3.133 0.0063
+## new_appr_no_y - new_appr_has_y 0.00308 0.0149 103 0.207 0.9766
+##
+## Degrees-of-freedom method: kenward-roger
+## P value adjustment: tukey method for comparing a family of 3 estimates
+Relative F1 increase from newApproach compared to oldApproach = 0.075/0.677 ~ 11%
+Double check LMER result by doing contrast on the lm one-inter model (model 3)
+# --- Perform the Contrast on y_synth ---
+# We will compare the average of 'ctgan'/'tvae' vs the average of the others
+contr_ysynth <- function(model_simplified) {
+library(emmeans)
+cat("\n--- Contrast approach_old vs. approach_new ---\n")
+cat("Compare the average of 'ctgan'/'tvae' vs the average of the others")
+# Check if the model is usable for emmeans (should be if summary is okay)
+if (inherits(try(emmeans(model_simplified, specs = "y_synth"), silent = TRUE), "try-error")) {
+cat("\nError: The simplified model still has issues preventing emmeans calculation.\n")
+cat("Further model simplification might be needed, or check data structure again.\n")
+} else {
+27
+
+PAGE 28
+# Calculate estimated marginal means for y_synth, averaged over dataset, has_y, tvae
+emm_ysynth <- emmeans(model_simplified, specs = "y_synth")
+cat("\n--- Estimated Marginal Means for y_synth ---\n")
+print(emm_ysynth)
+# Define the contrast weights:
+# 'Old' methods: ctgan, tvae (2 methods) -> weight +1/2 each
+# 'New' methods: categorical, pca_gmm, rf, xgb (4 methods) -> weight -1/4 each
+# IMPORTANT: The order MUST match the output of print(emm_ysynth)
+# Assuming standard alphabetical order: categorical, ctgan, pca_gmm, rf, tvae, xgb
+contrast_weights <- list(
+old_vs_new_synth_methods = c(
+1/2, # ctgan (old)
+1/2, # tvae (old)
+-1/4, # categorical (new)
+-1/4, # pca_gmm (new)
+-1/4, # rf (new)
+-1/4 # xgb (new)
+)
+)
+# Apply the contrast
+contrast_result <- contrast(emm_ysynth, method = contrast_weights)
+cat("\n--- Contrast Result (Old Synth Methods vs. New Synth Methods) ---\n")
+print(contrast_result)
+cat("\n--- Interpretation ---\n")
+cat("The 'estimate' shows the difference between the average estimated marginal mean\n")
+cat("of the 'old' y_synth methods (ctgan, tvae) and the average of the 'new'\n")
+cat("y_synth methods (categorical, pca_gmm, rf, xgb), after adjusting for\n")
+cat("dataset, has_y, and tvae effects as specified in the model.\n")
+#cat("A positive estimate means the 'old' methods average was higher, negative means lower.\n")
+#cat("The p-value tests if this difference is statistically significant (usually p < 0.05).\n")
+}
+}
+contr_ysynth(model_one_inter)
+contrast old vs. new Aprroach, regardless of has_y
+##
+## --- Contrast approach_old vs. approach_new ---
+## Compare the average of 'ctgan'/'tvae' vs the average of the others
+## NOTE: Results may be misleading due to involvement in interactions
+## NOTE: Results may be misleading due to involvement in interactions
+##
+## --- Estimated Marginal Means for y_synth ---
+## y_synth emmean SE df lower.CL upper.CL
+28
+
+PAGE 29
+## ctgan 0.627 0.00984 70 0.608 0.647
+## tvae 0.731 0.00984 70 0.711 0.750
+## categorical 0.711 0.00464 70 0.701 0.720
+## pca_gmm 0.715 0.00464 70 0.706 0.725
+## rf 0.790 0.00464 70 0.781 0.799
+## xgb 0.795 0.00464 70 0.785 0.804
+##
+## Results are averaged over the levels of: dataset, has_y, tvae
+## Confidence level used: 0.95
+##
+## --- Contrast Result (Old Synth Methods vs. New Synth Methods) ---
+## contrast estimate SE df t.ratio p.value
+## old_vs_new_synth_methods -0.0736 0.00734 70 -10.035 <.0001
+##
+## Results are averaged over the levels of: dataset, has_y, tvae
+##
+## --- Interpretation ---
+## The 'estimate' shows the difference between the average estimated marginal mean
+## of the 'old' y_synth methods (ctgan, tvae) and the average of the 'new'
+## y_synth methods (categorical, pca_gmm, rf, xgb), after adjusting for
+## dataset, has_y, and tvae effects as specified in the model.
+contr_ysynth_conditioned <- function(model_simplified) {
+# Perform Contrast on y_synth, Conditioned on has_y ---
+cat("\n--- Conditional Contrast approach_old vs. approach_new ---\n")
+cat("Compare the average of 'ctgan'/'tvae' vs the average of the others, conditioned on has_y")
+# Check if the model is usable for emmeans
+if (inherits(try(emmeans(model_simplified, specs = ~ y_synth | has_y), silent = TRUE), "try-error")) {
+cat("\nError: The simplified model has issues preventing emmeans calculation.\n")
+cat("Review model summary and data structure.\n")
+} else {
+# Calculate EMMs for y_synth, separately for each level of has_y
+emm_ysynth_by_hasy <- emmeans(model_simplified, specs = ~ y_synth | has_y)
+cat("\n--- Estimated Marginal Means for y_synth by has_y ---\n")
+# Carefully check this output. You might see NA/nonEst for ctgan/tvae when has_y=0
+print(emm_ysynth_by_hasy)
+# Define the contrast weights (same definition as before)
+# 'Old' methods: ctgan, tvae (+1/2 each)
+# 'New' methods: categorical, pca_gmm, rf, xgb (-1/4 each)
+# We rely on the `print(emm_ysynth_by_hasy)` output to confirm the order
+# of y_synth levels within each has_y group (usually alphabetical)
+contrast_weights <- list(
+old_vs_new_synth_methods = c(
+1/2, # ctgan (old)
+1/2, # tvae (old)
+-1/4, # categorical (new)
+-1/4, # pca_gmm (new)
+29
+
+PAGE 30
+-1/4, # rf (new)
+-1/4 # xgb (new)
+)
+)
+# Apply the contrast. emmeans will apply it within each level of has_y
+contrast_result_by_hasy <- contrast(emm_ysynth_by_hasy, method = contrast_weights)
+cat("\n--- Contrast Result (Old vs New Synth Methods) by has_y Level ---\n")
+print(contrast_result_by_hasy)
+cat("\n--- Interpretation ---\n")
+cat("The output table now shows the contrast calculated separately for each level of 'has_y'.\n")
+cat(" - For has_y = 0: Expect 'nonEst' or NA for the estimate. This is because\n")
+cat(" the 'old' methods (ctgan, tvae) did not exist in the data when has_y was 0,\n")
+cat(" so the comparison cannot be estimated for this group. \n")
+cat(" - For has_y = 1: The 'estimate' shows the difference between the average EMM\n")
+cat(" of 'old' methods (ctgan, tvae) and the average EMM of 'new' methods\n")
+cat(" (categorical, pca_gmm, rf, xgb), specifically for observations where has_y was 1 \n")
+#cat(" (after adjusting for dataset and tvae effects).\n")
+#cat(" The p-value indicates if this difference is statistically significant for the has_y=1 group.\n")
+}
+}
+contr_ysynth_conditioned(model_one_inter)
+contrast old vs. new Aprroach, conditioned on has_Y
+##
+## --- Conditional Contrast approach_old vs. approach_new ---
+## Compare the average of 'ctgan'/'tvae' vs the average of the others, conditioned on has_y
+## --- Estimated Marginal Means for y_synth by has_y ---
+## has_y = 0:
+## y_synth emmean SE df lower.CL upper.CL
+## ctgan 0.629 0.01060 70 0.608 0.650
+## tvae 0.732 0.01060 70 0.711 0.753
+## categorical 0.712 0.00519 70 0.702 0.722
+## pca_gmm 0.717 0.00519 70 0.706 0.727
+## rf 0.792 0.00519 70 0.781 0.802
+## xgb 0.796 0.00519 70 0.786 0.806
+##
+## has_y = 1:
+## y_synth emmean SE df lower.CL upper.CL
+## ctgan 0.626 0.00957 70 0.607 0.645
+## tvae 0.729 0.00957 70 0.710 0.748
+## categorical 0.709 0.00519 70 0.699 0.719
+## pca_gmm 0.714 0.00519 70 0.703 0.724
+## rf 0.789 0.00519 70 0.778 0.799
+## xgb 0.793 0.00519 70 0.783 0.803
+##
+## Results are averaged over the levels of: dataset, tvae
+## Confidence level used: 0.95
+##
+30
+
+PAGE 31
+## --- Contrast Result (Old vs New Synth Methods) by has_y Level ---
+## has_y = 0:
+## contrast estimate SE df t.ratio p.value
+## old_vs_new_synth_methods -0.0736 0.00734 70 -10.035 <.0001
+##
+## has_y = 1:
+## contrast estimate SE df t.ratio p.value
+## old_vs_new_synth_methods -0.0736 0.00734 70 -10.035 <.0001
+##
+## Results are averaged over the levels of: dataset, tvae
+##
+## --- Interpretation ---
+## The output table now shows the contrast calculated separately for each level of 'has_y'.
+## - For has_y = 0: Expect 'nonEst' or NA for the estimate. This is because
+## the 'old' methods (ctgan, tvae) did not exist in the data when has_y was 0,
+## so the comparison cannot be estimated for this group.
+## - For has_y = 1: The 'estimate' shows the difference between the average EMM
+## of 'old' methods (ctgan, tvae) and the average EMM of 'new' methods
+## (categorical, pca_gmm, rf, xgb), specifically for observations where has_y was 1
+Even though we expect nonEst for the contrast of has_y=0 because the data isn’t available (also because
+it is not a valid configuration: approach_old must be has_y=1), we still have a contrast estimate. This
+is because: In the model (model_one_inter = lm(formula = macro_max ~ y_synth * dataset + has_y +
+tvae, data = df_nog)), “has_y” is included as a main effect. It is not interacted with “y_synth”.
+Because has_y is only a main effect, the model assumes that the effect of changing has_y from ‘1’ to ‘0’ is
+additive and constant across all levels of y_synth.
+The model estimates the main effect of y_synth = ‘ctgan’ primarily from the data where has_y = 1 (since
+that’s where ctgan exists). It then estimates the main effect of has_y (the difference between has_y=0 and
+has_y=1).
+To get the EMM for (y_synth = ‘ctgan’, has_y = 0), it effectively takes the estimated performance of ctgan
+(learned from has_y = 1 data) and adjusts it by the main effect of has_y to predict what it would have
+been if has_y were 0.
+This is a form of model-based extrapolation. The EMM is mathematically calculable from the model’s
+coefficients.
+Because the estimation for has_y=0 is an extrapolation from has_y=1, it explains why the 2 values are
+exactly the same.
+However, only the estimation for has_y=1 is valid (because the other configuration is not viable)
+mini-Conclusion
+The contrast performed on the lm model with 1 interaction effect shows that: The new approach is statisti-
+cally better than the old approach by 7.36% across 6 datasets, 2 X synthesizers, regardless of whether y was
+included in training the X_synthesizer
+The LMER model shows that the contrast of newApproach_vs_oldApproach = 0.07516 when (dataset &
+tvae) are considered random effects.
+These 2 models are consistent with each other and reaffirms the conclusion that the new approach is better
+than the old approach.
+31
+
+PAGE 32
+Contrast for has_y vs. no_y
+contr_hasy <- function(model_simplified){
+# Perform Contrast on has_y, Conditioned on tvae ---
+cat("\n--- Conditional Contrast has_y vs. no_y ---\n")
+cat("Compare the average of has_y vs no_y, conditioned on X_synth")
+# Check if the model is usable for emmeans
+if (inherits(try(emmeans(model_simplified, specs = ~ has_y | tvae), silent = TRUE), "try-error")) {
+cat("\nError: The simplified model has issues preventing emmeans calculation.\n")
+cat("Review model summary and data structure.\n")
+} else {
+# Calculate EMMs for has_y, separately for each level of tvae
+emm_ysynth_by_hasy <- emmeans(model_simplified, specs = ~ has_y | tvae)
+cat("\n--- Estimated Marginal Means for has_y by tvae ---\n")
+# Carefully check this output. You might see NA/nonEst for ctgan/tvae when has_y=0
+print(emm_ysynth_by_hasy)
+# Define the contrast weights (same definition as before)
+# We rely on the `print(emm_ysynth_by_hasy)` output to confirm the order
+# of y_synth levels within each has_y group (usually alphabetical)
+contrast_weights <- list(
+has.y_vs_no.y = c(
+1, # has_y = 0
+-1 # has_y = 1
+)
+)
+# Apply the contrast. emmeans will apply it within each level of has_y
+contrast_result_by_hasy <- contrast(emm_ysynth_by_hasy, method = contrast_weights)
+cat("\n--- Contrast Result (With vs Without y in X input) by X_synthesizer Level ---\n")
+print(contrast_result_by_hasy)
+}
+}
+contr_hasy(model_one_inter)
+##
+## --- Conditional Contrast has_y vs. no_y ---
+## Compare the average of has_y vs no_y, conditioned on X_synth
+## --- Estimated Marginal Means for has_y by tvae ---
+## tvae = 0:
+## has_y emmean SE df lower.CL upper.CL
+## 0 0.726 0.00470 70 0.717 0.735
+## 1 0.723 0.00387 70 0.715 0.731
+##
+## tvae = 1:
+## has_y emmean SE df lower.CL upper.CL
+## 0 0.733 0.00470 70 0.724 0.743
+32
+
+PAGE 33
+## 1 0.730 0.00387 70 0.723 0.738
+##
+## Results are averaged over the levels of: y_synth, dataset
+## Confidence level used: 0.95
+##
+## --- Contrast Result (With vs Without y in X input) by X_synthesizer Level ---
+## tvae = 0:
+## contrast estimate SE df t.ratio p.value
+## has.y_vs_no.y 0.00308 0.00464 70 0.664 0.5091
+##
+## tvae = 1:
+## contrast estimate SE df t.ratio p.value
+## has.y_vs_no.y 0.00308 0.00464 70 0.664 0.5091
+##
+## Results are averaged over the levels of: y_synth, dataset
+mini-Conclusion
+Across 6 datasets, 6 y synthesizers, regardless of X_synthesizer (ctgan or tvae), including y in the
+X_input increases the result only marginally (0.3%). However, this effect is not statistically significant
+(p_value=0.5091>0.05).
+Bonus: contrast between different groups of y_synth
+Accrordingtothedataplotsatthebeginning, theremightbesignificantvariationsbetweendifferenty_synth.
+Here, we exploree (xgb & rf) vs. (ctgan & tvae) vs. (categorical & pca_gmm)
+contr_rand <- function(df_nog)
+{
+fit <- lmer(
+macro_max ~ y_synth
++ (1 | dataset + tvae ),
+data = df_nog,
+REML = FALSE # use ML if you plan likelihood-ratio tests
+)
+# 4. inspect
+summary(fit)
+confint(fit)
+# 5. get ANOVA table for the fixed effects
+print(anova(fit)) # from lmerTest, gives you p-values
+# 6. if you want Type III F-tests (for an unbalanced design)
+print(Anova(fit, type = "III"))
+# Contrast
+contrast_list1 = c(-1,-1, 0,0, 1,1) # (xgb & rf) vs. (ctgan & tvae)
+contrast_list2 = c(-1,-1, 1,1, 0,0) # (categorical & pca_gmm) vs. (ctgan & tvae)
+contrast_list3 = c(0,0, -1,-1, 1,1) # (xgb & rf) vs. (categorical & pca_gmm)
+33
+
+PAGE 34
+contrast_xgb_rf_vs_old = contrast(emmeans(fit, ~y_synth), method= list(contrast_list1))
+contrast_cat_pca_vs_old = contrast(emmeans(fit, ~y_synth), method= list(contrast_list2))
+contrast_xgb_rf_vs_cat_pca = contrast(emmeans(fit, ~y_synth), method= list(contrast_list3))
+cat("Contrast for(xgb & rf) vs. (ctgan & tvae)\n")
+print(contrast_xgb_rf_vs_old)
+cat("Contrast for(categorical & pca_gmm) vs. (ctgan & tvae)\n")
+print(contrast_cat_pca_vs_old)
+cat("Contrast for(xgb & rf) vs. (categorical & pca_gmm)\n")
+print(contrast_xgb_rf_vs_cat_pca)
+}
+contr_rand(df_nog)
+## boundary (singular) fit: see help('isSingular')
+## Computing profile confidence intervals ...
+## Type III Analysis of Variance Table with Satterthwaite's method
+## Sum Sq Mean Sq NumDF DenDF F value Pr(>F)
+## y_synth 0.24863 0.049727 5 102 14.654 8.172e-11 ***
+## ---
+## Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## Analysis of Deviance Table (Type III Wald chisquare tests)
+##
+## Response: macro_max
+## Chisq Df Pr(>Chisq)
+## (Intercept) 160.989 1 < 2.2e-16 ***
+## y_synth 73.269 5 2.137e-14 ***
+## ---
+## Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## boundary (singular) fit: see help('isSingular')
+## boundary (singular) fit: see help('isSingular')
+## boundary (singular) fit: see help('isSingular')
+## Contrast for(xgb & rf) vs. (ctgan & tvae)
+## contrast estimate SE df t.ratio p.value
+## c(-1, -1, 0, 0, 1, 1) 0.23 0.0386 106 5.957 <.0001
+##
+## Degrees-of-freedom method: kenward-roger
+## Contrast for(categorical & pca_gmm) vs. (ctgan & tvae)
+## contrast estimate SE df t.ratio p.value
+## c(-1, -1, 1, 1, 0, 0) 0.0709 0.0386 106 1.839 0.0687
+##
+## Degrees-of-freedom method: kenward-roger
+## Contrast for(xgb & rf) vs. (categorical & pca_gmm)
+34
+
+PAGE 35
+## contrast estimate SE df t.ratio p.value
+## c(0, 0, -1, -1, 1, 1) 0.159 0.0244 106 6.511 <.0001
+##
+## Degrees-of-freedom method: kenward-roger
+8. Results Visualization
+# --- Calculate EMMs ---
+emm_ysynth <- emmeans(model_one_inter, specs = "y_synth")
+## NOTE: Results may be misleading due to involvement in interactions
+# --- Prepare data for ggplot ---
+# Convert the emmeans object to a data frame
+emm_df <- as.data.frame(emm_ysynth)
+# Create a mapping from the original data
+# Get the unique combinations of y_synth and approach
+synth_approach_mapping <- df_nog %>%
+distinct(y_synth, approach)
+# Print mapping to verify
+# print(synth_approach_mapping)
+# Join the approach information onto the emmeans dataframe
+emm_df_merged <- left_join(emm_df, synth_approach_mapping, by = "y_synth")
+# --- Create the plot using the 'approach' column ---
+plot_emmeans_approach <- ggplot(emm_df_merged, aes(x = y_synth, y = emmean, color = approach)) + # Use 'approach' for color
+geom_pointrange(aes(ymin = lower.CL, ymax = upper.CL), size = 0.8, linewidth = 1.2) +
+scale_color_manual(values = c("old" = "orangered", "new" = "steelblue")) + # Assign colors to 'old' and 'new'
+labs(
+title = "Estimated Marginal Means for y_synth Methods by Approach",
+subtitle = paste("Adjusted for dataset, has_y, and tvae based on model:", deparse(substitute(model_to_use))),
+x = "Synthesis Method (y_synth)",
+y = "Estimated Marginal Mean of macro_max",
+color = "Approach" # Updated legend title
+) +
+theme_minimal(base_size = 12) +
+theme(
+axis.text.x = element_text(angle = 45, hjust = 1),
+plot.title = element_text(hjust = 0.5),
+plot.subtitle = element_text(hjust = 0.5, size = 10),
+legend.position = "bottom"
+)
+# --- Display the plot ---
+print(plot_emmeans_approach)
+35
+
+PAGE 36
+0.60
+0.65
+0.70
+0.75
+0.80
+ctgan tvae
+categorical pca_gmm
+rf xgb
+Synthesis Method (y_synth)
+Estimated Marginal Mean of macro_max
+Approach new old
+Adjusted for dataset, has_y, and tvae based on model: model_to_use
+Estimated Marginal Means for y_synth Methods by Approach
+# --- Optional: Save the plot ---
+# ggsave("emmeans_ysynth_approach_plot.png", plot = plot_emmeans_approach, width = 8, height = 6, dpi = 300)
+# --- Step 1: Reorder y_synth factor levels ---
+desired_order <- c("ctgan", "tvae", "categorical", "pca_gmm", "rf", "xgb")
+df_nog$y_synth <- factor(df_nog$y_synth, levels = desired_order)
+# --- Step 2: Calculate overall mean macro_max for each approach group ---
+approach_means <- df_nog %>%
+group_by(approach) %>%
+summarise(mean_macro_max = mean(macro_max, na.rm = TRUE), .groups = 'drop')
+# --- Step 3: Prepare data for plotting mean points ---
+synth_approach_mapping <- df_nog %>%
+distinct(y_synth, approach)
+plot_mean_data <- left_join(synth_approach_mapping, approach_means, by = "approach")
+# --- Step 4: Create the Plot ---
+# Define colors
+color_old <- "#9575CD" # Deep Purple 300
+color_new <- "#4DB6AC" # Teal 300
+color_mean_lines <- "firebrick" # Color for H-lines
+color_arrow <- "red" # Color for Arrow
+plot_final <- ggplot(df_nog, aes(x = y_synth, y = macro_max)) +
+36
+
+PAGE 37
+# Boxplots
+geom_boxplot(aes(fill = approach), outlier.shape = NA, alpha = 0.7) +
+# Jittered Raw Data Points
+geom_jitter(aes(color = approach), width = 0.25, height = 0, alpha = 0.5, size = 1.5) +
+# Points for Overall Group Means on boxplots
+geom_point(
+data = plot_mean_data,
+aes(x = y_synth, y = mean_macro_max, fill = approach),
+shape = 21, size = 3.5, color = "black", stroke = 0.8
+) +
+# Horizontal lines for overall means
+geom_hline(
+yintercept = approach_means$mean_macro_max[approach_means$approach == "old"],
+color = color_mean_lines, linewidth = 0.8, linetype = "dashed"
+) +
+geom_hline(
+yintercept = approach_means$mean_macro_max[approach_means$approach == "new"],
+color = color_mean_lines, linewidth = 0.8, linetype = "dashed"
+) +
+# Arrow segment connecting the overall means
+annotate(
+"segment",
+x = 6.2, # Midpoint of 'old' methods (ctgan=1, tvae=2)
+y = approach_means$mean_macro_max[approach_means$approach == "old"],
+xend = 6.2, # Midpoint of 'new' methods (cat=3 ... xgb=6 -> (3+6)/2=4.5)
+yend = approach_means$mean_macro_max[approach_means$approach == "new"],
+arrow = arrow(type = "closed", length = unit(0.1, "inches")),
+color = color_arrow, # Use black for arrow
+linewidth = 1.0
+) +
+# Text label for the arrow
+annotate(
+"text",
+x = 6.43,
+y = (approach_means $mean_macro_max[approach_means$approach == "old"] +
+approach_means$mean_macro_max[approach_means$approach == "new"]) / 2,
+label = "11%",
+color = color_arrow,
+size = 4, # adjust to taste
+fontface = "bold", # or "italic"
+vjust = 0.35 # nudges text a bit above the arrow
+) +
+# Color Scales
+scale_fill_manual(values = c("old" = color_old, "new" = color_new)) +
+scale_color_manual(values = c("old" = color_old, "new" = color_new)) +
+# Labels and Titles
+37
+
+PAGE 38
+labs(
+title = "Distribution of F1-macro by y_synthesizer",
+subtitle = "Grouped by Approach, Showing Overall Means and Difference", # Updated subtitle
+x = "Synthesis Method (y_synth)",
+y = "F1-macro",
+fill = "Approach",
+color = "Approach"
+) +
+# Theme Adjustments
+theme_minimal(base_size = 12) +
+theme(
+axis.text.x = element_text(angle = 45, hjust = 1),
+plot.title = element_text(hjust = 0.5),
+plot.subtitle = element_text(hjust = 0.5, size = 10),
+legend.position = "bottom"
+) +
+guides(color = guide_legend(override.aes = list(alpha = 1, size=2)))
+# --- Display the Plot ---
+print(plot_final)
+11%
+0.4
+0.6
+0.8
+ctgan tvae
+categorical pca_gmm
+rf xgb
+Synthesis Method (y_synth)
+F1−macro
+Approach new old
+Grouped by Approach, Showing Overall Means and Difference
+Distribution of F1−macro by y_synthesizer
+# --- Optional: Save the Plot ---
+# ggsave("final_boxplot_plot.png", plot = plot_final, width = 10, height = 7, dpi = 300)
+38
+
+PAGE 39
+9. Conclusion
+1. The new approach is better than the old approach by 0.075 point of F1-score macro. This is a relative
+increase of 11%
+2. Across 6 datasets, 6 y synthesizers, regardless of X_synthesizer (ctgan or tvae), including y in the
+X_input increases the result only marginally (0.3%). However, this effect is not statistically significant
+(p_value=0.5091>0.05).
+39

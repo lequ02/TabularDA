@@ -1,0 +1,1859 @@
+### CELL 0 execution 89
+# results_df
+
+### CELL 1 execution 90
+import os
+import pandas as pd
+
+# Base directory to start the search
+base_directory = r"C:\Users\phuon\DA\src\modeling_thuy\output"
+
+# Subdirectories containing the CSV files (datasets)
+datasets = ['mnist12', 'mnist28','covertype']
+
+# Columns to analyze
+columns_to_analyze = [
+    'test_f1_macro', 'test_f1_micro'
+]
+
+# Keywords to classify files
+train_augment_types = {
+    'synthetic': ['ctgan', 'gaussian', 'categorical', 'pca_gmm', 'tvae', 'xgb', 'rf'],
+    'original': ['original']
+}
+
+# DataFrame to collect results
+results_list = []
+
+# Function to classify train & augment option from filename
+def classify_train_augment(filename):
+    filename_lower = filename.lower()
+    for category, keywords in train_augment_types.items():
+        for keyword in keywords:
+            if keyword in filename_lower:
+                return category.capitalize(), keyword  # e.g., ('Mix', 'mix_ctgan')
+    return "Unknown", "Unknown"
+
+# Function to process a file
+def process_file(file_path, dataset):
+    try:
+        # Read the CSV file
+        df = pd.read_csv(file_path)
+        
+        # Extract filename and train & augment classification
+        original_filename = os.path.basename(file_path)
+        train_augment_category, augment_type = classify_train_augment(original_filename)
+        
+        # Dictionary to store results
+        file_results = {'Dataset': dataset, 'Train_Augment_Option': train_augment_category, 'Augment_Type': augment_type}
+        
+        print("file results: ", file_results)
+
+
+        # Extract metrics
+        for column in columns_to_analyze:
+            if column in df.columns:
+                file_results[f'{column}_max'] = df[column].max()
+
+                print(file_results[f'{column}_max'])
+                file_results[f'{column}_end'] = df[column].iloc[-1]
+            # else:
+            #     file_results[f'{column}_max'] = None
+            #     file_results[f'{column}_end'] = None
+                
+        
+        # print("file results: ", file_results)
+
+        # Append results
+        results_list.append(file_results)
+
+        print(results_list)
+
+    except Exception as e:
+        print(f"Error processing file {file_path}: {e}")
+
+# Process each dataset folder
+for dataset in datasets:
+    print("processing dataset: ", dataset)
+    subdir_path = os.path.join(base_directory, dataset, 'acc')  # Path to 'acc' folder
+    
+    if os.path.exists(subdir_path):
+        for root, _, files in os.walk(subdir_path):
+            for file in files:
+                if file.endswith('.csv'):  # Process CSV files only
+                    file_path = os.path.join(root, file)
+                    print("processing file: ", file_path)
+                    process_file(file_path, dataset)
+    else:
+        print(f"Directory not found: {subdir_path}")
+
+# Convert results to DataFrame
+results_df = pd.DataFrame(results_list)
+print(results_df)
+
+
+# Pivot to match required format, keeping dataset as first-level index
+final_df = results_df.pivot_table(
+    index=['Augment_Type'], 
+    columns=['Dataset'],
+    values=['test_f1_micro_max', 'test_f1_macro_max']
+)
+
+print(final_df)
+
+final_df = final_df.reorder_levels([1, 0], axis=1).sort_index(axis=1, level=0)
+final_df.columns = pd.MultiIndex.from_tuples([
+    ('Macro', 'mnist12'), ('Macro', 'mnist28'), ('Macro', 'covertype'),
+    ('Micro', 'mnist12'), ('Micro', 'mnist28'), ('Micro', 'covertype'),
+
+])
+final_df = final_df.reset_index()
+# Save results
+final_df.to_csv('formatted_results.csv', index=False)
+
+# Display the DataFrame
+print (final_df)
+
+
+### CELL 2 execution 91
+# Step 1: Aggregate duplicates before pivoting
+results_df = results_df.groupby(['Train_Augment_Option', 'Dataset', 'Augment_Type']).mean().reset_index()
+
+# Step 2: Pivot table to arrange Micro & Macro with mnist12 & mnist28 side by side
+final_df = results_df.pivot(index='Augment_Type', 
+                            columns=['Dataset'], 
+                            values=['test_f1_micro_max', 'test_f1_macro_max'])
+
+# Step 3: Reorder to make mnist12 & mnist28 appear next to each other under Micro and Macro
+final_df = final_df.reorder_levels([1, 0], axis=1).sort_index(axis=1, level=0)
+
+# Step 4: Calculate the Average column (mean of mnist12 & mnist28)
+final_df[('mnist12','Average')] = final_df[[('mnist12','test_f1_micro_max'), ('mnist12','test_f1_macro_max')]].mean(axis=1)
+final_df[('mnist28','Average')] = final_df[[('mnist28','test_f1_micro_max'), ('mnist28','test_f1_macro_max')]].mean(axis=1)
+final_df[('covertype','Average')] = final_df[[('covertype','test_f1_micro_max'), ('covertype','test_f1_macro_max')]].mean(axis=1)
+
+
+# # Calculate the Average column (mean of all datasets for Macro and Micro)
+# final_df[('Macro', 'Average')] = final_df[[('Macro', 'mnist12'), ('Macro', 'mnist28'), ('Macro', 'covertype')]].mean(axis=1)
+# final_df[('Micro', 'Average')] = final_df[[('Micro', 'mnist12'), ('Micro', 'mnist28'), ('Micro', 'covertype')]].mean(axis=1)
+
+# Step 5: Rename columns to match whiteboard layout
+final_df.columns = pd.MultiIndex.from_tuples([
+    ('Macro', 'mnist12'), ('Macro', 'mnist28'), ('Macro', 'covertype'),
+    ('Micro', 'mnist12'), ('Micro', 'mnist28'), ('Micro', 'covertype'),
+    ('Average', 'mnist12'), ('Average', 'mnist28'), ('Average', 'covertype'),  
+])
+
+# Step 6: Reset index to format as a clean table
+final_df = final_df.reset_index()
+
+# Display the final DataFrame
+final_df
+
+### CELL 3 execution 92
+# Step 1: Aggregate duplicates before pivoting
+results_df = results_df.groupby(['Train_Augment_Option', 'Dataset', 'Augment_Type']).mean().reset_index()
+
+# Step 2: Pivot table so that metrics become columns
+pivot_df = results_df.pivot(index='Augment_Type', 
+                            columns='Dataset', 
+                            values=['test_f1_micro_max', 'test_f1_macro_max'])
+
+# Step 3: Swap levels so that the dataset is in the inner level
+# (originally, the first level is the metric and the second is the dataset)
+pivot_df = pivot_df.reorder_levels([1, 0], axis=1).sort_index(axis=1)
+
+# Step 4: Rename the metric names for clarity:
+# Change 'test_f1_macro_max' to 'Macro' and 'test_f1_micro_max' to 'Micro'
+pivot_df.columns = pivot_df.columns.set_levels(
+    ['Macro' if col=='test_f1_macro_max' else 'Micro' if col=='test_f1_micro_max' else col 
+     for col in pivot_df.columns.levels[1]],
+    level=1
+)
+
+# Step 5: Swap levels so that the top-level now reflects the metric (Macro/Micro)
+final_df = pivot_df.swaplevel(axis=1).sort_index(axis=1)
+
+# Now final_df has columns like: ('Macro', 'mnist12'), ('Macro', 'mnist28'), ('Macro', 'covertype'),
+# and ('Micro', 'mnist12'), ('Micro', 'mnist28'), ('Micro', 'covertype').
+
+# Step 6: Compute the Average column for each metric across all datasets
+# This will create a new column under Macro that is the mean of all Macro columns, and similarly for Micro.
+final_df[('Macro', 'Average')] = final_df['Macro'].mean(axis=1)
+final_df[('Micro', 'Average')] = final_df['Micro'].mean(axis=1)
+
+# Step 7: (Optional) Reorder the columns so each metric group shows datasets then the Average
+desired_order = [
+    ('Macro', 'mnist12'), ('Macro', 'mnist28'), ('Macro', 'covertype'), ('Macro', 'Average'),
+    ('Micro', 'mnist12'), ('Micro', 'mnist28'), ('Micro', 'covertype'), ('Micro', 'Average')
+]
+final_df = final_df.reindex(columns=desired_order)
+
+# Step 8: Reset index for a clean table format
+final_df = final_df.reset_index()
+
+# Display the final DataFrame
+final_df
+
+
+### CELL 4 execution None
+
+
+### CELL 5 execution None
+
+
+### CELL 6 execution None
+
+
+### CELL 7 execution 93
+import os
+import pandas as pd
+
+# Base directory to start the search
+base_directory = r"C:\Users\phuon\Downloads\output_2\output"
+
+# Subdirectories containing the CSV files (datasets)
+datasets = ['news']
+
+# Columns to analyze
+columns_to_analyze = [
+    'test_mae', 'test_mse', 'test_r2', 
+    'test_mape', 'test_loss'
+]
+
+# Keywords to classify files
+train_augment_types = {
+    'synthetic': ['ctgan', 'gaussian', 'categorical', 'pca_gmm'],
+    'mix': ['mix_ctgan', 'mix_gaussian', 'mix_categorical','mix_pca_gmm'],
+    'original': ['original']
+}
+
+# DataFrame to collect results
+results_list = []
+
+# Function to classify train & augment option from filename
+def classify_train_augment(filename):
+    filename_lower = filename.lower()
+    for category, keywords in train_augment_types.items():
+        for keyword in keywords:
+            if keyword in filename_lower:
+                return category.capitalize(), keyword  # e.g., ('Mix', 'mix_ctgan')
+    return "Unknown", "Unknown"
+
+# Function to process a file
+def process_file(file_path, dataset):
+    try:
+        # Read the CSV file
+        df = pd.read_csv(file_path)
+        
+        # Extract filename and train & augment classification
+        original_filename = os.path.basename(file_path)
+        train_augment_category, augment_type = classify_train_augment(original_filename)
+        
+        # Dictionary to store results
+        file_results = {'Dataset': dataset, 'Train_Augment_Option': train_augment_category, 'Augment_Type': augment_type}
+        
+        print("file results: ", file_results)
+
+
+        # Extract metrics
+        for column in columns_to_analyze:
+            if column in df.columns:
+                file_results[f'{column}_max'] = df[column].max()
+                file_results[f'{column}_end'] = df[column].iloc[-1]
+            else:
+                file_results[f'{column}_max'] = None
+                file_results[f'{column}_end'] = None
+        
+        # print("file results: ", file_results)
+
+        # Append results
+        results_list.append(file_results)
+
+    except Exception as e:
+        print(f"Error processing file {file_path}: {e}")
+
+# Process each dataset folder
+for dataset in datasets:
+    print("processing dataset: ", dataset)
+    subdir_path = os.path.join(base_directory, dataset, 'acc')  # Path to 'acc' folder
+    
+    if os.path.exists(subdir_path):
+        for root, _, files in os.walk(subdir_path):
+            for file in files:
+                if file.endswith('.csv'):  # Process CSV files only
+                    file_path = os.path.join(root, file)
+                    process_file(file_path, dataset)
+    else:
+        print(f"Directory not found: {subdir_path}")
+
+# Convert results to DataFrame
+results_df = pd.DataFrame(results_list)
+# print(results_df)
+
+# Pivot to match required format, keeping dataset as first-level index
+final_df = results_df.pivot_table(
+    index=['Dataset', 'Train_Augment_Option', 'Augment_Type'], 
+    values=[f'{col}_max' for col in columns_to_analyze] + [f'{col}_end' for col in columns_to_analyze]
+)
+
+# Save results
+final_df.to_csv('formatted_results.csv')
+
+# Display the DataFrame
+results_df
+
+
+### CELL 8 execution 94
+final_df_news = results_df.groupby(['Dataset', 'Train_Augment_Option', 'Augment_Type']).mean()
+final_df_news
+
+### CELL 9 execution 95
+final_df.to_csv('final_results_news.csv')
+
+### CELL 12 execution 96
+import os
+import pandas as pd
+
+# Base directory to start the search
+base_directory = r"C:\Users\phuon\DA\src\modeling_thuy\output"
+
+# Subdirectories containing the CSV files (datasets)
+datasets = ['mnist12', 'mnist28','covertype','adult','census','credit']
+
+# Columns to analyze
+columns_to_analyze = [
+    'test_f1_macro', 'test_f1_micro','test_f1_weighted'
+]
+
+# Keywords to classify files
+train_augment_types = {
+    'synthetic': ['ctgan', 'gaussian', 'categorical', 'pca_gmm', 'tvae', 'xgb', 'rf'],
+    'original': ['original']
+}
+
+# DataFrame to collect results
+results_list = []
+
+# Function to classify train & augment option from filename
+def classify_train_augment(filename):
+    filename_lower = filename.lower()
+    for category, keywords in train_augment_types.items():
+        for keyword in keywords:
+            if keyword in filename_lower:
+                return category.capitalize(), keyword  # e.g., ('Mix', 'mix_ctgan')
+    return "Unknown", "Unknown"
+
+# Function to process a file
+def process_file(file_path, dataset):
+    try:
+        # Read the CSV file
+        df = pd.read_csv(file_path)
+        
+        # Extract filename and train & augment classification
+        original_filename = os.path.basename(file_path)
+        train_augment_category, augment_type = classify_train_augment(original_filename)
+        
+        # Dictionary to store results
+        file_results = {'Dataset': dataset, 'Train_Augment_Option': train_augment_category, 'Augment_Type': augment_type}
+        
+        print("file results: ", file_results)
+
+
+        # Extract metrics
+        for column in columns_to_analyze:
+            if column in df.columns:
+                file_results[f'{column}_max'] = df[column].max()
+
+                print(file_results[f'{column}_max'])
+                file_results[f'{column}_end'] = df[column].iloc[-1]
+            # else:
+            #     file_results[f'{column}_max'] = None
+            #     file_results[f'{column}_end'] = None
+                
+        
+        # print("file results: ", file_results)
+
+        # Append results
+        results_list.append(file_results)
+
+        print(results_list)
+
+    except Exception as e:
+        print(f"Error processing file {file_path}: {e}")
+
+# Process each dataset folder
+for dataset in datasets:
+    print("processing dataset: ", dataset)
+    subdir_path = os.path.join(base_directory, dataset, 'acc')  # Path to 'acc' folder
+    
+    if os.path.exists(subdir_path):
+        for root, _, files in os.walk(subdir_path):
+            for file in files:
+                if file.endswith('.csv'):  # Process CSV files only
+                    file_path = os.path.join(root, file)
+                    print("processing file: ", file_path)
+                    process_file(file_path, dataset)
+    else:
+        print(f"Directory not found: {subdir_path}")
+
+# Convert results to DataFrame
+results_df = pd.DataFrame(results_list)
+print(results_df)
+
+# Create the pivot table using the metrics columns
+final_df = results_df.pivot_table(
+    index=['Augment_Type'], 
+    columns=['Dataset'],
+    values=['test_f1_macro_max', 'test_f1_micro_max', 'test_f1_weighted_max']
+)
+
+# Rename the metric columns to more readable names
+rename_dict = {
+    'test_f1_macro_max': 'Macro',
+    'test_f1_micro_max': 'Micro',
+    'test_f1_weighted_max': 'Weighted'
+}
+# Replace level 0 names with their new names
+# Instead of using set_levels, build a new MultiIndex with renamed levels
+final_df.columns = pd.MultiIndex.from_tuples([
+    (rename_dict.get(metric, metric), ds) for metric, ds in final_df.columns
+])
+
+
+# # Swap levels so that the outer level is the metric and inner level is the dataset,
+# # then sort by the dataset names
+# final_df = final_df.swaplevel(0, 1).sort_index(axis=1, level=0)
+
+# Build the desired column order based on your datasets list
+# The order will be: ('Macro', dataset) then ('Micro', dataset) for each dataset.
+desired_order = [(metric, ds) for metric in ['Macro', 'Micro','Weighted'] for ds in datasets]
+
+# Reindex the columns to match the desired order
+final_df = final_df.reindex(columns=pd.MultiIndex.from_tuples(desired_order))
+final_df = final_df.reset_index()
+
+print(final_df)
+
+
+
+### CELL 13 execution 97
+# Step 1: Aggregate duplicates before pivoting
+results_df = results_df.groupby(
+    ['Train_Augment_Option', 'Dataset', 'Augment_Type']
+).mean().reset_index()
+
+# Step 2: Pivot table so that metrics become columns
+pivot_df = results_df.pivot(
+    index='Augment_Type',
+    columns='Dataset',
+    values=['test_f1_micro_max', 'test_f1_macro_max','test_f1_weighted_max']
+)
+
+# Step 3: Swap levels so that the dataset becomes the inner level
+pivot_df = pivot_df.reorder_levels([1, 0], axis=1).sort_index(axis=1)
+
+# Step 4: Rename the metric names for clarity by building a new MultiIndex
+rename_dict = {
+    'test_f1_macro_max': 'Macro',
+    'test_f1_micro_max': 'Micro',
+    'test_f1_weighted_max': 'Weighted'
+}
+pivot_df.columns = pd.MultiIndex.from_tuples([
+    (rename_dict.get(metric, metric), ds) for ds, metric in pivot_df.columns
+])
+
+# Step 5: Use the pivoted DataFrame as the starting point for final_df
+final_df = pivot_df.copy()
+
+# Step 6: Compute the 'Average' column for each metric group across all datasets
+for metric in ['Macro', 'Micro','Weighted']:
+    # Use only the columns corresponding to datasets from your `datasets` list
+    final_df[(metric, 'Average')] = final_df.loc[:, metric].reindex(columns=datasets).mean(axis=1)
+
+# Step 7: Dynamically build the desired column order based on your datasets list.
+# For each metric, list the datasets in order, then the 'Average'
+desired_order = []
+for metric in ['Macro', 'Micro','Weighted']:
+    for ds in datasets:
+        desired_order.append((metric, ds))
+    desired_order.append((metric, 'Average'))
+
+final_df = final_df.reindex(columns=pd.MultiIndex.from_tuples(desired_order))
+
+# Step 8: Reset index for a clean table format
+final_df = final_df.reset_index()
+
+final_df
+
+
+### CELL 14 execution 98
+final_df.columns
+
+### CELL 15 execution 99
+columns = [('Augment_Type',          ''), 
+           ('Macro', 'Average'),
+            ('Micro', 'Average'),
+            ('Weighted', 'Average'),
+            ]
+
+final_df[columns]
+
+sort_list = ['Micro', 'Macro', 'Weighted']
+# Sort by the first metric in the list, then by Augment_Type
+
+for metric in sort_list:
+    if (metric, 'Average') in final_df.columns:
+        # Sort by the metric and then by Augment_Type
+        final_df.sort_values(by=[(metric, 'Average'), ('Augment_Type', '')], ascending=[False, True], inplace=True)
+        print(f"Final results, sorted by {metric} Average:")
+        print(final_df[columns])
+        print("\n\n")
+
+
+# to_sort = 'Micro'
+
+# final_df.sort_values(by=[(to_sort, 'Average'), ('Augment_Type', '')], ascending=[False, True], inplace=True)
+# final_df = final_df.reset_index(drop=True)
+
+# print(f"Final results, sorted by {to_sort} Average:")
+# final_df[columns]
+df=(final_df[columns].copy())
+df.to_csv('final_results.csv', index=False)
+
+### CELL 17 execution 100
+import os
+import pandas as pd
+
+# Base directory to start the search
+base_directory = r"C:\Users\phuon\DA\src\modeling_thuy\output"
+
+# Subdirectories containing the CSV files (datasets)
+datasets = ['news']
+
+# Columns to analyze
+columns_to_analyze = [
+    'test_loss', 'test_r2','test_mse','test_mae','test_mape'
+]
+
+# Keywords to classify files
+train_augment_types = {
+    'synthetic': ['ctgan', 'gaussian', 'categorical', 'pca_gmm', 'tvae', 'xgb', 'rf'],
+    'original': ['original']
+}
+
+# DataFrame to collect results
+results_list = []
+
+# Function to classify train & augment option from filename
+def classify_train_augment(filename):
+    filename_lower = filename.lower()
+    for category, keywords in train_augment_types.items():
+        for keyword in keywords:
+            if keyword in filename_lower:
+                return category.capitalize(), keyword  # e.g., ('Mix', 'mix_ctgan')
+    return "Unknown", "Unknown"
+
+# Function to process a file
+def process_file(file_path, dataset):
+    try:
+        # Read the CSV file
+        df = pd.read_csv(file_path)
+        
+        # Extract filename and train & augment classification
+        original_filename = os.path.basename(file_path)
+        train_augment_category, augment_type = classify_train_augment(original_filename)
+        
+        # Dictionary to store results
+        file_results = {'Dataset': dataset, 'Train_Augment_Option': train_augment_category, 'Augment_Type': augment_type}
+        
+        print("file results: ", file_results)
+
+
+        # Extract metrics
+        for column in columns_to_analyze:
+            if column in df.columns:
+                file_results[f'{column}_max'] = df[column].max()
+
+                print(file_results[f'{column}_max'])
+                file_results[f'{column}_end'] = df[column].iloc[-1]
+            # else:
+            #     file_results[f'{column}_max'] = None
+            #     file_results[f'{column}_end'] = None
+                
+        
+        # print("file results: ", file_results)
+
+        # Append results
+        results_list.append(file_results)
+
+        print(results_list)
+
+    except Exception as e:
+        print(f"Error processing file {file_path}: {e}")
+
+# Process each dataset folder
+for dataset in datasets:
+    print("processing dataset: ", dataset)
+    subdir_path = os.path.join(base_directory, dataset, 'acc')  # Path to 'acc' folder
+    
+    if os.path.exists(subdir_path):
+        for root, _, files in os.walk(subdir_path):
+            for file in files:
+                if file.endswith('.csv'):  # Process CSV files only
+                    file_path = os.path.join(root, file)
+                    print("processing file: ", file_path)
+                    process_file(file_path, dataset)
+    else:
+        print(f"Directory not found: {subdir_path}")
+
+# Convert results to DataFrame
+results_df = pd.DataFrame(results_list)
+print(results_df)
+
+# Create the pivot table using the metrics columns
+final_df = results_df.pivot_table(
+    index=['Augment_Type'], 
+    columns=['Dataset'],
+    values=['test_loss_max', 'test_r2_max','test_mse_max','test_mae_max','test_mape_max']
+)
+
+# Rename the metric columns to more readable names
+rename_dict = {
+    'test_loss_max': 'Loss',
+    'test_r2_max': 'r2',
+    'test_mse_max': 'Mse',
+    'test_mae_max': 'Mae',
+    'test_mape_max': 'Mape'
+}
+# Replace level 0 names with their new names
+# Instead of using set_levels, build a new MultiIndex with renamed levels
+final_df.columns = pd.MultiIndex.from_tuples([
+    (rename_dict.get(metric, metric), ds) for metric, ds in final_df.columns
+])
+
+
+# # Swap levels so that the outer level is the metric and inner level is the dataset,
+# # then sort by the dataset names
+# final_df = final_df.swaplevel(0, 1).sort_index(axis=1, level=0)
+
+# Build the desired column order based on your datasets list
+# The order will be: ('Macro', dataset) then ('Micro', dataset) for each dataset.
+desired_order = [(metric, ds) for metric in ['Loss', 'r2','Mse','Mae','Mape'] for ds in datasets]
+
+# Reindex the columns to match the desired order
+final_df = final_df.reindex(columns=pd.MultiIndex.from_tuples(desired_order))
+final_df = final_df.reset_index()
+
+print(final_df)
+
+
+
+### CELL 19 execution 101
+# Step 1: Aggregate duplicates before pivoting
+results_df = results_df.groupby(
+    ['Train_Augment_Option', 'Dataset', 'Augment_Type']
+).mean().reset_index()
+
+# Step 2: Pivot table so that metrics become columns
+pivot_df = results_df.pivot(
+    index='Augment_Type',
+    columns='Dataset',
+    values=['test_loss_max', 'test_r2_max','test_mse_max','test_mae_max','test_mape_max']
+)
+
+# Step 3: Swap levels so that the dataset becomes the inner level
+pivot_df = pivot_df.reorder_levels([1, 0], axis=1).sort_index(axis=1)
+
+# Step 4: Rename the metric names for clarity by building a new MultiIndex
+rename_dict = {
+    'test_loss_max': 'Loss',
+    'test_r2_max': 'r2',
+    'test_mse_max': 'Mse',
+    'test_mae_max': 'Mae',
+    'test_mape_max': 'Mape'
+}
+pivot_df.columns = pd.MultiIndex.from_tuples([
+    (rename_dict.get(metric, metric), ds) for ds, metric in pivot_df.columns
+])
+
+# Step 5: Use the pivoted DataFrame as the starting point for final_df
+final_df = pivot_df.copy()
+
+# Step 6: Compute the 'Average' column for each metric group across all datasets
+for metric in ['Loss', 'r2','Mse','Mae','Mape']:
+    # Use only the columns corresponding to datasets from your `datasets` list
+    final_df[(metric, 'Average')] = final_df.loc[:, metric].reindex(columns=datasets).mean(axis=1)
+
+# Step 7: Dynamically build the desired column order based on your datasets list.
+# For each metric, list the datasets in order, then the 'Average'
+desired_order = []
+for metric in ['Loss', 'r2','Mse','Mae','Mape']:
+    for ds in datasets:
+        desired_order.append((metric, ds))
+    desired_order.append((metric, 'Average'))
+
+final_df = final_df.reindex(columns=pd.MultiIndex.from_tuples(desired_order))
+
+# Step 8: Reset index for a clean table format
+final_df = final_df.reset_index()
+
+final_df
+
+
+### CELL 21 execution 102
+import os
+import pandas as pd
+
+# Base directory to start the search
+base_directory = r"C:\Users\phuon\DA\src\modeling_thuy\output"
+
+# Subdirectories containing the CSV files (datasets)
+datasets = ['mnist12', 'mnist28','covertype','adult','census','credit']
+
+# Columns to analyze
+columns_to_analyze = [
+    'test_f1_macro', 'test_f1_micro','test_f1_weighted'
+]
+
+# Keywords to classify files
+train_augment_types = {
+    'synthetic': ['ctgan', 'gaussian', 'categorical', 'pca_gmm', 'tvae', 'xgb', 'rf'],
+    'original': ['original']
+}
+
+# DataFrame to collect results
+results_list = []
+
+# Function to classify train & augment option from filename
+def classify_train_augment(filename):
+    filename_lower = filename.lower()
+    for category, keywords in train_augment_types.items():
+        for keyword in keywords:
+            if keyword in filename_lower:
+                return category.capitalize(), keyword  # e.g., ('Mix', 'mix_ctgan')
+    return "Unknown", "Unknown"
+
+# Function to process a file
+def process_file(file_path, dataset):
+    try:
+        # Read the CSV file
+        df = pd.read_csv(file_path)
+        
+        # Extract filename and train & augment classification
+        original_filename = os.path.basename(file_path)
+        train_augment_category, augment_type = classify_train_augment(original_filename)
+        
+        # Dictionary to store results
+        file_results = {'Dataset': dataset, 'Train_Augment_Option': train_augment_category, 'Augment_Type': augment_type}
+        
+        print("file results: ", file_results)
+
+
+        # Extract metrics
+        for column in columns_to_analyze:
+            if column in df.columns:
+                file_results[f'{column}_max'] = df[column].max()
+
+                print(file_results[f'{column}_max'])
+                file_results[f'{column}_end'] = df[column].iloc[-1]
+            # else:
+            #     file_results[f'{column}_max'] = None
+            #     file_results[f'{column}_end'] = None
+                
+        
+        # print("file results: ", file_results)
+
+        # Append results
+        results_list.append(file_results)
+
+        print(results_list)
+
+    except Exception as e:
+        print(f"Error processing file {file_path}: {e}")
+
+# Process each dataset folder
+for dataset in datasets:
+    print("processing dataset: ", dataset)
+    subdir_path = os.path.join(base_directory, dataset, 'acc')  # Path to 'acc' folder
+    
+    if os.path.exists(subdir_path):
+        for root, _, files in os.walk(subdir_path):
+            for file in files:
+                if file.endswith('.csv'):  # Process CSV files only
+                    file_path = os.path.join(root, file)
+                    print("processing file: ", file_path)
+                    process_file(file_path, dataset)
+    else:
+        print(f"Directory not found: {subdir_path}")
+
+# Convert results to DataFrame
+results_df = pd.DataFrame(results_list)
+print(results_df)
+
+# Create the pivot table using the metrics columns
+final_df = results_df.pivot_table(
+    index=['Augment_Type'], 
+    columns=['Dataset'],
+    values=['test_f1_macro_max', 'test_f1_micro_max', 'test_f1_weighted_max']
+)
+
+# Rename the metric columns to more readable names
+rename_dict = {
+    'test_f1_macro_max': 'Macro',
+    'test_f1_micro_max': 'Micro',
+    'test_f1_weighted_max': 'Weighted'
+}
+# Replace level 0 names with their new names
+# Instead of using set_levels, build a new MultiIndex with renamed levels
+final_df.columns = pd.MultiIndex.from_tuples([
+    (rename_dict.get(metric, metric), ds) for metric, ds in final_df.columns
+])
+
+
+# # Swap levels so that the outer level is the metric and inner level is the dataset,
+# # then sort by the dataset names
+# final_df = final_df.swaplevel(0, 1).sort_index(axis=1, level=0)
+
+# Build the desired column order based on your datasets list
+# The order will be: ('Macro', dataset) then ('Micro', dataset) for each dataset.
+desired_order = [(metric, ds) for metric in ['Macro', 'Micro','Weighted'] for ds in datasets]
+
+# Reindex the columns to match the desired order
+final_df = final_df.reindex(columns=pd.MultiIndex.from_tuples(desired_order))
+final_df = final_df.reset_index()
+
+print(final_df)
+
+
+
+### CELL 22 execution 103
+# Step 1: Aggregate duplicates before pivoting
+results_df = results_df.groupby(
+    ['Train_Augment_Option', 'Dataset', 'Augment_Type']
+).mean().reset_index()
+
+# Step 2: Pivot table so that metrics become columns
+pivot_df = results_df.pivot(
+    index='Augment_Type',
+    columns='Dataset',
+    values=['test_f1_micro_max', 'test_f1_macro_max','test_f1_weighted_max']
+)
+
+# Step 3: Swap levels so that the dataset becomes the inner level
+pivot_df = pivot_df.reorder_levels([1, 0], axis=1).sort_index(axis=1)
+
+# Step 4: Rename the metric names for clarity by building a new MultiIndex
+rename_dict = {
+    'test_f1_macro_max': 'Macro',
+    'test_f1_micro_max': 'Micro',
+    'test_f1_weighted_max': 'Weighted'
+}
+pivot_df.columns = pd.MultiIndex.from_tuples([
+    (rename_dict.get(metric, metric), ds) for ds, metric in pivot_df.columns
+])
+
+# Step 5: Use the pivoted DataFrame as the starting point for final_df
+final_df = pivot_df.copy()
+
+# Step 6: Compute the 'Average' column for each metric group across all datasets
+for metric in ['Macro', 'Micro','Weighted']:
+    # Use only the columns corresponding to datasets from your `datasets` list
+    final_df[(metric, 'Average')] = final_df.loc[:, metric].reindex(columns=datasets).mean(axis=1)
+
+# Step 7: Dynamically build the desired column order based on your datasets list.
+# For each metric, list the datasets in order, then the 'Average'
+desired_order = []
+for metric in ['Macro', 'Micro','Weighted']:
+    for ds in datasets:
+        desired_order.append((metric, ds))
+    desired_order.append((metric, 'Average'))
+
+final_df = final_df.reindex(columns=pd.MultiIndex.from_tuples(desired_order))
+
+# Step 8: Reset index for a clean table format
+final_df = final_df.reset_index()
+
+final_df
+
+
+### CELL 24 execution 104
+import os
+import pandas as pd
+
+# Base directory to start the search
+base_directory = r"C:\Users\phuon\DA\src\modeling_thuy\output"
+
+# Subdirectories containing the CSV files (datasets)
+datasets = ['mnist12', 'mnist28','covertype','adult','census']
+
+# Columns to analyze
+columns_to_analyze = [
+    'test_f1_macro', 'test_f1_micro'
+]
+
+# Keywords to classify files
+train_augment_types = {
+    'synthetic': ['ctgan', 'gaussian', 'categorical', 'pca_gmm', 'tvae', 'xgb', 'rf','compare_sdv_categorical','compare_sdv_gaussian','compare_sdv_xgb','compare_sdv_pca_gmm','compare_sdv_rf'],
+    'original': ['original']
+}
+
+# DataFrame to collect results
+results_list = []
+
+# Function to classify train & augment option from filename
+def classify_train_augment(filename):
+    filename_lower = filename.lower()
+    for category, keywords in train_augment_types.items():
+        for keyword in keywords:
+            if keyword in filename_lower:
+                return category.capitalize(), keyword  # e.g., ('Mix', 'mix_ctgan')
+    return "Unknown", "Unknown"
+
+# Function to process a file
+def process_file(file_path, dataset):
+    try:
+        # Read the CSV file
+        df = pd.read_csv(file_path)
+        
+        # Extract filename and train & augment classification
+        original_filename = os.path.basename(file_path)
+        train_augment_category, augment_type = classify_train_augment(original_filename)
+        
+        # Dictionary to store results
+        file_results = {'Dataset': dataset, 'Train_Augment_Option': train_augment_category, 'Augment_Type': augment_type}
+        
+        print("file results: ", file_results)
+
+
+        # Extract metrics
+        for column in columns_to_analyze:
+            if column in df.columns:
+                file_results[f'{column}_max'] = df[column].max()
+
+                print(file_results[f'{column}_max'])
+                file_results[f'{column}_end'] = df[column].iloc[-1]
+            # else:
+            #     file_results[f'{column}_max'] = None
+            #     file_results[f'{column}_end'] = None
+                
+        
+        # print("file results: ", file_results)
+
+        # Append results
+        results_list.append(file_results)
+
+        print(results_list)
+
+    except Exception as e:
+        print(f"Error processing file {file_path}: {e}")
+
+# Process each dataset folder
+for dataset in datasets:
+    print("processing dataset: ", dataset)
+    subdir_path = os.path.join(base_directory, dataset, 'acc')  # Path to 'acc' folder
+    
+    if os.path.exists(subdir_path):
+        for root, _, files in os.walk(subdir_path):
+            for file in files:
+                if file.endswith('.csv'):  # Process CSV files only
+                    file_path = os.path.join(root, file)
+                    print("processing file: ", file_path)
+                    process_file(file_path, dataset)
+    else:
+        print(f"Directory not found: {subdir_path}")
+
+# Convert results to DataFrame
+results_df = pd.DataFrame(results_list)
+print(results_df)
+
+# Create the pivot table using the metrics columns
+final_df = results_df.pivot_table(
+    index=['Augment_Type'], 
+    columns=['Dataset'],
+    values=['test_f1_macro_max', 'test_f1_micro_max']
+)
+
+# Rename the metric columns to more readable names
+rename_dict = {
+    'test_f1_macro_max': 'Macro',
+    'test_f1_micro_max': 'Micro'
+}
+# Replace level 0 names with their new names
+# Instead of using set_levels, build a new MultiIndex with renamed levels
+final_df.columns = pd.MultiIndex.from_tuples([
+    (rename_dict.get(metric, metric), ds) for metric, ds in final_df.columns
+])
+
+
+# # Swap levels so that the outer level is the metric and inner level is the dataset,
+# # then sort by the dataset names
+# final_df = final_df.swaplevel(0, 1).sort_index(axis=1, level=0)
+
+# Build the desired column order based on your datasets list
+# The order will be: ('Macro', dataset) then ('Micro', dataset) for each dataset.
+desired_order = [(metric, ds) for metric in ['Macro', 'Micro'] for ds in datasets]
+
+# Reindex the columns to match the desired order
+final_df = final_df.reindex(columns=pd.MultiIndex.from_tuples(desired_order))
+final_df = final_df.reset_index()
+
+print(final_df)
+
+
+
+### CELL 25 execution 105
+# Step 1: Aggregate duplicates before pivoting
+results_df = results_df.groupby(
+    ['Train_Augment_Option', 'Dataset', 'Augment_Type']
+).mean().reset_index()
+
+# Step 2: Pivot table so that metrics become columns
+pivot_df = results_df.pivot(
+    index='Augment_Type',
+    columns='Dataset',
+    values=['test_f1_micro_max', 'test_f1_macro_max']
+)
+
+# Step 3: Swap levels so that the dataset becomes the inner level
+pivot_df = pivot_df.reorder_levels([1, 0], axis=1).sort_index(axis=1)
+
+# Step 4: Rename the metric names for clarity by building a new MultiIndex
+rename_dict = {
+    'test_f1_macro_max': 'Macro',
+    'test_f1_micro_max': 'Micro'
+}
+pivot_df.columns = pd.MultiIndex.from_tuples([
+    (rename_dict.get(metric, metric), ds) for ds, metric in pivot_df.columns
+])
+
+# Step 5: Use the pivoted DataFrame as the starting point for final_df
+final_df = pivot_df.copy()
+
+# Step 6: Compute the 'Average' column for each metric group across all datasets
+for metric in ['Macro', 'Micro']:
+    # Use only the columns corresponding to datasets from your `datasets` list
+    final_df[(metric, 'Average')] = final_df.loc[:, metric].reindex(columns=datasets).mean(axis=1)
+
+# Step 7: Dynamically build the desired column order based on your datasets list.
+# For each metric, list the datasets in order, then the 'Average'
+desired_order = []
+for metric in ['Macro', 'Micro']:
+    for ds in datasets:
+        desired_order.append((metric, ds))
+    desired_order.append((metric, 'Average'))
+
+final_df = final_df.reindex(columns=pd.MultiIndex.from_tuples(desired_order))
+
+# Step 8: Reset index for a clean table format
+final_df = final_df.reset_index()
+
+final_df
+
+
+### CELL 26 execution None
+
+
+### CELL 28 execution 106
+import os
+import pandas as pd
+
+
+# Base directory to start the search
+base_directory = r"C:\Users\phuon\DA\output\output"
+
+# Subdirectories containing the CSV files (datasets)
+datasets = ['mnist12', 'mnist28','covertype','adult','census']
+
+# Columns to analyze
+columns_to_analyze = [
+    'test_f1_macro', 'test_f1_micro'
+]
+
+# Keywords to classify files
+train_augment_types = {
+    'synthetic': ['compare_sdv_categorical','compare_sdv_gaussian','compare_sdv_xgb','compare_sdv_pca_gmm','compare_sdv_rf', 'ctgan', 'gaussian', 'categorical', 'pca_gmm', 'xgb', 'rf'],
+    'original': ['original']
+}
+
+# DataFrame to collect results
+results_list = []
+
+# Function to classify train & augment option from filename
+def classify_train_augment(filename):
+    filename_lower = filename.lower()
+    for category, keywords in train_augment_types.items():
+        for keyword in keywords:
+            if keyword in filename_lower:
+                return category.capitalize(), keyword  # e.g., ('Mix', 'mix_ctgan')
+    return "Unknown", "Unknown"
+
+# Function to process a file
+def process_file(file_path, dataset):
+    try:
+        # Read the CSV file
+        df = pd.read_csv(file_path)
+        
+        # Extract filename and train & augment classification
+        original_filename = os.path.basename(file_path)
+        train_augment_category, augment_type = classify_train_augment(original_filename)
+        
+        # Dictionary to store results
+        file_results = {'Dataset': dataset, 'Train_Augment_Option': train_augment_category, 'Augment_Type': augment_type}
+        
+        print("file results: ", file_results)
+
+
+        # Extract metrics
+        for column in columns_to_analyze:
+            if column in df.columns:
+                file_results[f'{column}_max'] = df[column].max()
+
+                print(file_results[f'{column}_max'])
+                file_results[f'{column}_end'] = df[column].iloc[-1]
+            # else:
+            #     file_results[f'{column}_max'] = None
+            #     file_results[f'{column}_end'] = None
+                
+        
+        # print("file results: ", file_results)
+
+        # Append results
+        results_list.append(file_results)
+
+        print(results_list)
+
+    except Exception as e:
+        print(f"Error processing file {file_path}: {e}")
+
+# Process each dataset folder
+for dataset in datasets:
+    print("processing dataset: ", dataset)
+    subdir_path = os.path.join(base_directory, dataset, 'acc')  # Path to 'acc' folder
+    
+    if os.path.exists(subdir_path):
+        for root, _, files in os.walk(subdir_path):
+            for file in files:
+                if file.endswith('.csv'):  # Process CSV files only
+                    file_path = os.path.join(root, file)
+                    print("processing file: ", file_path)
+                    process_file(file_path, dataset)
+    else:
+        print(f"Directory not found: {subdir_path}")
+# Convert results to DataFrame
+results_df = pd.DataFrame(results_list)
+print(results_df)
+print()
+
+# Create the pivot table using the metrics columns
+final_df = results_df.pivot_table(
+    index=['Augment_Type'], 
+    columns=['Dataset'],
+    values=['test_f1_macro_max', 'test_f1_micro_max']
+)
+
+# Rename the metric columns to more readable names
+rename_dict = {
+    'test_f1_macro_max': 'Macro',
+    'test_f1_micro_max': 'Micro'
+}
+# Replace level 0 names with their new names
+# Instead of using set_levels, build a new MultiIndex with renamed levels
+final_df.columns = pd.MultiIndex.from_tuples([
+    (rename_dict.get(metric, metric), ds) for metric, ds in final_df.columns
+])
+
+
+# # Swap levels so that the outer level is the metric and inner level is the dataset,
+# # then sort by the dataset names
+# final_df = final_df.swaplevel(0, 1).sort_index(axis=1, level=0)
+
+# Build the desired column order based on your datasets list
+# The order will be: ('Macro', dataset) then ('Micro', dataset) for each dataset.
+desired_order = [(metric, ds) for metric in ['Macro', 'Micro'] for ds in datasets]
+
+# Reindex the columns to match the desired order
+final_df = final_df.reindex(columns=pd.MultiIndex.from_tuples(desired_order))
+final_df = final_df.reset_index()
+
+print(final_df)
+final_df.to_csv('results_mar_12.csv')
+
+
+
+### CELL 29 execution 107
+# Step 1: Aggregate duplicates before pivoting
+results_df.to_csv('results_march_12.csv')
+results_df = results_df.groupby(
+    ['Train_Augment_Option', 'Dataset', 'Augment_Type']
+).mean().reset_index()
+
+
+
+# Step 2: Pivot table so that metrics become columns
+pivot_df = results_df.pivot(
+    index='Augment_Type',
+    columns='Dataset',
+    values=['test_f1_micro_max', 'test_f1_macro_max']
+)
+
+# Step 3: Swap levels so that the dataset becomes the inner level
+pivot_df = pivot_df.reorder_levels([1, 0], axis=1).sort_index(axis=1)
+
+# Step 4: Rename the metric names for clarity by building a new MultiIndex
+rename_dict = {
+    'test_f1_macro_max': 'Macro',
+    'test_f1_micro_max': 'Micro'
+}
+pivot_df.columns = pd.MultiIndex.from_tuples([
+    (rename_dict.get(metric, metric), ds) for ds, metric in pivot_df.columns
+])
+
+# Step 5: Use the pivoted DataFrame as the starting point for final_df
+final_df = pivot_df.copy()
+
+# Step 6: Compute the 'Average' column for each metric group across all datasets
+for metric in ['Macro', 'Micro']:
+    # Use only the columns corresponding to datasets from your `datasets` list
+    final_df[(metric, 'Average')] = final_df.loc[:, metric].reindex(columns=datasets).mean(axis=1)
+
+# Step 7: Dynamically build the desired column order based on your datasets list.
+# For each metric, list the datasets in order, then the 'Average'
+desired_order = []
+for metric in ['Macro', 'Micro']:
+    for ds in datasets:
+        desired_order.append((metric, ds))
+    desired_order.append((metric, 'Average'))
+
+final_df = final_df.reindex(columns=pd.MultiIndex.from_tuples(desired_order))
+
+# Step 8: Reset index for a clean table format
+final_df = final_df.reset_index()
+
+final_df
+
+
+### CELL 30 execution None
+
+
+### CELL 31 execution 108
+import os
+import pandas as pd
+
+# Base directory to start the search
+base_directory = r"C:\Users\phuon\DA\src\modeling_thuy\output"
+
+# Subdirectories containing the CSV files (datasets)
+datasets = ['mnist12', 'mnist28','covertype','adult','census']
+
+# Columns to analyze
+columns_to_analyze = [
+    'test_f1_macro', 'test_f1_micro'
+]
+
+# Keywords to classify files
+train_augment_types = {
+    'synthetic': ['compare_sdv_categorical','categorical','compare_sdv_gaussian','gaussian','compare_sdv_xgb','xgb','compare_sdv_pca_gmm','pca_gmm','compare_sdv_rf','rf'],
+    'original': ['original']
+}
+
+# DataFrame to collect results
+results_list = []
+
+# Function to classify train & augment option from filename
+def classify_train_augment(filename):
+    filename_lower = filename.lower()
+    for category, keywords in train_augment_types.items():
+        for keyword in keywords:
+            if keyword in filename_lower:
+                return category.capitalize(), keyword  # e.g., ('Mix', 'mix_ctgan')
+    return "Unknown", "Unknown"
+
+# Function to process a file
+def process_file(file_path, dataset):
+    try:
+        # Read the CSV file
+        df = pd.read_csv(file_path)
+        
+        # Extract filename and train & augment classification
+        original_filename = os.path.basename(file_path)
+        train_augment_category, augment_type = classify_train_augment(original_filename)
+        
+        # Dictionary to store results
+        file_results = {'Dataset': dataset, 'Train_Augment_Option': train_augment_category, 'Augment_Type': augment_type}
+        
+        print("file results: ", file_results)
+
+
+        # Extract metrics
+        for column in columns_to_analyze:
+            if column in df.columns:
+                file_results[f'{column}_max'] = df[column].max()
+
+                print(file_results[f'{column}_max'])
+                file_results[f'{column}_end'] = df[column].iloc[-1]
+            # else:
+            #     file_results[f'{column}_max'] = None
+            #     file_results[f'{column}_end'] = None
+                
+        
+        # print("file results: ", file_results)
+
+        # Append results
+        results_list.append(file_results)
+
+        print(results_list)
+
+    except Exception as e:
+        print(f"Error processing file {file_path}: {e}")
+
+# Process each dataset folder
+for dataset in datasets:
+    print("processing dataset: ", dataset)
+    subdir_path = os.path.join(base_directory, dataset, 'acc')  # Path to 'acc' folder
+    
+    if os.path.exists(subdir_path):
+        for root, _, files in os.walk(subdir_path):
+            for file in files:
+                if file.endswith('.csv'):  # Process CSV files only
+                    file_path = os.path.join(root, file)
+                    print("processing file: ", file_path)
+                    process_file(file_path, dataset)
+    else:
+        print(f"Directory not found: {subdir_path}")
+
+# Convert results to DataFrame
+results_df = pd.DataFrame(results_list)
+print(results_df)
+print()
+# Create the pivot table using the metrics columns
+final_df = results_df.pivot_table(
+    index=['Augment_Type'], 
+    columns=['Dataset'],
+    values=['test_f1_macro_max', 'test_f1_micro_max']
+)
+
+# Rename the metric columns to more readable names
+rename_dict = {
+    'test_f1_macro_max': 'Macro',
+    'test_f1_micro_max': 'Micro'
+}
+# Replace level 0 names with their new names
+# Instead of using set_levels, build a new MultiIndex with renamed levels
+final_df.columns = pd.MultiIndex.from_tuples([
+    (rename_dict.get(metric, metric), ds) for metric, ds in final_df.columns
+])
+
+
+# # Swap levels so that the outer level is the metric and inner level is the dataset,
+# # then sort by the dataset names
+# final_df = final_df.swaplevel(0, 1).sort_index(axis=1, level=0)
+
+# Build the desired column order based on your datasets list
+# The order will be: ('Macro', dataset) then ('Micro', dataset) for each dataset.
+desired_order = [(metric, ds) for metric in ['Macro', 'Micro'] for ds in datasets]
+
+# Reindex the columns to match the desired order
+final_df = final_df.reindex(columns=pd.MultiIndex.from_tuples(desired_order))
+final_df = final_df.reset_index()
+
+print(final_df)
+final_df.to_csv('Original_results_Mar7th.csv')
+
+
+### CELL 32 execution 109
+# Step 1: Aggregate duplicates before pivoting
+
+
+print(results_df)
+
+
+results_df.to_csv('results_df_Mar7th.csv')
+results_df = results_df.groupby(
+    ['Train_Augment_Option', 'Dataset', 'Augment_Type']
+).mean().reset_index()
+
+# Step 2: Pivot table so that metrics become columns
+pivot_df = results_df.pivot(
+    index='Augment_Type',
+    columns='Dataset',
+    values=['test_f1_macro_max', 'test_f1_micro_max']
+)
+
+# Step 3: Swap levels so that the dataset becomes the inner level
+pivot_df = pivot_df.reorder_levels([1, 0], axis=1).sort_index(axis=1)
+
+# Step 4: Rename the metric names for clarity by building a new MultiIndex
+rename_dict = {
+    'test_f1_macro_max': 'Macro',
+    'test_f1_micro_max': 'Micro'
+}
+pivot_df.columns = pd.MultiIndex.from_tuples([
+    (rename_dict.get(metric, metric), ds) for ds, metric in pivot_df.columns
+])
+
+# Step 5: Use the pivoted DataFrame as the starting point for final_df
+final_df = pivot_df.copy()
+
+# Step 6: Compute the 'Average' column for each metric group across all datasets
+for metric in ['Macro', 'Micro']:
+    # Use only the columns corresponding to datasets from your `datasets` list
+    final_df[(metric, 'Average')] = final_df.loc[:, metric].reindex(columns=datasets).mean(axis=1)
+
+# Step 7: Dynamically build the desired column order based on your datasets list.
+# For each metric, list the datasets in order, then the 'Average'
+desired_order = []
+for metric in ['Macro', 'Micro']:
+    for ds in datasets:
+        desired_order.append((metric, ds))
+    desired_order.append((metric, 'Average'))
+
+final_df = final_df.reindex(columns=pd.MultiIndex.from_tuples(desired_order))
+
+# Step 8: Reset index for a clean table format
+final_df = final_df.reset_index()
+# Step 9: Define the desired row order for Augment_Type
+desired_row_order = [
+    "compare_sdv_categorical","categorical",
+    "compare_sdv_gaussian","gaussian",
+    "compare_sdv_pca_gmm","pca_gmm",
+    "compare_sdv_rf","rf",
+    "compare_sdv_xgb","xgb",
+    "original"
+]
+
+# Convert Augment_Type to categorical with the specified order
+final_df['Augment_Type'] = pd.Categorical(final_df['Augment_Type'], categories=desired_row_order, ordered=True)
+
+# Sort the DataFrame based on the new categorical order
+final_df = final_df.sort_values('Augment_Type').reset_index(drop=True)
+
+
+final_df.to_csv('Mar7th.csv', index=False)
+final_df
+
+### CELL 33 execution None
+
+
+### CELL 35 execution 110
+import os
+import pandas as pd
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), '..')))
+from constants import IN_DATA_PATHS
+
+
+# Base directory to start the search
+base_directory = r"C:\Users\phuon\DA\output\output"
+
+# Subdirectories containing the CSV files (datasets)
+datasets = ['mnist12']
+
+# Columns to analyze
+columns_to_analyze = [
+    'test_f1_macro', 'test_f1_micro'
+]
+
+# Keywords to classify files
+train_augment_types = {
+    'synthetic': ['categorical'],
+    'original': ['original']
+}
+
+# DataFrame to collect results
+results_list = []
+
+# Function to classify train & augment option from filename
+def classify_train_augment(filename):
+    filename_lower = filename.lower()
+    for category, keywords in train_augment_types.items():
+        for keyword in keywords:
+            if keyword in filename_lower:
+                return category.capitalize(), keyword  # e.g., ('Mix', 'mix_ctgan')
+    return "Unknown", "Unknown"
+
+# Function to process a file
+def process_file(file_path, dataset):
+    try:
+        # Read the CSV file
+        df = pd.read_csv(file_path)
+        if'file_path' not in df.columns:
+            raise ValueError("The CSV file is not there.")
+        max_file = max(df['file_path'])
+        print(max_file)
+
+        if max_file in IN_DATA_PATHS:
+            expected_info = IN_DATA_PATHS[max_file]
+            dataset = expected_info.get['dataset', 'Unknown']
+            augment_type = expected_info.get['augment_type', 'Unknown']
+            return dataset, augment_type
+        else:
+            raise ValueError("The file path is not in the expected list.")
+        # Extract filename and train & augment classification
+        original_filename = os.path.basename(file_path)
+        train_augment_category, augment_type = classify_train_augment(original_filename)
+        
+        # Dictionary to store results
+        file_results = {'Dataset': dataset, 'Train_Augment_Option': train_augment_category, 'Augment_Type': augment_type}
+        
+        print("file results: ", file_results)
+
+
+        # Extract metrics
+        for column in columns_to_analyze:
+            if column in df.columns:
+                file_results[f'{column}_max'] = df[column].max()
+
+                print(file_results[f'{column}_max'])
+                file_results[f'{column}_end'] = df[column].iloc[-1]
+            # else:
+            #     file_results[f'{column}_max'] = None
+            #     file_results[f'{column}_end'] = None
+                
+        
+        # print("file results: ", file_results)
+
+        # Append results
+        results_list.append(file_results)
+
+        print(results_list)
+
+    except Exception as e:
+        print(f"Error processing file {file_path}: {e}")
+
+# Process each dataset folder
+for dataset in datasets:
+    print("processing dataset: ", dataset)
+    subdir_path = os.path.join(base_directory, dataset, 'acc')  # Path to 'acc' folder
+    
+    if os.path.exists(subdir_path):
+        for root, _, files in os.walk(subdir_path):
+            for file in files:
+                if file.endswith('.csv'):  # Process CSV files only
+                    file_path = os.path.join(root, file)
+                    print("processing file: ", file_path)
+                    process_file(file_path, dataset)
+    else:
+        print(f"Directory not found: {subdir_path}")
+# Convert results to DataFrame
+results_df = pd.DataFrame(results_list)
+print(results_df)
+print()
+
+# Create the pivot table using the metrics columns
+final_df = results_df.pivot_table(
+    index=['Augment_Type'], 
+    columns=['Dataset'],
+    values=['test_f1_macro_max', 'test_f1_micro_max']
+)
+
+# Rename the metric columns to more readable names
+rename_dict = {
+    'test_f1_macro_max': 'Macro',
+    'test_f1_micro_max': 'Micro'
+}
+# Replace level 0 names with their new names
+# Instead of using set_levels, build a new MultiIndex with renamed levels
+final_df.columns = pd.MultiIndex.from_tuples([
+    (rename_dict.get(metric, metric), ds) for metric, ds in final_df.columns
+])
+
+
+# # Swap levels so that the outer level is the metric and inner level is the dataset,
+# # then sort by the dataset names
+# final_df = final_df.swaplevel(0, 1).sort_index(axis=1, level=0)
+
+# Build the desired column order based on your datasets list
+# The order will be: ('Macro', dataset) then ('Micro', dataset) for each dataset.
+desired_order = [(metric, ds) for metric in ['Macro', 'Micro'] for ds in datasets]
+
+# Reindex the columns to match the desired order
+final_df = final_df.reindex(columns=pd.MultiIndex.from_tuples(desired_order))
+final_df = final_df.reset_index()
+
+print(final_df)
+final_df.to_csv('results_mar_12.csv')
+
+
+
+### CELL 36 execution 117
+import os
+import pandas as pd
+import sys
+
+# Add parent directory to the system path to access constants.py
+sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), '..')))
+from constants import IN_DATA_PATHS
+
+# Base directory to start the search
+base_directory = r"C:\Users\phuon\DA\output\output"
+
+# Subdirectories containing the CSV files (datasets)
+datasets = ['mnist12','mnist28','adult','census','covertype']
+
+# Columns to analyze
+columns_to_analyze = [
+    'test_f1_macro', 'test_f1_micro'
+]
+
+# DataFrame to collect results
+results_list = []
+
+# Function to classify dataset and augment type from the filename using constants
+def classify_from_filename(filename):
+    # Extract dataset and augmentation type from the filename
+    filename_lower = filename.lower()
+    
+    dataset = "Unknown"
+    augment_type = "Unknown"
+    
+    # Loop through the IN_DATA_PATHS to find the matching dataset and augment type
+    for key, value in IN_DATA_PATHS.items():
+        #print(IN_DATA_PATHS.items())
+        # Check if dataset name is in the filename
+        print(key)
+        print(value)
+        if value.get('dataset') and value.get('dataset').lower() in filename_lower:
+            dataset = value['dataset']
+        
+        # Check if augment type is in the filename
+        for aug_key in value.get('synthetic', {}):
+            if aug_key.lower() in filename_lower:
+                augment_type = aug_key
+                break  # Stop after the first match
+
+    return dataset, augment_type
+
+# Function to process a file
+def process_file(file_path, dataset):
+    try:
+        # Read the CSV file
+        df = pd.read_csv(file_path)
+        
+        # Check for the columns to analyze in the file
+        if not all(column in df.columns for column in columns_to_analyze):
+            raise ValueError(f"The CSV file is missing one or more of the required columns: {columns_to_analyze}")
+        
+        # Extract the dataset name and augmentation type from the filename
+        filename = os.path.basename(file_path)
+        dataset, augment_type = classify_from_filename(filename)
+        
+        # Dictionary to store results
+        file_results = {'Dataset': dataset, 'Augment_Type': augment_type}
+
+        # Extract metrics and compute max and end values for each metric
+        for column in columns_to_analyze:
+            if column in df.columns:
+                file_results[f'{column}_max'] = df[column].max()
+                file_results[f'{column}_end'] = df[column].iloc[-1]
+            else:
+                raise ValueError(f"Column {column} not found in file {file_path}")
+        
+        # Append results to the list
+        results_list.append(file_results)
+
+    except Exception as e:
+        print(f"Error processing file {file_path}: {e}")
+
+# Process each dataset folder
+for dataset in datasets:
+    subdir_path = os.path.join(base_directory, dataset, 'acc')  # Path to 'acc' folder
+    
+    if os.path.exists(subdir_path):
+        for root, _, files in os.walk(subdir_path):
+            for file in files:
+                if file.endswith('.csv'):  # Process CSV files only
+                    file_path = os.path.join(root, file)
+                    print(f"Processing file: {file_path}")
+                    process_file(file_path, dataset)
+    else:
+        print(f"Directory not found: {subdir_path}")
+
+# Convert results to DataFrame
+results_df = pd.DataFrame(results_list)
+print("Results DataFrame:")
+print(results_df)
+
+# Create the pivot table using the metrics columns
+final_df = results_df.pivot_table(
+    index=['Augment_Type'], 
+    columns=['Dataset'],
+    values=['test_f1_macro_max', 'test_f1_micro_max']
+)
+
+# Rename the metric columns to more readable names
+rename_dict = {
+    'test_f1_macro_max': 'Macro',
+    'test_f1_micro_max': 'Micro'
+}
+final_df.columns = pd.MultiIndex.from_tuples([  # Reformat column names
+    (rename_dict.get(metric, metric), ds) for metric, ds in final_df.columns
+])
+
+# Build the desired column order based on your datasets list
+desired_order = [(metric, ds) for metric in ['Macro', 'Micro'] for ds in datasets]
+
+# Reindex the columns to match the desired order
+final_df = final_df.reindex(columns=pd.MultiIndex.from_tuples(desired_order))
+final_df = final_df.reset_index()
+
+# Display the final results DataFrame
+print("Final Results DataFrame:")
+print(final_df)
+
+# Save results to CSV
+final_df.to_csv('results_mar_12.csv', index=False)
+
+
+### CELL 37 execution None
+
+
+### CELL 38 execution None
+#self.w_file_name = f"{self.model_name}_train_{self.train_option}_augment_{self.augment_option}_mix_ratio{self.mix_ratio}_n{self.n_sample}_test_{self.test_option}_augment_{self.augment_option}_lr{self.learning_rate}_B{self.batch_size}_G{self.num_epochs}.weight.pth"
+        #self.acc_file_name = f"{self.w_file_name}.acc.csv"
+
+### CELL 39 execution None
+#keyword trong file name: _train_ , _augment_ , _mix_ratio 
+#doc file => max, end => process file name => train + augment option (theo keyword...)
+#truoc _train_ la self.model_name, bo DNN_, lay moi ten dataset 
+
+### CELL 40 execution None
+
+
+### CELL 42 execution 24
+import os
+import re
+import pandas as pd
+
+def extract_info(file_path):
+    """
+    Extract dataset_name, train_option, and augment_option from a file name.
+    
+    Case 1: File name includes an augment option.
+      Expected format: 
+      DNN_<dataset_name>_train_<train_option>_augment_<augment_option>_mix_ratio...
+    
+    Case 2: File name does NOT include an augment option.
+      Expected format: 
+      DNN_<dataset_name>_train_<train_option>_test_...
+      In this case, augment_option will be set to "none".
+    """
+    file_name = os.path.basename(file_path)
+    
+    # First try pattern with augment option
+    pattern_with_augment = r'^DNN_(?P<dataset_name>.+?)_train_(?P<train_option>.+?)_augment_(?P<augment_option>.+?)_mix_ratio'
+    match = re.search(pattern_with_augment, file_name)
+    if match:
+        return match.group('dataset_name'), match.group('train_option'), match.group('augment_option')
+    
+    # Fallback: pattern without augment option; assume file has '_train_' and then '_test_'
+    pattern_without_augment = r'^DNN_(?P<dataset_name>.+?)_train_(?P<train_option>.+?)_test_'
+    match = re.search(pattern_without_augment, file_name)
+    if match:
+        # In this case, augment option is not provided, so we return "none"
+        return match.group('dataset_name'), match.group('train_option'), "none"
+    
+    print(f"File name format did not match expected patterns for file: {file_name}")
+    return None, None, None
+
+def process_csv_file(file_path):
+    try:
+        df = pd.read_csv(file_path)
+    except Exception as e:
+        print(f"Error reading {file_path}: {e}")
+        return None
+
+    results = {}
+    for col in ['test_f1_macro', 'test_f1_micro','test_f1_binary']:
+        if col in df.columns:
+            max_value = df[col].max()
+            end_value = df[col].iloc[-1]
+            results[col] = {'max': max_value, 'end': end_value}
+        else:
+            print(f"Column '{col}' not found in {file_path}.")
+    return results
+
+def process_directory(base_dir):
+    all_results = {}
+    for root, dirs, files in os.walk(base_dir):
+        for file in files:
+            if file.endswith(".csv"):
+                file_path = os.path.join(root, file)
+                print(f"Processing {file_path}...")
+                dataset_name, train_option, augment_option = extract_info(file_path)
+                print(f"Extracted info - Dataset: {dataset_name}, Train: {train_option}, Augment: {augment_option}")
+                result = process_csv_file(file_path)
+                if result:
+                    all_results[file_path] = {'info': (dataset_name, train_option, augment_option),
+                                               'metrics': result}
+    return all_results
+
+def build_dataframe(results):
+    # Convert the results dictionary into a list of rows for the DataFrame
+    data = []
+    for file_path, details in results.items():
+        dataset_name, train_option, augment_option = details['info']
+        metrics = details['metrics']
+        row = {
+            'file_path': file_path,
+            'dataset_name': dataset_name,
+            'train_option': train_option,
+            'augment_option': augment_option,
+            'test_f1_macro_max': metrics.get('test_f1_macro', {}).get('max', None),
+            'test_f1_macro_end': metrics.get('test_f1_macro', {}).get('end', None),
+            'test_f1_micro_max': metrics.get('test_f1_micro', {}).get('max', None),
+            'test_f1_micro_end': metrics.get('test_f1_micro', {}).get('end', None),
+            'test_f1_binary_max': metrics.get('test_f1_binary', {}).get('max', None),
+            'test_f1_binary_end': metrics.get('test_f1_binary', {}).get('end', None)
+        }
+        data.append(row)
+    
+    df = pd.DataFrame(data)
+    return df
+
+def group_results(df):
+    # Create a pivot table grouping by train_option (rows) and using augment_option and dataset_name as columns.
+    pivot = df.pivot_table(
+        index='train_option',
+        columns=['augment_option', 'dataset_name'],
+        values=['test_f1_macro_max', 'test_f1_macro_end', 'test_f1_micro_max', 'test_f1_micro_end','test_f1_binary_max', 'test_f1_binary_end'], 
+        aggfunc='mean'
+    )
+    return pivot
+
+    
+
+### CELL 43 execution 25
+if __name__ == "__main__":
+    base_directory = r"C:\Users\phuon\DA\output\output"  # update this path as needed
+    results = process_directory(base_directory)
+    
+    # Build a DataFrame from the results
+    df = build_dataframe(results)
+    print("\nCombined DataFrame:")
+    print(df)
+    
+    # Group the results: columns will be a MultiIndex with augment type and dataset name.
+    # def group_results(df:any) -> pd.DataFrame:
+        # Create a pivot table grouping by train_option (rows) and using augment_option and dataset_name as columns.
+    grouped_df = group_results(df)
+    print("\nGrouped DataFrame (pivot table):")
+    grouped_df
+
+
+### CELL 44 execution 26
+grouped_df
+grouped_df.to_csv('Apirl29.csv')
+
+### CELL 45 execution 27
+df[df["train_option"] == "original"]
+
+### CELL 46 execution 29
+pivot = df.pivot_table(
+        index='augment_option',
+        columns=['train_option', 'dataset_name'],
+        values=['test_f1_macro_max', 'test_f1_macro_end', 'test_f1_micro_max', 'test_f1_micro_end','test_f1_binary_max', 'test_f1_binary_end'],
+        aggfunc='mean'
+    )
+pivot
+pivot.to_csv('April29.csv')
