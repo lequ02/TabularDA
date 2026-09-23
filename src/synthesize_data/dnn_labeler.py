@@ -25,6 +25,7 @@ def fit_predict_dnn(
     seed,
     report_path,
     dataset_name,
+    artifact_path=None,
 ):
     """Fit on real train rows, select on real dev rows, and label synthetic X."""
     if not x_train.columns.equals(x_dev.columns) or not x_train.columns.equals(x_synthetic.columns):
@@ -211,6 +212,20 @@ def fit_predict_dnn(
         raise ValueError(f"DNN did not converge within the {max_epochs}-epoch budget")
     if not quality_passed:
         raise ValueError(f"DNN failed dev quality gate: {report}")
+    if artifact_path:
+        Path(artifact_path).parent.mkdir(parents=True, exist_ok=True)
+        torch.save({
+            "state_dict": {key: value.detach().cpu() for key, value in model.state_dict().items()},
+            "feature_columns": list(x_train.columns),
+            "feature_mean": mean.tolist(),
+            "feature_scale": scale.tolist(),
+            "is_classification": is_classification,
+            "class_mapping": encoder.classes_.tolist() if is_classification else None,
+            "target_mean": None if is_classification else target_mean,
+            "target_scale": None if is_classification else target_scale,
+            "architecture": [train_x.shape[1], 128, 64, output_count],
+            "selected_epoch": best_epoch,
+        }, artifact_path)
     target = pd.DataFrame({target_name: synthetic_pred}, index=x_synthetic.index)
     return pd.concat([x_synthetic.copy(), target], axis=1)
 

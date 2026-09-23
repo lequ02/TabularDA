@@ -308,6 +308,7 @@ class train:
             test_loss=float(test_loss),
             test_scores={key: float(value) for key, value in test_score.items()},
             predictions_path=predictions_path,
+            weight_path=self.w_dir + self.w_file_name,
         )
 
 

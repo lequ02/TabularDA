@@ -34,6 +34,7 @@ def synthesize_data(x_original, y_original, categorical_columns, target_name,
   """
   if csv_file_name is None:
     csv_file_name = f'synthesized_data_{target_synthesizer}.csv'
+  predictor_artifact = os.path.splitext(csv_file_name)[0] + '.predictor.pkl'
 
   _validate_labeler_task(target_synthesizer, is_classification)
 
@@ -100,21 +101,23 @@ def synthesize_data(x_original, y_original, categorical_columns, target_name,
 
   # create y' using GaussianNB, CategoricalNB or gmmNB
   elif target_synthesizer == 'gaussianNB':
-    synthesized_data = create_label_gaussianNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
+    synthesized_data = create_label_gaussianNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name, artifact_path=predictor_artifact)
   elif target_synthesizer == 'categoricalNB':
-    synthesized_data = create_label_categoricalNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
+    synthesized_data = create_label_categoricalNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name, artifact_path=predictor_artifact)
   elif target_synthesizer == 'pca_gmm':
     if numerical_columns_pca_gmm is None:
       numerical_columns_pca_gmm =  x_original_backup.columns.difference(categorical_columns)
     pca_gmm = PCA_GMM(x_original, y_original, x_synthesized,
                       numerical_cols =  numerical_columns_pca_gmm,
                       pca_n_components=0.99, gmm_n_components=10, verbose=verbose,
-                      target_name = target_name, filename=csv_file_name, is_classification=is_classification)
+                      target_name = target_name, filename=csv_file_name, is_classification=is_classification,
+                      artifact_path=predictor_artifact)
     _, synthesized_data = pca_gmm.fit()
 
   elif target_synthesizer in ['xgb', 'rf']:
     ensemble = Ensemble(x_original, y_original, x_synthesized, target_name=target_name, target_synthesizer=target_synthesizer,
-                        filename=csv_file_name, verbose=verbose, is_classification=is_classification)
+                        filename=csv_file_name, verbose=verbose, is_classification=is_classification,
+                        artifact_path=predictor_artifact)
     _, synthesized_data = ensemble.fit()
 
   elif target_synthesizer == 'gmmNB':
@@ -181,6 +184,7 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns, t
   """
   if csv_file_name is None:
     csv_file_name = f'synthesized_data_{target_synthesizer}.csv'
+  predictor_artifact = os.path.splitext(csv_file_name)[0] + '.predictor.pkl'
 
   _validate_labeler_task(target_synthesizer, is_classification)
 
@@ -237,9 +241,9 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns, t
 
   # create y' using GaussianNB, CategoricalNB, or gmmNB
   elif target_synthesizer == 'gaussianNB':
-    synthesized_data = create_label_gaussianNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
+    synthesized_data = create_label_gaussianNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name, artifact_path=predictor_artifact)
   elif target_synthesizer == 'categoricalNB':
-    synthesized_data = create_label_categoricalNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
+    synthesized_data = create_label_categoricalNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name, artifact_path=predictor_artifact)
   elif target_synthesizer == 'pca_gmm':
     # print("num cols: ", x_original_backup.columns.difference(categorical_columns))
     if numerical_columns_pca_gmm is None:
@@ -248,12 +252,14 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns, t
     pca_gmm = PCA_GMM(x_original, y_original, x_synthesized,
                       numerical_cols =  numerical_columns_pca_gmm,
                       pca_n_components=0.99, gmm_n_components=10, verbose=verbose,
-                      target_name = target_name, filename=csv_file_name, is_classification=is_classification)
+                      target_name = target_name, filename=csv_file_name, is_classification=is_classification,
+                      artifact_path=predictor_artifact)
     _, synthesized_data = pca_gmm.fit()
 
   elif target_synthesizer in ['xgb', 'rf']:
     ensemble = Ensemble(x_original, y_original, x_synthesized, target_name=target_name, target_synthesizer=target_synthesizer,
-                        filename=csv_file_name, verbose=verbose, is_classification=is_classification)
+                        filename=csv_file_name, verbose=verbose, is_classification=is_classification,
+                        artifact_path=predictor_artifact)
     _, synthesized_data = ensemble.fit()
   elif target_synthesizer == 'dnn':
     if dnn_dev_data is None:
@@ -266,6 +272,7 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns, t
         target_name=target_name, is_classification=is_classification, seed=seed,
         report_path=os.path.splitext(csv_file_name)[0] + '.dnn.json',
         dataset_name=dataset_name,
+        artifact_path=os.path.splitext(csv_file_name)[0] + '.predictor.pt',
     )
   elif target_synthesizer == 'gmmNB':
     raise ValueError("gmmNB is not implemented yet")
@@ -340,6 +347,7 @@ def synthesize_comparison_from_trained_model(x_original, y_original, categorical
 
   if csv_file_name is None:
     csv_file_name = f'synthesized_data_{target_synthesizer}_compare.csv'
+  predictor_artifact = os.path.splitext(csv_file_name)[0] + '.predictor.pkl'
 
   if not target_synthesizer:
     raise ValueError("Target synthesizer must be specified for comparison function")
@@ -368,9 +376,9 @@ def synthesize_comparison_from_trained_model(x_original, y_original, categorical
     raise ValueError("x_original and x_synthesized have different columns or the columns are in different orders")
 
   if target_synthesizer == 'gaussianNB':
-    synthesized_data = create_label_gaussianNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
+    synthesized_data = create_label_gaussianNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name, artifact_path=predictor_artifact)
   elif target_synthesizer == 'categoricalNB':
-    synthesized_data = create_label_categoricalNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
+    synthesized_data = create_label_categoricalNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name, artifact_path=predictor_artifact)
   elif target_synthesizer == 'pca_gmm':
     # print("num cols: ", x_original_backup.columns.difference(categorical_columns))
     if numerical_columns_pca_gmm is None:
@@ -379,12 +387,14 @@ def synthesize_comparison_from_trained_model(x_original, y_original, categorical
     pca_gmm = PCA_GMM(x_original, y_original, x_synthesized,
                       numerical_cols =  numerical_columns_pca_gmm,
                       pca_n_components=0.99, gmm_n_components=10, verbose=verbose,
-                      target_name = target_name, filename=csv_file_name, is_classification=is_classification)
+                      target_name = target_name, filename=csv_file_name, is_classification=is_classification,
+                      artifact_path=predictor_artifact)
     _, synthesized_data = pca_gmm.fit()
 
   elif target_synthesizer in ['xgb', 'rf']:
     ensemble = Ensemble(x_original, y_original, x_synthesized, target_name=target_name, target_synthesizer=target_synthesizer,
-                        filename=csv_file_name, verbose=verbose, is_classification=is_classification)
+                        filename=csv_file_name, verbose=verbose, is_classification=is_classification,
+                        artifact_path=predictor_artifact)
     _, synthesized_data = ensemble.fit()
 
   elif target_synthesizer == 'dnn':
@@ -398,6 +408,7 @@ def synthesize_comparison_from_trained_model(x_original, y_original, categorical
         target_name=target_name, is_classification=is_classification, seed=seed,
         report_path=os.path.splitext(csv_file_name)[0] + '.dnn.json',
         dataset_name=dataset_name,
+        artifact_path=os.path.splitext(csv_file_name)[0] + '.predictor.pt',
     )
 
   elif target_synthesizer == 'gmmNB':

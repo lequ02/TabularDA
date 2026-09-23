@@ -3,6 +3,8 @@ import sklearn
 from sklearn.naive_bayes import GaussianNB
 from sklearn.naive_bayes import CategoricalNB
 import numpy as np
+import pickle
+from pathlib import Path
 from GaussMix_nb import GMMNaiveBayes
 
 
@@ -31,12 +33,16 @@ def _fit_quantile_bins(xtrain, xtest, n_bins=10):
     )
   return train_codes, test_codes
 
-def create_label_gaussianNB(xtrain, ytrain, xtest, target_name, filename=None):
+def create_label_gaussianNB(xtrain, ytrain, xtest, target_name, filename=None, artifact_path=None):
 
   # xtrain and ytrain are one hot encoded
   xtrain = xtrain.reindex(sorted(xtrain.columns), axis=1)
   xtest = xtest.reindex(sorted(xtest.columns), axis=1)
   gnb = GaussianNB().fit(xtrain, ytrain)
+  if artifact_path:
+    Path(artifact_path).parent.mkdir(parents=True, exist_ok=True)
+    with open(artifact_path, "wb") as artifact_file:
+      pickle.dump({"estimator": gnb, "feature_columns": list(xtrain.columns)}, artifact_file)
   ytest = gnb.predict(xtest)
 
   ytest_df = pd.DataFrame(ytest, columns = [target_name])
@@ -46,7 +52,7 @@ def create_label_gaussianNB(xtrain, ytrain, xtest, target_name, filename=None):
   return test
 
 
-def create_label_categoricalNB(xtrain, ytrain, xtest, target_name, filename=None, alpha=1.0, force_alpha=True):
+def create_label_categoricalNB(xtrain, ytrain, xtest, target_name, filename=None, alpha=1.0, force_alpha=True, artifact_path=None):
   """
   alpha and force_alpha are parameters for Laplace smoothing (sklearn default is alpha=1.0 and force_alpha=True)
   for no smoothing, set alpha=0 and force_alpha=False
@@ -59,6 +65,14 @@ def create_label_categoricalNB(xtrain, ytrain, xtest, target_name, filename=None
   xtest = xtest.reindex(sorted(xtest.columns), axis=1)
   xtrain_codes, xtest_codes = _fit_quantile_bins(xtrain, xtest)
   cnb = CategoricalNB(alpha=alpha, force_alpha=force_alpha).fit(xtrain_codes, ytrain)
+  if artifact_path:
+    Path(artifact_path).parent.mkdir(parents=True, exist_ok=True)
+    bins = [np.unique(np.quantile(np.asarray(xtrain[column], dtype=float),
+                                  np.linspace(0, 1, 11)[1:-1]))
+            for column in xtrain.columns]
+    with open(artifact_path, "wb") as artifact_file:
+      pickle.dump({"estimator": cnb, "feature_columns": list(xtrain.columns),
+                   "quantile_bin_edges": bins}, artifact_file)
   ytest = cnb.predict(xtest_codes)
 
   ytest_df = pd.DataFrame(ytest, columns = [target_name])

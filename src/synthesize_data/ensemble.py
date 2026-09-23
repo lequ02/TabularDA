@@ -1,4 +1,6 @@
 import sklearn
+import pickle
+from pathlib import Path
 import pandas as pd
 import numpy as np
 import xgboost as xgb
@@ -25,7 +27,7 @@ def sanitize_column_names(columns):
     return sanitized_columns
 
 class Ensemble():
-    def __init__(self, x_original, y_original, x_synthesized, target_name, target_synthesizer, filename, verbose=True, is_classification=True):
+    def __init__(self, x_original, y_original, x_synthesized, target_name, target_synthesizer, filename, verbose=True, is_classification=True, artifact_path=None):
         self.x_original = x_original
         # self.y_original = y_original
         self.x_synthesized = x_synthesized
@@ -35,6 +37,7 @@ class Ensemble():
         self.verbose = verbose
         self.target_synthesizer = target_synthesizer
         self.is_classification = is_classification
+        self.artifact_path = artifact_path
         
         if self.is_classification:
             self.label_encoder, self.y_original = self.label_encode(y_original) # have to label encode the y_original or xgboost will throw error
@@ -60,6 +63,13 @@ class Ensemble():
             print("Training ensemble model...")
         
         model.fit(self.x_original, self.y_original)
+        if self.artifact_path:
+            Path(self.artifact_path).parent.mkdir(parents=True, exist_ok=True)
+            with open(self.artifact_path, "wb") as artifact_file:
+                pickle.dump({"estimator": model, "label_encoder": self.label_encoder,
+                             "feature_columns": self.original_x_columns,
+                             "sanitized_feature_columns": list(self.x_original.columns),
+                             "is_classification": self.is_classification}, artifact_file)
         
         # Predict on the synthesized data
         if self.is_classification:

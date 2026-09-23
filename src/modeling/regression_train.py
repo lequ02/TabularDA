@@ -246,6 +246,7 @@ class train:
             test_loss=float(test_loss),
             test_scores={key: float(value) for key, value in test_score.items()},
             predictions_path=os.path.join(self.acc_dir, self.w_file_name + '.predictions.csv'),
+            weight_path=self.w_dir + self.w_file_name,
         )
         self.plot_loss_and_f1_curves(train_losses, train_scores[self.metric_to_plot],
                                      dev_losses, dev_scores[self.metric_to_plot],

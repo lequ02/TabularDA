@@ -65,6 +65,19 @@ Report binary F1 and macro-F1 for Adult/Census KDD/Credit; macro-F1 for Covertyp
 
 With one seed, the result table reports individual scores; between-seed variation is unavailable.
 
+## Saved artifacts
+
+All paths below are created on the GPU host during the run. Each downstream run record lists the exact prepared split, generator, predictor (when applicable), synthetic table, and downstream checkpoint paths and fails if a required model file is missing.
+
+| Artifact | Saved location for dataset `D`, seed 42 |
+| --- | --- |
+| Prepared real train/dev/test | Raw `data/corrected_v2/D/seed_42/D_{train,dev,test}.csv` and encoded `onehot_D_{train,dev,test}.csv`; `split_manifest.json` records their hashes and source IDs |
+| Full-table CTGAN/TVAE and X-only CTGAN/TVAE models | `sdv trained model/corrected_v2/D/seed_42/*.pkl`, with matching `.provenance.json` |
+| Synthesized tables | `data/corrected_v2/D/seed_42/onehot_D_sdv_*.csv`, with matching `.quality.json` |
+| Target predictors | Beside each predictor-labeled synthetic CSV: matching `.predictor.pkl` for NB, PCA-GMM, RF, or XGB, or `.predictor.pt` for DNN; the DNN also writes `.dnn.json` dev metrics |
+| Downstream evaluation model | `output/corrected_v2/D/weight/*.weight.pth`, selected using real-dev loss |
+| Evaluation record and real-test predictions | `output/corrected_v2/D/acc/*.run.json` and `*.predictions.csv` |
+
 No corrected scores are entered here. Run the tiny end-to-end checks, SDV API check, full GPU matrix, and result builder on suitable compute before treating any new comparison as complete.
 
 On a GPU host with the pinned requirements installed, `python scripts/run_corrected_matrix.py --dataset adult --seed 42` runs one isolated dataset/seed and writes logs under `output/corrected_v2/logs`. Run `python scripts/run_corrected_matrix.py` for the complete matrix. The script writes `failures.json`; the result builder refuses to publish tables until every planned run record exists. Neither command has been executed on the local laptop.
