@@ -1,0 +1,234 @@
+PAGE 1
+analysisAPRIL02
+Minh Le
+2025-03-23
+Note:
+data points for gaussian are deleted because their performance is terrible compared to other methods.
+if p_value <0.05 then we reject the null hypothesis, else, we fail to reject the null hypothesis
+Compare for Macro max
+#df_macro = read.csv( 'Mar23_synthetic_macro_max.csv')
+df_macro = read.csv('April02_synthetic_macro_max.csv')
+# Calculate mean averages for each group
+means = aggregate(Average ~ has_y, data = df_macro, FUN = mean)
+means
+## has_y Average
+## 1 0 0.7542159
+## 2 1 0.7515783
+sd_macro_withy = sqrt(var(df_macro$Average[df_macro$has_y == 1]))
+sd_macro_withouty = sqrt(var(df_macro$Average[df_macro$has_y == 0]))
+cat("sd with y:", sd_macro_withy, " \n sd/mean:", sd_macro_withy /means[2,2], " \n")
+## sd with y: 0.04694241
+## sd/mean: 0.06245844
+cat("sd without y:", sd_macro_withouty, " \n sd/mean:", sd_macro_withy /means[1,2], " \n")
+## sd without y: 0.04617493
+## sd/mean: 0.06224001
+boxplot(Average ~ has_y, data = df_macro,
+names = c("Without Y", "With Y"),
+ylab = "F1 Macro_max",
+main = "Average F1 Macro_max Comparison")
+1
+
+PAGE 2
+Without Y With Y
+0.72 0.76 0.80
+Average F1 Macro_max Comparison
+has_y
+F1 Macro_max
+t-test if has_y=1 has a higher average than has_y=0 group
+# Split into groups
+with_y <- df_macro $Average[df_macro$has_y == 1]
+without_y <- df_macro $Average[df_macro$has_y == 0]
+# Perform t-test
+t.test(with_y, without_y, alternative= 'greater')
+##
+## Welch Two Sample t-test
+##
+## data: with_y and without_y
+## t = -0.1133, df = 13.996, p-value = 0.5443
+## alternative hypothesis: true difference in means is greater than 0
+## 95 percent confidence interval:
+## -0.04364191 Inf
+## sample estimates:
+## mean of x mean of y
+## 0.7515783 0.7542159
+2
+
+PAGE 3
+t-test if has_y=0 has a higher average than has_y=1 group
+# Split into groups
+with_y <- df_macro $Average[df_macro$has_y == 1]
+without_y <- df_macro $Average[df_macro$has_y == 0]
+# Perform t-test
+t.test(without_y, with_y, alternative= 'greater')
+##
+## Welch Two Sample t-test
+##
+## data: without_y and with_y
+## t = 0.1133, df = 13.996, p-value = 0.4557
+## alternative hypothesis: true difference in means is greater than 0
+## 95 percent confidence interval:
+## -0.0383667 Inf
+## sample estimates:
+## mean of x mean of y
+## 0.7542159 0.7515783
+t-test if has_y=1 and has_y=0 have different means
+# Split into groups
+with_y <- df_macro $Average[df_macro$has_y == 1]
+without_y <- df_macro $Average[df_macro$has_y == 0]
+# Perform t-test
+t.test(with_y, without_y, alternative= 'two.sided')
+##
+## Welch Two Sample t-test
+##
+## data: with_y and without_y
+## t = -0.1133, df = 13.996, p-value = 0.9114
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+## -0.05256978 0.04729457
+## sample estimates:
+## mean of x mean of y
+## 0.7515783 0.7542159
+model_macro = lm(Average~has_y, data=df_macro)
+summary(model_macro)
+##
+## Call:
+## lm(formula = Average ~ has_y, data = df_macro)
+##
+3
+
+PAGE 4
+## Residuals:
+## Min 1Q Median 3Q Max
+## -0.049567 -0.041751 -0.005804 0.039064 0.065577
+##
+## Coefficients:
+## Estimate Std. Error t value Pr(>|t|)
+## (Intercept) 0.754216 0.016462 45.817 <2e-16 ***
+## has_y -0.002638 0.023280 -0.113 0.911
+## ---
+## Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+##
+## Residual standard error: 0.04656 on 14 degrees of freedom
+## Multiple R-squared: 0.0009161, Adjusted R-squared: -0.07045
+## F-statistic: 0.01284 on 1 and 14 DF, p-value: 0.9114
+anova(model_macro)
+## Analysis of Variance Table
+##
+## Response: Average
+## Df Sum Sq Mean Sq F value Pr(>F)
+## has_y 1 0.0000278 0.00002783 0.0128 0.9114
+## Residuals 14 0.0303500 0.00216786
+Compare for Micro max
+#df_micro = read.csv( 'Mar23_synthetic_micro_max.csv')
+df_micro = read.csv('April02_synthetic_micro_max.csv')
+# Calculate mean averages for each group
+means = aggregate(Average ~ has_y, data = df_micro, FUN = mean)
+means
+## has_y Average
+## 1 0 0.8133715
+## 2 1 0.8090984
+sd_micro_withy = sqrt(var(df_micro$Average[df_micro$has_y == 1]))
+sd_micro_withouty = sqrt(var(df_micro$Average[df_micro$has_y == 0]))
+cat("sd with y:", sd_micro_withy, " \n sd/mean:", sd_micro_withy /means[2,2], " \n")
+## sd with y: 0.05201947
+## sd/mean: 0.06429313
+cat("sd without y:", sd_micro_withouty, " \n sd/mean:", sd_micro_withy /means[1,2], " \n")
+## sd without y: 0.0500429
+## sd/mean: 0.06395536
+4
+
+PAGE 5
+boxplot(Average ~ has_y, data = df_micro,
+names = c("Without Y", "With Y"),
+ylab = "F1 Micro_max",
+main = "Average F1 Micro_max Comparison")
+Without Y With Y
+0.76 0.80 0.84
+Average F1 Micro_max Comparison
+has_y
+F1 Micro_max
+t-test if has_y=1 has a higher average than has_y=0 group
+# Split into groups
+with_y <- df_micro $Average[df_micro$has_y == 1]
+without_y <- df_micro $Average[df_micro$has_y == 0]
+# Perform t-test
+t.test(with_y, without_y, alternative= 'greater')
+##
+## Welch Two Sample t-test
+##
+## data: with_y and without_y
+## t = -0.16744, df = 13.979, p-value = 0.5653
+## alternative hypothesis: true difference in means is greater than 0
+## 95 percent confidence interval:
+## -0.04922719 Inf
+## sample estimates:
+5
+
+PAGE 6
+## mean of x mean of y
+## 0.8090984 0.8133715
+t-test if has_y=0 has a higher average than has_y=1 group
+# Split into groups
+with_y <- df_micro $Average[df_micro$has_y == 1]
+without_y <- df_micro $Average[df_micro$has_y == 0]
+# Perform t-test
+t.test(without_y, with_y, alternative= 'greater')
+##
+## Welch Two Sample t-test
+##
+## data: without_y and with_y
+## t = 0.16744, df = 13.979, p-value = 0.4347
+## alternative hypothesis: true difference in means is greater than 0
+## 95 percent confidence interval:
+## -0.04068093 Inf
+## sample estimates:
+## mean of x mean of y
+## 0.8133715 0.8090984
+t-test if has_y=1 and has_y=0 have different means
+# Split into groups
+with_y <- df_micro $Average[df_micro$has_y == 1]
+without_y <- df_micro $Average[df_micro$has_y == 0]
+# Perform t-test
+t.test(with_y, without_y, alternative= 'two.sided')
+##
+## Welch Two Sample t-test
+##
+## data: with_y and without_y
+## t = -0.16744, df = 13.979, p-value = 0.8694
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+## -0.05901659 0.05047034
+## sample estimates:
+## mean of x mean of y
+## 0.8090984 0.8133715
+model_micro = lm(Average~has_y, data=df_micro)
+summary(model_micro)
+6
+
+PAGE 7
+##
+## Call:
+## lm(formula = Average ~ has_y, data = df_micro)
+##
+## Residuals:
+## Min 1Q Median 3Q Max
+## -0.059679 -0.046738 0.003007 0.039494 0.065092
+##
+## Coefficients:
+## Estimate Std. Error t value Pr(>|t|)
+## (Intercept) 0.813372 0.018046 45.073 <2e-16 ***
+## has_y -0.004273 0.025520 -0.167 0.869
+## ---
+## Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+##
+## Residual standard error: 0.05104 on 14 degrees of freedom
+## Multiple R-squared: 0.001999, Adjusted R-squared: -0.06929
+## F-statistic: 0.02804 on 1 and 14 DF, p-value: 0.8694
+anova(model_micro)
+## Analysis of Variance Table
+##
+## Response: Average
+## Df Sum Sq Mean Sq F value Pr(>F)
+## has_y 1 0.000073 0.00007304 0.028 0.8694
+## Residuals 14 0.036472 0.00260516
+7

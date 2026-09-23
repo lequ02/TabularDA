@@ -1,0 +1,12 @@
+title = "TabularDA secret scanning"
+
+[extend]
+useDefault = true
+
+# These exact values are evaluation metric names, not credentials.
+[[rules]]
+id = "generic-api-key"
+[[rules.allowlists]]
+description = "Research evaluation metric identifiers"
+regexTarget = "secret"
+regexes = ['''^test_(?:accuracy|f1_(?:binary|macro|micro|weighted)|loss)_(?:end|max)$''']

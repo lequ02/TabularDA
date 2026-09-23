@@ -1,0 +1,73 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Paper comparison and hypothetical sensitivity</title>
+<style>body{font:16px sans-serif;max-width:1400px;margin:30px auto;padding:20px}table{border-collapse:collapse;font-size:14px}td,th{padding:8px;border-bottom:1px solid #ddd;text-align:left}img{max-width:100%}h2{margin-top:35px}</style></head><body>
+<h1>CTGAN/TVAE replication and paper-score sensitivity</h1>
+<p>Adult counted once. Matching metrics, differing protocols. Missing final results remain missing. Paper-score substitution is hypothetical and is not a leakage-adjusted or corrected replication.</p>
+<p><a href="https://arxiv.org/pdf/1907.00503">Paper Table 6</a> | <a href="PAPER_COMPARISON_AND_SENSITIVITY.md">Full analysis and limits</a></p>
+<h2>Paper versus replication: labeled comparison</h2><img src="../figures/25_paper_replication_bars.png" alt="Paper, final epoch and test maximum scores for CTGAN and TVAE">
+<h2>Final paper-metric comparison</h2>
+<table><tr><th>dataset</th><th>method</th><th>metric</th><th>paper_score</th><th>endpoint</th><th>value</th><th>difference_from_paper</th></tr>
+<tr><td>Adult</td><td>ctgan</td><td>Binary F1</td><td>0.6010</td><td>end</td><td>0.6581</td><td>0.0571</td></tr>
+<tr><td>Adult</td><td>ctgan</td><td>Binary F1</td><td>0.6010</td><td>max</td><td>0.6657</td><td>0.0647</td></tr>
+<tr><td>Adult</td><td>tvae</td><td>Binary F1</td><td>0.6260</td><td>end</td><td>0.5667</td><td>-0.0593</td></tr>
+<tr><td>Adult</td><td>tvae</td><td>Binary F1</td><td>0.6260</td><td>max</td><td>0.6234</td><td>-0.0026</td></tr>
+<tr><td>Census_KDD</td><td>ctgan</td><td>Binary F1</td><td>0.3910</td><td>-</td><td>-</td><td>-</td></tr>
+<tr><td>Census_KDD</td><td>tvae</td><td>Binary F1</td><td>0.3770</td><td>-</td><td>-</td><td>-</td></tr>
+<tr><td>Covertype</td><td>ctgan</td><td>Macro-F1</td><td>0.3240</td><td>end</td><td>0.4748</td><td>0.1508</td></tr>
+<tr><td>Covertype</td><td>ctgan</td><td>Macro-F1</td><td>0.3240</td><td>max</td><td>0.4835</td><td>0.1595</td></tr>
+<tr><td>Covertype</td><td>tvae</td><td>Macro-F1</td><td>0.4330</td><td>end</td><td>0.2672</td><td>-0.1658</td></tr>
+<tr><td>Covertype</td><td>tvae</td><td>Macro-F1</td><td>0.4330</td><td>max</td><td>0.2972</td><td>-0.1358</td></tr>
+<tr><td>Credit</td><td>ctgan</td><td>Binary F1</td><td>0.6720</td><td>-</td><td>-</td><td>-</td></tr>
+<tr><td>Credit</td><td>tvae</td><td>Binary F1</td><td>0.0980</td><td>-</td><td>-</td><td>-</td></tr>
+<tr><td>Intrusion</td><td>ctgan</td><td>Macro-F1</td><td>0.5280</td><td>-</td><td>-</td><td>-</td></tr>
+<tr><td>Intrusion</td><td>tvae</td><td>Macro-F1</td><td>0.5110</td><td>-</td><td>-</td><td>-</td></tr>
+<tr><td>MNIST12</td><td>ctgan</td><td>Accuracy</td><td>0.3940</td><td>end</td><td>0.5326</td><td>0.1386</td></tr>
+<tr><td>MNIST12</td><td>ctgan</td><td>Accuracy</td><td>0.3940</td><td>max</td><td>0.5544</td><td>0.1604</td></tr>
+<tr><td>MNIST12</td><td>tvae</td><td>Accuracy</td><td>0.7930</td><td>end</td><td>0.9219</td><td>0.1289</td></tr>
+<tr><td>MNIST12</td><td>tvae</td><td>Accuracy</td><td>0.7930</td><td>max</td><td>0.9252</td><td>0.1322</td></tr>
+<tr><td>MNIST28</td><td>ctgan</td><td>Accuracy</td><td>0.3710</td><td>end</td><td>0.4077</td><td>0.0367</td></tr>
+<tr><td>MNIST28</td><td>ctgan</td><td>Accuracy</td><td>0.3710</td><td>max</td><td>0.5341</td><td>0.1631</td></tr>
+<tr><td>MNIST28</td><td>tvae</td><td>Accuracy</td><td>0.7940</td><td>end</td><td>0.9291</td><td>0.1351</td></tr>
+<tr><td>MNIST28</td><td>tvae</td><td>Accuracy</td><td>0.7940</td><td>max</td><td>0.9361</td><td>0.1421</td></tr>
+<tr><td>News</td><td>ctgan</td><td>R-squared</td><td>-0.4300</td><td>-</td><td>-</td><td>-</td></tr>
+<tr><td>News</td><td>tvae</td><td>R-squared</td><td>-0.2000</td><td>-</td><td>-</td><td>-</td></tr>
+</table>
+<h2>Only TVAE Covertype replaced by 0.433</h2>
+<table><tr><th>family</th><th>scenario</th><th>metric</th><th>joint_mean</th><th>proposed_mean</th><th>gain</th><th>relative_gain</th><th>p_value</th></tr>
+<tr><td>All_methods</td><td>Recorded</td><td>macro_max</td><td>0.6361</td><td>0.6948</td><td>0.0587</td><td>9.22%</td><td>0.1717</td></tr>
+<tr><td>All_methods</td><td>Recorded</td><td>macro_end</td><td>0.6177</td><td>0.6831</td><td>0.0654</td><td>10.58%</td><td>0.1882</td></tr>
+<tr><td>All_methods</td><td>Paper TVAE Covertype: hypothetical</td><td>macro_max</td><td>0.6531</td><td>0.6948</td><td>0.0417</td><td>6.39%</td><td>0.2109</td></tr>
+<tr><td>All_methods</td><td>Paper TVAE Covertype: hypothetical</td><td>macro_end</td><td>0.6385</td><td>0.6831</td><td>0.0447</td><td>7.00%</td><td>0.2624</td></tr>
+<tr><td>No_Gaussian</td><td>Recorded</td><td>macro_max</td><td>0.6361</td><td>0.7537</td><td>0.1176</td><td>18.49%</td><td>0.0707</td></tr>
+<tr><td>No_Gaussian</td><td>Recorded</td><td>macro_end</td><td>0.6177</td><td>0.7429</td><td>0.1251</td><td>20.26%</td><td>0.0822</td></tr>
+<tr><td>No_Gaussian</td><td>Paper TVAE Covertype: hypothetical</td><td>macro_max</td><td>0.6531</td><td>0.7537</td><td>0.1006</td><td>15.41%</td><td>0.0940</td></tr>
+<tr><td>No_Gaussian</td><td>Paper TVAE Covertype: hypothetical</td><td>macro_end</td><td>0.6385</td><td>0.7429</td><td>0.1044</td><td>16.35%</td><td>0.1177</td></tr>
+<tr><td>RF_XGB</td><td>Recorded</td><td>macro_max</td><td>0.6361</td><td>0.8013</td><td>0.1652</td><td>25.97%</td><td>0.0467</td></tr>
+<tr><td>RF_XGB</td><td>Recorded</td><td>macro_end</td><td>0.6177</td><td>0.7880</td><td>0.1703</td><td>27.56%</td><td>0.0654</td></tr>
+<tr><td>RF_XGB</td><td>Paper TVAE Covertype: hypothetical</td><td>macro_max</td><td>0.6531</td><td>0.8013</td><td>0.1482</td><td>22.70%</td><td>0.0520</td></tr>
+<tr><td>RF_XGB</td><td>Paper TVAE Covertype: hypothetical</td><td>macro_end</td><td>0.6385</td><td>0.7880</td><td>0.1496</td><td>23.42%</td><td>0.0776</td></tr>
+</table>
+<h2>Generator-matched RF/XGBoost comparisons</h2>
+<table><tr><th>scenario</th><th>analysis</th><th>datasets</th><th>joint_mean</th><th>rf_xgb_mean</th><th>gain</th><th>relative_gain</th><th>lower_95</th><th>upper_95</th><th>p_value</th><th>p_holm</th></tr>
+<tr><td>Recorded</td><td>CTGAN features</td><td>4.0000</td><td>0.5462</td><td>0.7900</td><td>0.2438</td><td>0.4463</td><td>-0.0823</td><td>0.5698</td><td>0.0977</td><td>0.1953</td></tr>
+<tr><td>Recorded</td><td>TVAE features</td><td>4.0000</td><td>0.7260</td><td>0.8126</td><td>0.0866</td><td>0.1193</td><td>-0.1254</td><td>0.2987</td><td>0.2844</td><td>0.2844</td></tr>
+<tr><td>Paper TVAE Covertype: hypothetical</td><td>CTGAN features</td><td>4.0000</td><td>0.5462</td><td>0.7900</td><td>0.2438</td><td>0.4463</td><td>-0.0823</td><td>0.5698</td><td>0.0977</td><td>0.1953</td></tr>
+<tr><td>Paper TVAE Covertype: hypothetical</td><td>TVAE features</td><td>4.0000</td><td>0.7599</td><td>0.8126</td><td>0.0527</td><td>0.0693</td><td>-0.0516</td><td>0.1570</td><td>0.2062</td><td>0.2062</td></tr>
+</table>
+<h2>Older workbook: audit-flagged historical comparisons</h2>
+<p>These CTGAN scores come from the older workbook with a mixed/synthetic aggregation defect. It has no TVAE rows. These values do not enter the final-record or borrowed-score analysis. Earlier March/April 2 pivot baselines repeat April 29 scores; all raw versions and aliases remain in the CSV evidence.</p>
+<table><tr><th>dataset_label</th><th>method</th><th>metric</th><th>value</th><th>paper_score</th><th>difference_from_paper</th></tr>
+<tr><td>mnist12</td><td>ctgan</td><td>test_accuracy_max</td><td>0.7656</td><td>0.3940</td><td>0.3716</td></tr>
+<tr><td>mnist28</td><td>ctgan</td><td>test_accuracy_max</td><td>0.5615</td><td>0.3710</td><td>0.1905</td></tr>
+<tr><td>mnist12</td><td>ctgan</td><td>test_accuracy_end</td><td>0.7370</td><td>0.3940</td><td>0.3430</td></tr>
+<tr><td>mnist28</td><td>ctgan</td><td>test_accuracy_end</td><td>0.5205</td><td>0.3710</td><td>0.1495</td></tr>
+<tr><td>covertype</td><td>ctgan</td><td>test_f1_macro_max</td><td>0.7285</td><td>0.3240</td><td>0.4045</td></tr>
+<tr><td>covertype</td><td>ctgan</td><td>test_f1_macro_end</td><td>0.7227</td><td>0.3240</td><td>0.3987</td></tr>
+<tr><td>adult</td><td>ctgan</td><td>test_f1_binary_max</td><td>0.6789</td><td>0.6010</td><td>0.0779</td></tr>
+<tr><td>credit</td><td>ctgan</td><td>test_f1_binary_max</td><td>0.1170</td><td>0.6720</td><td>-0.5550</td></tr>
+<tr><td>adult</td><td>ctgan</td><td>test_f1_binary_end</td><td>0.6572</td><td>0.6010</td><td>0.0562</td></tr>
+<tr><td>credit</td><td>ctgan</td><td>test_f1_binary_end</td><td>0.0639</td><td>0.6720</td><td>-0.6081</td></tr>
+</table>
+<h2>22_paper_baseline_comparison</h2><img src="../figures/22_paper_baseline_comparison.png">
+<h2>23_paper_substitution_sensitivity</h2><img src="../figures/23_paper_substitution_sensitivity.png">
+<h2>24_rf_xgb_paper_substitution</h2><img src="../figures/24_rf_xgb_paper_substitution.png">
+</body></html>

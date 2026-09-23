@@ -1,6 +1,5 @@
 from sklearn.preprocessing import OneHotEncoder
 import pandas as pd
-from .customErrors import *
 
 
 def onehot(xtrain, xtest, categorical_columns, verbose=False):
@@ -8,16 +7,8 @@ def onehot(xtrain, xtest, categorical_columns, verbose=False):
     xtrain_copy = xtrain.copy()
     xtest_copy = xtest.copy()
 
-    # Check for differences between train and test categories before encoding
-    for col in categorical_columns:
-        dif1 = set(xtest_copy[col].unique()) - set(xtrain_copy[col].unique())
-        if dif1:
-            error_message = f"""
-            Differences found between xtest and xtrain in column: "{col}"
-            Number of unique values in test (test - train): {len(dif1)}
-            Unique values: {dif1}
-            """
-            raise TestTrainDiffError(error_message)
+    if not categorical_columns:
+        return xtrain_copy, xtest_copy
 
     # Apply OneHotEncoder to categorical columns
     encoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
@@ -33,7 +24,7 @@ def onehot(xtrain, xtest, categorical_columns, verbose=False):
     xtest_onehot_df = pd.DataFrame(xtest_encoded, columns=encoded_columns, index=xtest_copy.index)
 
     # Concatenate numerical columns and one-hot encoded columns
-    numerical_cols = list(set(xtrain.columns) - set(categorical_columns))
+    numerical_cols = [column for column in xtrain.columns if column not in categorical_columns]
     xtrain_prep = pd.concat([xtrain[numerical_cols], xtrain_onehot_df], axis=1)
     xtest_prep = pd.concat([xtest[numerical_cols], xtest_onehot_df], axis=1)
 

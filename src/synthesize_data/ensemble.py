@@ -1,4 +1,6 @@
 import sklearn
+import pickle
+from pathlib import Path
 import pandas as pd
 import numpy as np
 import xgboost as xgb
@@ -25,7 +27,7 @@ def sanitize_column_names(columns):
     return sanitized_columns
 
 class Ensemble():
-    def __init__(self, x_original, y_original, x_synthesized, target_name, target_synthesizer, filename, verbose=True, is_classification=True):
+    def __init__(self, x_original, y_original, x_synthesized, target_name, target_synthesizer, filename, verbose=True, is_classification=True, artifact_path=None):
         self.x_original = x_original
         # self.y_original = y_original
         self.x_synthesized = x_synthesized
@@ -35,6 +37,7 @@ class Ensemble():
         self.verbose = verbose
         self.target_synthesizer = target_synthesizer
         self.is_classification = is_classification
+        self.artifact_path = artifact_path
         
         if self.is_classification:
             self.label_encoder, self.y_original = self.label_encode(y_original) # have to label encode the y_original or xgboost will throw error
@@ -60,6 +63,13 @@ class Ensemble():
             print("Training ensemble model...")
         
         model.fit(self.x_original, self.y_original)
+        if self.artifact_path:
+            Path(self.artifact_path).parent.mkdir(parents=True, exist_ok=True)
+            with open(self.artifact_path, "wb") as artifact_file:
+                pickle.dump({"estimator": model, "label_encoder": self.label_encoder,
+                             "feature_columns": self.original_x_columns,
+                             "sanitized_feature_columns": list(self.x_original.columns),
+                             "is_classification": self.is_classification}, artifact_file)
         
         # Predict on the synthesized data
         if self.is_classification:
@@ -67,21 +77,21 @@ class Ensemble():
         else:
             y_syn_pred = model.predict(self.x_synthesized)
 
+        y_hat_train = model.predict(self.x_original)
+        if self.is_classification:
+            train_f1 = {}
+            train_f1['weighted'] = sklearn.metrics.f1_score(self.y_original, y_hat_train, average='weighted')
+            train_f1['macro'] = sklearn.metrics.f1_score(self.y_original, y_hat_train, average='macro')
+            train_f1['micro'] = sklearn.metrics.f1_score(self.y_original, y_hat_train, average='micro')
+            accuracy = sklearn.metrics.accuracy_score(self.y_original, y_hat_train)
+            eval_metrics = {'accuracy': accuracy, 'f1': train_f1}
+        else:  # regression
+            mae = sklearn.metrics.mean_absolute_error(self.y_original, y_hat_train)
+            mape = sklearn.metrics.mean_absolute_percentage_error(self.y_original, y_hat_train)
+            r2 = sklearn.metrics.r2_score(self.y_original, y_hat_train)
+            eval_metrics = {'mae': mae, 'mape': mape, 'r2': r2}
         if self.verbose:
             print("Ensemble model training results:")
-            y_hat_train = model.predict(self.x_original)
-            if self.is_classification:
-                train_f1 = {}
-                train_f1['weighted'] = sklearn.metrics.f1_score(self.y_original, y_hat_train, average='weighted')
-                train_f1['macro'] = sklearn.metrics.f1_score(self.y_original, y_hat_train, average='macro')
-                train_f1['micro'] = sklearn.metrics.f1_score(self.y_original, y_hat_train, average='micro')
-                accuracy = sklearn.metrics.accuracy_score(self.y_original, y_hat_train)
-                eval_metrics = {'accuracy': accuracy, 'f1': train_f1}
-            else:  # regression
-                mae = sklearn.metrics.mean_absolute_error(self.y_original, y_hat_train)
-                mape = sklearn.metrics.mean_absolute_percentage_error(self.y_original, y_hat_train)
-                r2 = sklearn.metrics.r2_score(self.y_original, y_hat_train)
-                eval_metrics = {'mae': mae, 'mape': mape, 'r2': r2}
             print(eval_metrics)
 
         # Combine synthesized data with the predictions
@@ -106,5 +116,4 @@ class Ensemble():
                 return xgb.XGBRegressor()
             elif self.target_synthesizer == 'rf':
                 return sklearn.ensemble.RandomForestRegressor()
-        else:
-            raise ValueError("Invalid target synthesizer. Must be one of ['xgb', 'rf']")
+        raise ValueError("Invalid target synthesizer. Must be one of ['xgb', 'rf']")

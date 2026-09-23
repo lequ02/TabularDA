@@ -1,0 +1,205 @@
+During startup - Warning messages:
+1: Setting LC_COLLATE=C.UTF-8 failed 
+2: Setting LC_CTYPE=C.UTF-8 failed 
+3: Setting LC_MONETARY=C.UTF-8 failed 
+4: Setting LC_TIME=C.UTF-8 failed 
+
+CASE: Original six labels; Gaussian excluded 
+
+     Adult     Census Census_Kdd  Covertype    MNIST12    MNIST28 
+        18         18         18         18         18         18 
+  approach macro_max
+1      new 0.7526273
+2      old 0.6774682
+     dataset macro_max.new macro_max.old        delta
+1      Adult     0.7488880     0.7632622 -0.014374168
+2     Census     0.7513203     0.7558753 -0.004555062
+3 Census_Kdd     0.7512782     0.7615830 -0.010304848
+4  Covertype     0.5425151     0.3903758  0.152139334
+5    MNIST12     0.8566114     0.7032208  0.153390618
+6    MNIST28     0.8651508     0.6904920  0.174658786
+MEAN DIFFERENCE 0.07515911 RELATIVE 0.1109412 
+ORIGINAL MODEL, SAME THREE CONTRASTS / SIDAK ADJUSTMENT
+ contrast                   estimate     SE  df lower.CL upper.CL t.ratio
+ new_hasY_vs_new_noY        -0.00308 0.0149 103  -0.0391  0.03299  -0.207
+ newApproach_vs_oldApproach  0.07516 0.0223 103   0.0211  0.12926   3.372
+ hasY_vs_no_Y               -0.07978 0.0315 103  -0.1563 -0.00326  -2.531
+ p.value
+  0.9956
+  0.0032
+  0.0382
+
+Degrees-of-freedom method: kenward-roger 
+Confidence level used: 0.95 
+Conf-level adjustment: sidak method for 3 estimates 
+P value adjustment: sidak method for 3 tests 
+ Groups   Name        Std.Dev. 
+ dataset  (Intercept) 0.1047522
+ tvae     (Intercept) 0.0085662
+ Residual             0.0720869
+SINGULAR FALSE 
+PAIRED DATASET-LEVEL TEST; TWO-SIDED
+
+	One Sample t-test
+
+data:  ds$delta
+t = 1.971, df = 5, p-value = 0.1058
+alternative hypothesis: true mean is not equal to 0
+95 percent confidence interval:
+ -0.02286172  0.17317994
+sample estimates:
+ mean of x 
+0.07515911 
+
+
+CASE: Four datasets; average Adult aliases; Gaussian excluded 
+
+    Adult Covertype   MNIST12   MNIST28 
+       18        18        18        18 
+  approach macro_max
+1      new 0.7536932
+2      old 0.6360822
+    dataset macro_max.new macro_max.old        delta
+1     Adult     0.7504955     0.7602402 -0.009744693
+2 Covertype     0.5425151     0.3903758  0.152139334
+3   MNIST12     0.8566114     0.7032208  0.153390618
+4   MNIST28     0.8651508     0.6904920  0.174658786
+MEAN DIFFERENCE 0.117611 RELATIVE 0.1848991 
+ORIGINAL MODEL, SAME THREE CONTRASTS / SIDAK ADJUSTMENT
+ contrast                   estimate     SE df lower.CL upper.CL t.ratio
+ new_hasY_vs_new_noY        -0.00255 0.0209 69  -0.0537   0.0486  -0.122
+ newApproach_vs_oldApproach  0.11761 0.0314 69   0.0409   0.1944   3.750
+ hasY_vs_no_Y               -0.12144 0.0444 69  -0.2300  -0.0129  -2.738
+ p.value
+  0.9991
+  0.0011
+  0.0234
+
+Degrees-of-freedom method: kenward-roger 
+Confidence level used: 0.95 
+Conf-level adjustment: sidak method for 3 estimates 
+P value adjustment: sidak method for 3 tests 
+ Groups   Name        Std.Dev.
+ dataset  (Intercept) 0.128726
+ tvae     (Intercept) 0.017625
+ Residual             0.082387
+SINGULAR FALSE 
+PAIRED DATASET-LEVEL TEST; TWO-SIDED
+
+	One Sample t-test
+
+data:  ds$delta
+t = 2.7502, df = 3, p-value = 0.07073
+alternative hypothesis: true mean is not equal to 0
+95 percent confidence interval:
+ -0.01848682  0.25370884
+sample estimates:
+mean of x 
+ 0.117611 
+
+INCLUDING LABELING-METHOD RANDOM EFFECT
+ contrast   estimate     SE   df lower.CL upper.CL t.ratio p.value
+ new_vs_old    0.118 0.0669 7.51  -0.0383    0.274   1.759  0.1191
+
+Degrees-of-freedom method: kenward-roger 
+Confidence level used: 0.95 
+ Groups   Name        Std.Dev. 
+ y_synth  (Intercept) 0.0619907
+ dataset  (Intercept) 0.1309811
+ tvae     (Intercept) 0.0062391
+ Residual             0.0647097
+SINGULAR FALSE 
+
+CASE: Four datasets; retain only Adult run; Gaussian excluded 
+
+    Adult Covertype   MNIST12   MNIST28 
+       18        18        18        18 
+  approach macro_max
+1      new 0.7532913
+2      old 0.6368377
+    dataset macro_max.new macro_max.old       delta
+1     Adult     0.7488880     0.7632622 -0.01437417
+2 Covertype     0.5425151     0.3903758  0.15213933
+3   MNIST12     0.8566114     0.7032208  0.15339062
+4   MNIST28     0.8651508     0.6904920  0.17465879
+MEAN DIFFERENCE 0.1164536 RELATIVE 0.1828624 
+ORIGINAL MODEL, SAME THREE CONTRASTS / SIDAK ADJUSTMENT
+ contrast                   estimate     SE df lower.CL upper.CL t.ratio
+ new_hasY_vs_new_noY        -0.00235 0.0209 69  -0.0536   0.0489  -0.112
+ newApproach_vs_oldApproach  0.11645 0.0314 69   0.0396   0.1933   3.710
+ hasY_vs_no_Y               -0.11998 0.0444 69  -0.2286  -0.0114  -2.703
+ p.value
+  0.9993
+  0.0012
+  0.0257
+
+Degrees-of-freedom method: kenward-roger 
+Confidence level used: 0.95 
+Conf-level adjustment: sidak method for 3 estimates 
+P value adjustment: sidak method for 3 tests 
+ Groups   Name        Std.Dev.
+ dataset  (Intercept) 0.128712
+ tvae     (Intercept) 0.017783
+ Residual             0.082457
+SINGULAR FALSE 
+PAIRED DATASET-LEVEL TEST; TWO-SIDED
+
+	One Sample t-test
+
+data:  ds$delta
+t = 2.6518, df = 3, p-value = 0.07687
+alternative hypothesis: true mean is not equal to 0
+95 percent confidence interval:
+ -0.02330118  0.25620847
+sample estimates:
+mean of x 
+0.1164536 
+
+
+CASE: Four datasets; average Adult aliases; Gaussian INCLUDED 
+
+    Adult Covertype   MNIST12   MNIST28 
+       22        22        22        22 
+  approach macro_max
+1      new 0.6947600
+2      old 0.6360822
+    dataset macro_max.new macro_max.old       delta
+1     Adult     0.7274575     0.7602402 -0.03278269
+2 Covertype     0.5085549     0.3903758  0.11817907
+3   MNIST12     0.7620004     0.7032208  0.05877962
+4   MNIST28     0.7810271     0.6904920  0.09053509
+MEAN DIFFERENCE 0.05867777 RELATIVE 0.09224873 
+boundary (singular) fit: see help('isSingular')
+ORIGINAL MODEL, SAME THREE CONTRASTS / SIDAK ADJUSTMENT
+boundary (singular) fit: see help('isSingular')
+ contrast                   estimate     SE df lower.CL upper.CL t.ratio
+ new_hasY_vs_new_noY        -0.00241 0.0339 85  -0.0850   0.0801  -0.071
+ newApproach_vs_oldApproach  0.05868 0.0562 85  -0.0782   0.1956   1.044
+ hasY_vs_no_Y               -0.06230 0.0758 85  -0.2469   0.1223  -0.822
+ p.value
+  0.9998
+  0.6562
+  0.7981
+
+Degrees-of-freedom method: kenward-roger 
+Confidence level used: 0.95 
+Conf-level adjustment: sidak method for 3 estimates 
+P value adjustment: sidak method for 3 tests 
+ Groups   Name        Std.Dev.  
+ dataset  (Intercept) 1.0700e-01
+ tvae     (Intercept) 5.7081e-06
+ Residual             1.4976e-01
+SINGULAR TRUE 
+PAIRED DATASET-LEVEL TEST; TWO-SIDED
+
+	One Sample t-test
+
+data:  ds$delta
+t = 1.7882, df = 3, p-value = 0.1717
+alternative hypothesis: true mean is not equal to 0
+95 percent confidence interval:
+ -0.04574785  0.16310340
+sample estimates:
+ mean of x 
+0.05867777 
+

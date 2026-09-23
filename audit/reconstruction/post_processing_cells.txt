@@ -1,0 +1,139 @@
+### CELL 0
+import pandas as pd
+import numpy as np
+
+### CELL 1
+df = pd.read_csv('D:\Rprojects\\research_data_synthesis\\Mar23.csv', header=0, index_col=0)
+df
+
+### CELL 2
+def filter_by_train_option(df, train_option):
+    # keep only columns that have the row 'train_option' == train_option
+    # train_option are 'original', 'synthetic', 'mix'
+
+    select_cols = df.loc['train_option'].eq(train_option)
+    # select_cols['Unnamed: 0'] = True    
+    return df.loc[:, select_cols]
+
+### CELL 3
+df_synthetic = filter_by_train_option(df, 'synthetic')
+df_synthetic
+
+### CELL 4
+def filter_by_metric(df, metric):
+    df_metric = df.filter(like=metric)
+    df_metric.columns = df_metric.loc['dataset_name']
+    df_metric = df_metric.drop(index=['dataset_name', 'train_option', 'augment_option', 'none', 'ctgan', 'tvae']) # drop 'dataset_name', 'train_option', 'augment_option', and 'none' rows
+    df_metric = df_metric[~df_metric.index.str.contains('gauss', na=False)] # drop rows that contain 'gauss' in the index
+    return df_metric
+
+### CELL 5
+df_macro_max = filter_by_metric(df_synthetic, 'macro_max')
+df_macro_max
+
+### CELL 6
+df_micro_max = filter_by_metric(df_synthetic, 'micro_max')
+df_micro_max
+
+### CELL 7
+def calculate_average(df):
+    df = df.apply(pd.to_numeric, errors='coerce')
+    df['Average'] = df.mean(numeric_only=True, axis=1)
+    return df
+
+### CELL 8
+df_macro_max_avg = calculate_average(df_macro_max)
+df_macro_max_avg
+
+### CELL 9
+def add_categorical_columns(df):
+    df['has_y'] = df.index.to_series().apply(lambda x: 1 if 'compare' in x or x in ['tvae', 'ctgan'] else 0)
+    df['tvae'] = df.index.to_series().apply(lambda x: 1 if 'tvae' in x else 0)
+    return df
+
+### CELL 10
+import pandas as pd
+import numpy as np
+def post_process_csv(path, train_option='synthetic', metric='macro_max', to_csv=False):
+    df = pd.read_csv(path, header=0, index_col=0)
+    df = filter_by_train_option(df, train_option=train_option)
+    df = filter_by_metric(df, metric=metric)
+    df = calculate_average(df)
+    df = add_categorical_columns(df)
+
+    if to_csv:
+        out_path = path.split('.csv')[0] + f"_{train_option}_{metric}.csv"
+        df.to_csv(out_path)
+    return df
+
+### CELL 11
+for train_option in ['synthetic']:
+    for metric in ['macro_max', 'micro_max']:
+        post_process_csv('D:\Rprojects\\research_data_synthesis\\April02.csv', train_option, metric, True)
+
+### CELL 13
+def add_categorical_columns2(df):
+    df['has_y'] = df.index.to_series().apply(lambda x: 1 if 'compare' in x or x in ['tvae', 'ctgan'] else 0)
+    df['tvae'] = df.index.to_series().apply(lambda x: 1 if 'tvae' in x else 0)
+    df['approach'] = df.index.to_series().apply(lambda x: 'old' if x in ['tvae', 'ctgan'] else 'new')
+
+    return df
+
+### CELL 14
+import pandas as pd
+import numpy as np
+
+### CELL 15
+df = pd.read_csv('D:\Rprojects\\research_data_synthesis\\April29.csv', header=0, index_col=0)
+df
+
+### CELL 16
+df_synthetic = filter_by_train_option(df, 'synthetic')
+df_synthetic
+
+### CELL 17
+metric = 'macro_max'
+df_metric = df.filter(like=metric)
+df_metric.columns = df_metric.loc['dataset_name']
+df_metric = df_metric.drop(index=['dataset_name', 'train_option', 'augment_option', 'none']) # drop 'dataset_name', 'train_option', 'augment_option', and 'none' rows
+# drop all columns with NaN values
+df_metric = df_metric.dropna(axis=1) # drop columns with all NaN values
+df_metric = add_categorical_columns2(df_metric)
+
+
+# 2. Bring the row‐index (method names) into a column
+df_clean = df_metric.reset_index().rename(columns={'index':'method'})
+
+# 3. Melt into long form
+long_df = df_clean.melt(
+    id_vars=['method', 'has_y', 'tvae', 'approach'],
+    value_vars=[c for c in df_clean.columns 
+                if c not in ('method','has_y','tvae')],
+    var_name='dataset',
+    value_name='macro_max'
+)
+
+# 4. (Optional) cast your flags to categorical
+long_df['has_y'] = long_df['has_y'].astype('category')
+long_df['tvae']  = long_df['tvae'].astype('category')
+long_df['method'] = long_df['method'].astype('category')
+long_df['dataset'] = long_df['dataset'].astype('category')
+
+long_df
+
+### CELL 18
+match_list = ['categorical', 'pca_gmm', 'gauss', 'rf', 'xgb', 'tvae', 'ctgan']
+long_df['y_synth'] = long_df['method'].apply(lambda m: next((val for val in match_list if val in m), None))
+
+long_df['y_synth'] = long_df['y_synth'].astype('category')
+long_df
+
+### CELL 19
+long_df.to_csv('D:\Rprojects\\research_data_synthesis\\April29_macro_max_mfa.csv', index=False)
+
+### CELL 20
+# drop rows that contain 'gauss' in the method column
+long_df_no_gauss = long_df[~long_df['method'].str.contains('gauss', na=False)]
+
+long_df_no_gauss.to_csv('D:\Rprojects\\research_data_synthesis\\April29_macro_max_mfa_no_gauss.csv', index=False)
+long_df_no_gauss

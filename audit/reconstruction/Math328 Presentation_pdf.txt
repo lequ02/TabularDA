@@ -1,0 +1,126 @@
+PAGE 1
+Statistical Analysis for Research on 
+Synthesis Methods for Structured Data
+Minh Le 
+Math 328: Experimental Design & ANOVA
+
+
+PAGE 2
+Data Overview
+- Each ‘method’ is a unique viable combinations of the factors “y_synth”, “has_y”, and 
+“tvae”. Essentially, ‘method’ is a collapsed version of these 3 factors.
+- Because the count(method)=18 < 6*2*2=24, this is an unbalanced experiment. 
+- For example, the combination of (y_synth=ctgan, has_y=0, tvae=1) does not exists.
+- There is collinearity/aliases between “y_synth”, “has_y”, and “tvae”. 
+- The target variable of interest is macro_max
+1
+
+
+PAGE 3
+Exploratory Data Analysis
+• y synthesizer is a significant 
+source of variation
+• dataset is also a significant 
+source of variation
+2
+
+
+PAGE 4
+Exploratory Data Analysis
+• interaction effect between 
+y_synth & dataset
+2
+
+
+PAGE 5
+Model Fitting
+
+PAGE 6
+Linear Models
+• Model 1: full interaction model: not enough data points for residuals.
+• Model 2: Dataset as a blocking factor
+• lm(macro_max~dataset + has_y* tvae * y_synth,data=df_nog)
+• because there is collinearity between has_y, tvae, and y_synth, Type III ANOVA cannot be estimated
+→ These factors cannot interact in a model
+• Model 3: y_synth*dataset interaction
+• lm(macro_max ~ y_synth * dataset + has_y + tvae, data = df_nog)
+ 
+3
+Box-Cox 
+doesn’t help
+
+PAGE 7
+LMER models
+• While previous linear models (LM) helped explore interactions and main effects, they treat all factors as 
+fixed. However, our data has a structure where observations might not be fully independent. Specifically, F1 
+scores are likely correlated within the same dataset because different methods are applied to it. 
+• Furthermore, we might consider y_synth (the synthesizer for the target variable) and tvae (whether TVAE 
+was used for feature synthesis) as sources of random variation, representing sample from a larger 
+population of possible datasets or synthesis configurations.
+• Goals: 
+1. We want to see if the new>old (for approach), with dataset, tvae,&y_synthas a random effect. 
+Meaning, the new approach is better for potentially anydataset, any X_synthesizer, and any 
+y_synthesizer. 
+2. We want to see if including y when training the X_synthesizer is better than not including y. I.e, 
+has_y=1 > has_y=0
+4
+
+
+PAGE 8
+LMER models
+- To address the correlation issue, we create a single 3-level factor appr_has_y combining the approach 
+and has_y information.
+- fit_new <- lmer( macro_max ~ appr_has_y + (1 | dataset + tvae), data = df_nog)
+4
+
+
+PAGE 9
+Contrast Analysis
+
+PAGE 10
+ Contrast between old vs. new Aprroach 
+• LMER Model
+5
+• dataset*y_synth LM model
+
+PAGE 11
+ Contrast between old vs. new Aprroach 
+• The contrast performed on the lm model with 1 interaction effect shows that: 
+• The new approach is statistically better than the old approach by 7.36% across 6 datasets, 2 X 
+synthesizers, regardless of whether y was included in training the X_synthesizer 
+• The LMER model shows that the contrast of newApproach_vs_oldApproach = 0.07516 when (dataset & 
+tvae) are considered random effects. 
+• These 2 models are consistent with each other and reaffirms the conclusion that the new approach is 
+better than the old approach.
+5
+
+
+PAGE 12
+ Contrast between old vs. new Aprroach 
+5
+
+
+PAGE 13
+Contrast for has_y vs. no_y
+• Across 6 datasets, 6 y synthesizers, regardless of X_synthesizer (ctgan or tvae), including y in the X_input 
+increases the result only marginally (0.3%). However, this effect is not statistically significant 
+(p_value=0.5091>0.05).
+5
+
+
+PAGE 14
+Conclusions
+1. The new approach is better than the old approach by 0.075 point of F1-score macro. This 
+is a relative increase of 11% 
+2. Across 6 datasets, 6 y synthesizers, regardless of X_synthesizer (ctgan or tvae), including 
+y in the X_input increases the result only marginally (0.3%). However, this effect is not 
+statistically significant (p_value=0.5091>0.05).
+13
+
+
+PAGE 15
+Questions?
+
+
+PAGE 16
+THANK YOU!

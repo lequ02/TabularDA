@@ -4,11 +4,13 @@ import numpy as np
 from GaussMix_nb import GMMNaiveBayes
 import sklearn
 from sklearn.preprocessing import MinMaxScaler
+import pickle
+from pathlib import Path
 
 class PCA_GMM:
     def __init__(self, X_original, y_original, X_synthesized, numerical_cols, target_name, 
                  pca_n_components=0.99, gmm_n_components=10, verbose=True,
-                 filename = None, is_classification=True):
+                 filename = None, is_classification=True, artifact_path=None):
         self.X_original = X_original
         self.y_original = y_original
         self.X_synthesized = X_synthesized
@@ -19,6 +21,7 @@ class PCA_GMM:
         self.verbose = verbose
         self.filename = filename
         self.is_classification = is_classification
+        self.artifact_path = artifact_path
 
     def fit(self):
         """
@@ -46,17 +49,10 @@ class PCA_GMM:
         X_original_backup = self.X_original.copy()
         X_synthesized_backup = self.X_synthesized.copy()
 
-        print("\n\n original")
-        print(X_original_backup.head())
-        print("\n\n synthesized")
-        print(X_synthesized_backup.head())
-        print(X_original_backup.columns)
         # Check if columns order in synthetic and original are the same
         if list(X_original_backup.columns) != list(X_synthesized_backup.columns):
             raise ValueError("Columns order in synthetic and original data are not the same")
 
-        print("\n\nnumerical cols: ", self.numerical_cols)
-        print(type(self.numerical_cols))
         # if (self.numerical_cols != []) and (self.numerical_cols != pd.Index([])):
         if len(self.numerical_cols) > 0:  # check if numerical_cols is not empty, works for both list and pd.Index 
         
@@ -77,7 +73,7 @@ class PCA_GMM:
             pca_X_original, pca_synthesized_df= self.X_original.copy(), self.X_synthesized.copy()
 
             # after pca, number of numerical columns may have changed
-            pca_numeric_original, pca_numeric_synthesized, _ = pca_df(self.X_original[self.numerical_cols], self.X_synthesized[self.numerical_cols], self.target_name, n_components=self.pca_n_components)
+            pca_numeric_original, pca_numeric_synthesized, pca = pca_df(self.X_original[self.numerical_cols], self.X_synthesized[self.numerical_cols], self.target_name, n_components=self.pca_n_components)
 
             pca_X_original.drop(columns=self.numerical_cols, inplace=True)
             pca_synthesized_df.drop(columns=self.numerical_cols, inplace=True)
@@ -87,11 +83,10 @@ class PCA_GMM:
 
             pca_numeric_cols = pca_numeric_original.columns
 
-            print("\n\n")
-            print(pca_X_original.head())
-            print(pca_numeric_cols)
 
         else:
+            scaler = None
+            pca = None
             pca_X_original = self.X_original.copy()
             pca_synthesized_df = self.X_synthesized.copy()
             pca_numeric_cols = []
@@ -114,6 +109,13 @@ class PCA_GMM:
             print('Fitting GMM...')
         gmm = GMMNaiveBayes(n_components=self.gmm_n_components, is_classification=self.is_classification)
         gmm.fit(pca_X_original, self.y_original, numeric_cols=pca_numeric_cols) # use pca_numeric_cols instead of self.numerical_cols because after pca, number of numerical columns may have changed
+        if self.artifact_path:
+            Path(self.artifact_path).parent.mkdir(parents=True, exist_ok=True)
+            with open(self.artifact_path, "wb") as artifact_file:
+                pickle.dump({"scaler": scaler, "pca": pca, "gmm": gmm,
+                             "feature_columns": list(X_original_backup.columns),
+                             "numerical_columns": list(self.numerical_cols),
+                             "pca_columns": list(pca_numeric_cols)}, artifact_file)
 
         # Train results
         # y_train = pca_X_original[self.target_name]
@@ -133,12 +135,12 @@ class PCA_GMM:
                 print('Train F1', train_f1)
 
         else: # regression
-            train_mape = np.mean(np.abs(y_hat_train - y_train) / y_train)
+            train_mae = sklearn.metrics.mean_absolute_error(y_train, y_hat_train)
             train_r2 = sklearn.metrics.r2_score(y_train, y_hat_train)
 
-            eval_metrics = {'mape': train_mape, 'r2': train_r2}
+            eval_metrics = {'mae': train_mae, 'r2': train_r2}
             if self.verbose:
-                print('Train MAPE: ', train_mape)
+                print('Train MAE: ', train_mae)
                 print('Train R2: ', train_r2)
 
         # Predict target of synthesized data
@@ -156,8 +158,5 @@ class PCA_GMM:
 
         if self.filename:
             synthesized_df.to_csv(self.filename, index=False)
-
-        print("\n\nsynthesized data pca_gmm")
-        print(synthesized_df.head())
 
         return eval_metrics, synthesized_df

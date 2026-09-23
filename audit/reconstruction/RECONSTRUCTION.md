@@ -1,0 +1,105 @@
+# Reconstruction of the final research results
+
+**Verdict:** the historical result can be reconstructed, but it cannot be certified as having no or minimal leakage. The latest coherent result chain found is **April29.csv → April29_macro_max_mfa_no_gauss.csv → May 2025 report/presentation**, not the earlier final_results.xlsx. The later analysis is numerically reproducible and contains promising MNIST results; its benchmark identities, test-set consistency, selection rules and significance claims are not reliable enough for a publication-quality clean comparison.
+
+Audit date: 2026-09-18. Analysis folder found at `D:/Rprojects/research_data_synthesis` (the backslash-separated path supplied did not exist). Read-only review of original files, Git/reflog, GitHub branches, saved notebook outputs and run reports. No model training or checkpoint/RData deserialization was performed.
+
+## 1. What happened
+
+| Stage | Evidence and interpretation |
+| --- | --- |
+| Dec 2024–Jan 2025 | Data preparation, DNN experiments and repeated splitter changes. Adult and local Census are the same data. Validation-based early stopping was added in January, but test preprocessing remained fitted independently. |
+| Feb 12, 2025 | Commit bc9f7d0 changes MNIST28 test_size from 0.2 to 10000; 743d81b also changes pixel treatment. Old/new result files consequently cannot be combined by filename alone. |
+| Mar 10 | Local reflog records several resets/merges/restorations. Current local HEAD is 248cb9b; GitHub lequ02/TabularDA main is 15e834f, while thuydt02/DA main is 248cb9b. The earlier workbook belongs to this older generation. |
+| Mar 23 → Apr 2 → Apr 29 | The R-folder tables accumulate results: all 356 numeric March entries and all 484 numeric April 2 entries persist unchanged in April29.csv. The final table has 682 populated metric cells. This was an expanding collection, not a complete clean rerun. |
+| Apr 29 GitHub branch | thuydt02/DA branch phuong, commit 950fe5d0d9881476b76774bd03e153814b57c1eb (“commit April29”), preserves the later routing code, aggregator notebook and run reports. The default branch alone would miss this evidence. |
+| Apr 29 analysis input | The final Python notebook parses filenames, extracts max/end metrics, pivots by train mode and method, and writes April29.csv. Local post_processing.ipynb reshapes it into 132 method×dataset macro-max rows, then drops 24 Gaussian-family rows, leaving 108 rows: 18 configurations × 6 named datasets. |
+| May reports | Poster_final.pdf metadata dates its export to May 6 and reports +0.0736 macro-F1 / +10.86% relative. final_328_project.Rmd/PDF and the Math328 presentation give +0.07516 / about 11%. These are two fitted contrasts from the same April data, not two independent replications. |
+
+The R folder has no Git repository. Its .Rhistory is earlier and incomplete; saved CSVs, notebook outputs and rendered reports provide the stronger evidence. File modification dates and PDF metadata are supporting chronology, not proof of run dates.
+
+## 2. Reconstructed historical scores
+
+All entries below are **maximum test macro-F1 as recorded in April29.csv**. They are not validation-selected or leakage-corrected. RF uses CTGAN features without target in generator training. TVAE+XGB with y / without y correspond to `compare_sdv_tvae_xgb` / `sdv_tvae_xgb`. These fixed configurations are shown for interpretability, not certified winners.
+
+| Recorded dataset | Original | CTGAN | TVAE | RF | TVAE+XGB with y | TVAE+XGB without y |
+| --- | --- | --- | --- | --- | --- | --- |
+| Adult | 0.7969 | 0.7761 | 0.7504 | 0.7760 | 0.7737 | 0.7675 |
+| Census | 0.7978 | 0.7734 | 0.7384 | 0.7772 | 0.7730 | 0.7767 |
+| Census_Kdd | 0.7969 | 0.7735 | 0.7497 | 0.7767 | 0.7740 | 0.7768 |
+| Covertype | 0.9088 | 0.4835 | 0.2972 | 0.6527 | 0.6331 | 0.5856 |
+| MNIST12 | 0.9599 | 0.4816 | 0.9248 | 0.8837 | 0.9449 | 0.9404 |
+| MNIST28 | 0.9792 | 0.4454 | 0.9356 | 0.8676 | 0.9610 | 0.9617 |
+
+**Interpretation:** Original exceeds every synthetic configuration on each recorded dataset. TVAE+XGB is a promising MNIST candidate: the with-y variant exceeds TVAE by 0.0201 macro-F1 on MNIST12 and 0.0254 on MNIST28; without-y reaches 0.9617 on MNIST28. On Adult, none of the proposed configurations exceeds CTGAN in this table (RF is very close). Covertype comparisons are compromised by inconsistent test sizes. Census/Census_Kdd must not be treated as independent evidence on two additional datasets.
+
+These later scores supersede the earlier inference that the project never recorded Census-KDD/TVAE results: such rows exist, but the purported KDD rows have a routing defect. Credit, Intrusion and News are not in the final six-name ANOVA. The saved aggregation trace explicitly rejects seven Credit filenames lacking the required DNN_ prefix; News regression files lack the classification metrics requested; Intrusion is absent from this final trace. Their absence is not evidence that the methods were evaluated successfully and found equivalent.
+
+## 3. How much of the result is traceable?
+
+- **Exact downstream reconstruction:** all 132 values in April29_macro_max_mfa.csv match the synthetic-only macro-max cells in April29.csv; its 108-row no-Gaussian subset also reconciles. The later parser separates real/mixed/synthetic training modes. The older workbook’s mix-averaging defect is therefore not established for this later analysis.
+
+- **GitHub corroboration:** downloaded 177 small evidence blobs (run reports and LFS pointers), validating each Git blob hash. Across candidate reports, 355 of 369 comparable end-metric entries agree with April29.csv within 1e-8; the 14 differences belong to alternate old-MNIST/Covertype run paths. All 69 comparable Census_Kdd report entries match. These counts corroborate historical scores but do not replace missing full epoch logs or prove the maxima independently.
+
+- **Frozen-file corroboration:** GitHub LFS hashes for Adult/Census one-hot train and test files match the current local files exactly; Adult and Census also match each other. Current Covertype one-hot files likewise match the committed pointers. These hashes identify committed artifacts, but there is no run manifest binding every training job and generator checkpoint to those artifacts.
+
+- **Provenance gap:** the April branch still contains 14,000-row MNIST12 test artifacts, whereas all 22 synthetic MNIST12 result accuracies are compatible with 10,000 rows. The notebook references external `C:/Users/phuon/DA/output/output` paths. CSV logs were excluded by .gitignore. Saved reports and figures survive, but full per-epoch data, predictions, seeds and exact generator/split bindings are incomplete.
+
+## 4. Why the clean-result claim fails
+
+### A. Census-KDD actually routes to Census/Adult — confirmed code defect, strongly corroborated execution
+
+The April branch’s constants.py maps `census_kdd` to `create_path_dict("census", "income")`. This sends original training, test and every synthetic method to Census files. All 22 Census_Kdd synthetic end accuracies fit the 9,526-row Adult/Census test denominator; none fits the available 9,551-row KDD denominator. Matching committed end reports further support execution through this route. Treat these as mislabeled Adult/Census experiments, not KDD validation. [Frozen source](https://github.com/thuydt02/DA/blob/950fe5d0d9881476b76774bd03e153814b57c1eb/src/modeling_thuy/constants.py#L45).
+
+Correcting the Adult/Census/KDD aliases leaves four nominal datasets (Adult, Covertype, MNIST12 and MNIST28), with the two MNIST representations also related. Collapsing the Adult-like rows would actually increase the descriptive mean advantage because their gains are negative; duplication is an independence/weighting defect, not necessarily upward bias in the point estimate.
+
+### B. Covertype methods indicate different test sets
+
+Ten of its 22 synthetic end micro-F1 values fit the 116,203-row denominator; twelve fit 10,000 rows. Original, CTGAN and TVAE fit 116,203; RF, XGBoost and TVAE-feature variants include 10,000-row results. Test micro-F1 equals accuracy for these single-label classifications. The inspected loader evaluates all test rows. This is strong evidence of mixed test versions, though score denominators alone cannot identify exact rows. A previous download inventory also contains a cvt_mar09 test variant. Do not claim improvement from these unequal evaluations. The smaller train/test pair was not available to prove its own overlap.
+
+### C. Test-fitted scaling persists in the April code
+
+The actual April branch calls `_standardize` on test features, and `_standardize` constructs a new StandardScaler and fit_transforms its input. Test distribution statistics influence preprocessing, and train/dev/test coordinates differ. This is a concrete evaluation defect affecting the whole holdout, even when exact row overlap is small. [Frozen loader](https://github.com/thuydt02/DA/blob/950fe5d0d9881476b76774bd03e153814b57c1eb/src/modeling_thuy/data_loader.py#L146).
+
+### D. Final scores are selected on the test set
+
+Aggregator cell 42 calls `df[col].max()` for each test metric; R analyzes the resulting macro_max. Early stopping in this branch uses dev statistics, but reporting the maximum test score over epochs still tunes the reported result to test data. End scores are also available, yet the best-dev checkpoint reload is commented out. No validation-selected April scores can be recovered from end reports alone. [Frozen aggregator](https://github.com/thuydt02/DA/blob/950fe5d0d9881476b76774bd03e153814b57c1eb/src/modeling_thuy/output/best_result_from_csv.ipynb), [training loop](https://github.com/thuydt02/DA/blob/950fe5d0d9881476b76774bd03e153814b57c1eb/src/modeling_thuy/classification_train.py#L238).
+
+### E. Split/checkpoint leakage remains unresolved
+
+The splitter duplication defect documented in the earlier audit persists in the April snapshot. Prior exact-row checks found Adult/Census 17 label-inclusive matches (18 feature matches), and downloaded new MNIST12 828 label-inclusive matches (832 feature matches) / new MNIST28 16. Natural duplicate or downsampled images are not proof of shared source identity, so these should not all be attributed to the splitter. The old/new MNIST mismatch and missing generator training manifests prevent assigning a trustworthy leakage rate to each final April run. Earlier fixed-model bounds cannot simply be transferred to these different runs. See [original code audit](../AUDIT.md) and [version/overlap analysis](../results_review/RESULTS_REVIEW.md).
+
+There is no evidence that merely training a feature generator jointly with its training target is test-label leakage: that is a legitimate generative modeling choice if confined to training. The issues are the split, evaluation preprocessing, test-based selection and unknown checkpoint provenance. For synthetic-only training, dev is split from synthetic data; its independence from the final real test depends on upstream train-only generation, which is not fully recorded.
+
+## 5. Reproducing and stress-testing the headline
+
+| Calculation | Proposed mean | CTGAN/TVAE pooled mean | Absolute gain | Relative gain |
+| --- | --- | --- | --- | --- |
+| Original no-Gaussian, macro max | 0.752627 | 0.677468 | 0.075159 | 11.09% |
+| Include Gaussian, macro max | 0.705659 | 0.677468 | 0.028191 | 4.16% |
+| No Gaussian, end score | 0.737152 | 0.659689 | 0.077463 | 11.74% |
+| Include Gaussian, end score | 0.689189 | 0.659689 | 0.029500 | 4.47% |
+
+These are descriptive recalculations, not clean reruns. Switching to end scores does not remove the observed group difference; excluding Gaussian is materially consequential. The R scripts explicitly state Gaussian data were deleted because performance was terrible. That outcome-dependent exclusion needs disclosure; a prespecified restricted family would be a different claim.
+
+The 11% comparison pools **CTGAN and TVAE equally**; it is not an 11% win over each. Their means are 0.622246 and 0.732690 respectively. The proposed no-Gaussian mean 0.752627 is only about 2.72% above TVAE alone on these named datasets, and below TVAE on both MNIST datasets when averaging all proposed configurations. Strong selected RF/XGBoost variants perform differently from the broad method-family average.
+
+R reproduction with recorded package versions matches the published contrast +0.07516 and adjusted p=0.0032. Retaining y_synth as a random intercept gives approximately p=0.1616, with a singular-fit warning; the R narrative removes that term after finding the approach effect non-significant. This does not establish that the alternative model is uniquely correct, but shows the significance claim is model-sensitive and exploratory. Shared datasets, outcome-based method filtering, test-max responses and no repeated-seed estimates further weaken generalization claims.
+
+The separate target-inclusion conclusion has a sign error: the R contrast weights are no-y minus with-y, giving +0.00308 (p=0.5091), but the prose says including y improves performance. Within the proposed methods the reproduced contrast likewise favors no-y slightly, not with-y. In either direction, a non-significant difference does not prove equivalence or no performance loss.
+
+## 6. What can be trusted, and what to do with it
+
+- **Trust as historical evidence:** April29 is the source of the final May claims; the CSV transformation and headline arithmetic reproduce; many end scores independently match committed reports. Nothing found establishes intentional fabrication.
+
+- **Treat as promising, not validated:** TVAE features plus RF/XGBoost labels, especially on MNIST. The observed improvements over replicated CTGAN are large; improvements over TVAE are much smaller and need a controlled comparison.
+
+- **Do not publish as established:** six-independent-dataset superiority, successful Census-KDD replication, Covertype method rankings across differing test versions, leakage-free performance, or a universal statistically significant 11% improvement.
+
+- **Required clean evidence:** reserve immutable source-ID train/dev/test partitions before generation; resolve duplicates and dataset routing; train generators/labelers/scalers only on training; use a real validation set for selection; evaluate a fixed checkpoint on one shared real holdout; include prespecified methods and repeated seeds; save dataset/checkpoint hashes and row predictions. Existing maxima cannot be adjusted into that result without rerunning affected stages.
+
+Deliverables: [all reconstructed max/end scores with provenance/status](reconstructed_final_results.csv), [full April macro-max table](April29_macro_max_table.csv), [R reproduction](statistics_check.txt), and [end-report reconciliation](report_matches.csv). Earlier workbook-based summaries remain historical, not the final experimental record.
+
+## Limits
+
+The external `G:/summer_research/download2` folder became unavailable during this turn; the earlier audit’s saved inventory and overlap results remain available, but its archives could not be reopened for new Covertype tests. The public code-only repository endpoint returned 404; both available main branches and all three collaborator branches were inspected. No private code/data were uploaded to third parties: GitHub reads retrieved the project’s own existing artifacts. This reconstruction does not guarantee the absence of other bugs or identify an exact leakage-adjusted final score.
