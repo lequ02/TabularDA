@@ -54,26 +54,32 @@ def run(datasets, stage, dry_run, jobs):
             print(name, ':', ' '.join(command))
         return
 
-    if stage in ('all', 'generators'):
-        run_one(('sdv_smoke', ROOT, [sys.executable, 'audit/sdv_api_smoke.py']), output)
+    output.mkdir(parents=True, exist_ok=True)
+    lock = output / '.run.lock'
+    lock.mkdir()
+    try:
+        if stage in ('all', 'generators'):
+            run_one(('sdv_smoke', ROOT, [sys.executable, 'audit/sdv_api_smoke.py']), output)
 
-    def run_dataset(dataset):
-        for command_spec in dataset_commands(dataset, stage):
-            run_one(command_spec, output)
+        def run_dataset(dataset):
+            for command_spec in dataset_commands(dataset, stage):
+                run_one(command_spec, output)
 
-    if jobs == 1:
-        for dataset in datasets:
-            run_dataset(dataset)
-    else:
-        with ThreadPoolExecutor(max_workers=jobs) as executor:
-            list(executor.map(run_dataset, datasets))
+        if jobs == 1:
+            for dataset in datasets:
+                run_dataset(dataset)
+        else:
+            with ThreadPoolExecutor(max_workers=jobs) as executor:
+                list(executor.map(run_dataset, datasets))
 
-    if stage in ('all', 'classifiers') and tuple(datasets) == DATASETS:
-        subprocess.run([
-            sys.executable, 'scripts/build_corrected_results.py',
-            '--matrix', 'pilot', '--runs', str(output),
-            '--out', str(output / 'results'),
-        ], cwd=ROOT, check=True)
+        if stage in ('all', 'classifiers') and tuple(datasets) == DATASETS:
+            subprocess.run([
+                sys.executable, 'scripts/build_corrected_results.py',
+                '--matrix', 'pilot', '--runs', str(output),
+                '--out', str(output / 'results'),
+            ], cwd=ROOT, check=True)
+    finally:
+        lock.rmdir()
 
 
 if __name__ == '__main__':
