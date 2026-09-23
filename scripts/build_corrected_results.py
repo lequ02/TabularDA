@@ -6,21 +6,16 @@ from pathlib import Path
 
 import pandas as pd
 import matplotlib.pyplot as plt
-from run_corrected_matrix import DATASETS, CLASSIFICATION_LABELERS, REGRESSION_LABELERS
+from run_corrected_matrix import DATASETS, SEEDS, methods_for
 
 
 def expected_runs():
     expected = set()
     for dataset in DATASETS:
-        labelers = REGRESSION_LABELERS if dataset == "news" else CLASSIFICATION_LABELERS
-        for seed in (42, 43, 44):
+        for seed in SEEDS:
             expected.add((dataset, "original", None, seed))
             for generator in ("ctgan", "tvae"):
-                methods = (generator,) + tuple(
-                    labeler if generator == "ctgan" else f"tvae_{labeler}"
-                    for labeler in labelers
-                )
-                for method in methods:
+                for method in methods_for(dataset, generator):
                     for mode in ("synthetic", "mix"):
                         expected.add((dataset, mode, method, seed))
     return expected

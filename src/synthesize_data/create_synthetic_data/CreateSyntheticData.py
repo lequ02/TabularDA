@@ -62,6 +62,8 @@ class CreateSyntheticData:
             f'sdv_{self.fsyn_name}xgb_csv': f'onehot_{ds_name}_sdv_{self.fsyn_name}xgb_100k.csv',
             f'sdv_{self.fsyn_name}rf_synthesizer': f'{ds_name}_{self.fsyn_name}synthesizer_onlyX.pkl',
             f'sdv_{self.fsyn_name}rf_csv': f'onehot_{ds_name}_sdv_{self.fsyn_name}rf_100k.csv',
+            f'sdv_{self.fsyn_name}dnn_synthesizer': f'{ds_name}_{self.fsyn_name}synthesizer_onlyX.pkl',
+            f'sdv_{self.fsyn_name}dnn_csv': f'onehot_{ds_name}_sdv_{self.fsyn_name}dnn_100k.csv',
 
             'sdv_tvae_only_synthesizer': f'{ds_name}_TVAE_synthesizer.pkl',
             'sdv_tvae_only_csv': f'onehot_{ds_name}_sdv_tvae_100k.csv',
@@ -86,6 +88,8 @@ class CreateSyntheticData:
             self.create_synthetic_data_sdv_categorical()
         self.create_synthetic_data_pca_gmm()
         self.create_synthetic_data_ensemble()
+        self.create_synthetic_data_dnn()
+        self.create_comparison_from_trained_model()
 
 
     def create_synthetic_data_sdv_only(self):
@@ -117,6 +121,13 @@ class CreateSyntheticData:
         for method in emsemble_methods:
             self.synthesize_from_trained_model(xtrain, ytrain, categorical_columns, f'sdv_{self.fsyn_name}{method}', method, features_synthesizer=self.features_synthesizer)
 
+    def create_synthetic_data_dnn(self):
+        xtrain, ytrain, target_name, categorical_columns = self.read_train_data()
+        self.synthesize_from_trained_model(
+            xtrain, ytrain, categorical_columns, f'sdv_{self.fsyn_name}dnn', 'dnn',
+            dnn_dev_data=self.read_dev_data(),
+        )
+
     def create_synthetic_data_tvae_only(self):
         self.prepare_train_test()
         xtrain, ytrain, target_name, categorical_columns = self.read_train_data()
@@ -126,13 +137,19 @@ class CreateSyntheticData:
     def create_comparison_from_trained_model(self):
         xtrain, ytrain, target_name, categorical_columns = self.read_train_data()
         print(f"Creating comparison from trained model for '{self.ds_name}' with features synthesizer: {self.features_synthesizer}")
-        target_synthesizers = ['pca_gmm', 'xgb', 'rf']
+        target_synthesizers = ['pca_gmm', 'xgb', 'rf', 'dnn']
         if self.is_classification:
             target_synthesizers = ['gaussianNB', 'categoricalNB'] + target_synthesizers
-
-
+        full_table_name = 'sdv_only_csv' if self.features_synthesizer == 'ctgan' else 'sdv_tvae_only_csv'
+        full_table_csv = self.paths['data_dir'] + self.paths[full_table_name]
+        dnn_dev_data = self.read_dev_data()
         for target_synthesizer in target_synthesizers:
-            self.synthesize_comparison_from_trained_model(xtrain, ytrain, categorical_columns, f'sdv_{self.fsyn_name}compare_{target_synthesizer}', self.features_synthesizer, target_synthesizer)
+            self.synthesize_comparison_from_trained_model(
+                xtrain, ytrain, categorical_columns,
+                f'sdv_{self.fsyn_name}compare_{target_synthesizer}',
+                target_synthesizer,
+                full_table_csv=full_table_csv, dnn_dev_data=dnn_dev_data,
+            )
 
 
     def prepare_train_test(self):
@@ -162,6 +179,10 @@ class CreateSyntheticData:
         ytrain = train_data[self.target_name]
         return xtrain, ytrain, self.target_name, self.categorical_columns
 
+    def read_dev_data(self):
+        dev_data = pd.read_csv(self.paths['data_dir'] + f'onehot_{self.ds_name}_dev.csv')
+        return dev_data.drop(columns=[self.target_name]), dev_data[self.target_name]
+
     def synthesize_data(self, xtrain, ytrain, categorical_columns, synth_type, target_synthesizer, features_synthesizer='CTGAN'):
         # xytrain = pd.concat([xtrain, ytrain], axis=1)
         synthesize_data(xtrain, ytrain, categorical_columns, sample_size=self.sample_size_to_synthesize, target_synthesizer=target_synthesizer,
@@ -170,30 +191,25 @@ class CreateSyntheticData:
                         csv_file_name=self.paths['data_dir'] + self.paths[f'{synth_type}_csv'], verbose=True,
                         is_classification=self.is_classification, seed=self.seed)
 
-    def synthesize_from_trained_model(self, xtrain, ytrain, categorical_columns, synth_type, target_synthesizer, features_synthesizer='CTGAN'):
+    def synthesize_from_trained_model(self, xtrain, ytrain, categorical_columns, synth_type, target_synthesizer, features_synthesizer='CTGAN', dnn_dev_data=None):
         synthesize_from_trained_model(xtrain, ytrain, categorical_columns, sample_size=self.sample_size_to_synthesize, target_synthesizer=target_synthesizer,
                                       numerical_columns_pca_gmm=self.numerical_cols_pca_gmm,
                                       target_name=self.target_name, synthesizer_file_name=self.paths['synthesizer_dir'] + self.paths[f'{synth_type}_synthesizer'],
                                       csv_file_name=self.paths['data_dir'] + self.paths[f'{synth_type}_csv'], verbose=True,
-                                      is_classification=self.is_classification, seed=self.seed)
+                                      is_classification=self.is_classification, seed=self.seed,
+                                      dnn_dev_data=dnn_dev_data, dataset_name=self.ds_name)
 
 
-    def synthesize_comparison_from_trained_model(self, xtrain, ytrain, categorical_columns, synth_type, feature_synthesizer, target_synthesizer):
-        # xytrain = pd.concat([xtrain, ytrain], axis=1)
-        if feature_synthesizer.lower() == 'ctgan':
-            synthesizer_file_name = self.paths['synthesizer_dir'] + f'{self.ds_name}_synthesizer_onlyX.pkl'
-        elif feature_synthesizer.lower() == 'tvae':
-            synthesizer_file_name = self.paths['synthesizer_dir'] + f'{self.ds_name}_tvae_synthesizer_onlyX.pkl'
-        else:
-            raise ValueError(f"Unknown feature synthesizer: {feature_synthesizer}")
+    def synthesize_comparison_from_trained_model(self, xtrain, ytrain, categorical_columns, synth_type, target_synthesizer, full_table_csv, dnn_dev_data=None):
         csv_file_name = self.paths['data_dir'] + f'onehot_{self.ds_name}_{synth_type}_100k.csv'
 
         synthesize_comparison_from_trained_model(xtrain, ytrain, categorical_columns, sample_size=self.sample_size_to_synthesize, target_synthesizer=target_synthesizer,
-                        # features_synthesizer='CTGAN', # not used because loading synthesizer from file
                         numerical_columns_pca_gmm=self.numerical_cols_pca_gmm,
-                        target_name=self.target_name, synthesizer_file_name=synthesizer_file_name,
+                        target_name=self.target_name,
                         csv_file_name=csv_file_name, verbose=True,
-                        is_classification=self.is_classification, seed=self.seed)
+                        is_classification=self.is_classification, seed=self.seed,
+                        full_table_csv=full_table_csv, dnn_dev_data=dnn_dev_data,
+                        dataset_name=self.ds_name)
 
     def save_to_csv(self, xtrain, ytrain, xtest, ytest, train_csv, test_csv):
         train_set = pd.concat([xtrain, ytrain], axis=1)

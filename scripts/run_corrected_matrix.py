@@ -12,8 +12,17 @@ DATASETS = (
     "adult", "census_kdd", "credit", "covertype", "intrusion",
     "mnist12", "mnist28", "news",
 )
-CLASSIFICATION_LABELERS = ("gaussian", "categorical", "pca_gmm", "rf", "xgb")
-REGRESSION_LABELERS = ("pca_gmm", "rf", "xgb")
+SEEDS = (42,)
+CLASSIFICATION_LABELERS = ("gaussian", "categorical", "pca_gmm", "rf", "xgb", "dnn")
+REGRESSION_LABELERS = ("pca_gmm", "rf", "xgb", "dnn")
+
+
+def methods_for(dataset, generator):
+    labelers = REGRESSION_LABELERS if dataset == "news" else CLASSIFICATION_LABELERS
+    prefix = "" if generator == "ctgan" else "tvae_"
+    return ((generator,)
+            + tuple(f"{prefix}{labeler}" for labeler in labelers)
+            + tuple(f"{prefix}compare_{labeler}" for labeler in labelers))
 
 
 def run_command(command, cwd, log_path):
@@ -52,7 +61,6 @@ def run_matrix(dataset_names, seeds, stage):
 
     for seed in seeds:
         for dataset in dataset_names:
-            labelers = REGRESSION_LABELERS if dataset == "news" else CLASSIFICATION_LABELERS
             for generator in ("ctgan", "tvae"):
                 generated = True
                 if stage in {"all", "generators"}:
@@ -68,11 +76,7 @@ def run_matrix(dataset_names, seeds, stage):
                                          "arm": f"{generator}_generation", "log": str(log_path)})
                 if stage not in {"all", "classifiers"}:
                     continue
-                methods = (generator,) + tuple(
-                    labeler if generator == "ctgan" else f"tvae_{labeler}"
-                    for labeler in labelers
-                )
-                for method in methods:
+                for method in methods_for(dataset, generator):
                     for mode in ("synthetic", "mix"):
                         arm = f"{mode}_{method}"
                         if not generated:
@@ -89,7 +93,7 @@ def run_matrix(dataset_names, seeds, stage):
                     failures.append({"dataset": dataset, "seed": seed, "arm": "real", "log": str(log_path)})
 
     output.mkdir(parents=True, exist_ok=True)
-    full_matrix = tuple(dataset_names) == DATASETS and tuple(seeds) == (42, 43, 44)
+    full_matrix = tuple(dataset_names) == DATASETS and tuple(seeds) == SEEDS
     failure_name = ("failures.json" if stage == "all" and full_matrix else
                     f"failures_{stage}_{'-'.join(dataset_names)}_{'-'.join(map(str, seeds))}.json")
     failure_path = output / failure_name
@@ -105,8 +109,8 @@ def run_matrix(dataset_names, seeds, stage):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset", choices=DATASETS)
-    parser.add_argument("--seed", type=int, choices=(42, 43, 44))
+    parser.add_argument("--seed", type=int, choices=SEEDS)
     parser.add_argument("--stage", choices=("all", "generators", "classifiers"), default="all")
     args = parser.parse_args()
     run_matrix((args.dataset,) if args.dataset else DATASETS,
-               (args.seed,) if args.seed is not None else (42, 43, 44), args.stage)
+               (args.seed,) if args.seed is not None else SEEDS, args.stage)

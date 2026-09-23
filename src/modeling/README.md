@@ -10,3 +10,5 @@ python -m modeling --dataset-name news --train-option original --test-option ori
 ```
 
 The direct entrypoints remain available as `python -m modeling.classification_main` and `python -m modeling.regression_main`. Run outputs are written under the repository-level `output/corrected_v2/`; corrected datasets are read from `data/corrected_v2/`.
+
+The one-seed experiment matrix is listed in `audit/CORRECTED_RUN_SPEC.md` and launched from the repository root with `python scripts/run_corrected_matrix.py` on a GPU host.

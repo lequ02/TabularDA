@@ -26,14 +26,16 @@ def write_run_record(path, *, dataset, seed, train_option, augment_option,
     generator_provenance = None
     synthetic_quality_path = None
     synthetic_quality = None
+    dnn_dev_report_path = None
+    dnn_dev_report = None
     if synthetic_path is not None:
         synthetic_quality_path = Path(synthetic_path).with_suffix(".quality.json")
         with synthetic_quality_path.open(encoding="utf-8") as quality_file:
             synthetic_quality = json.load(quality_file)
         model_root = root / "sdv trained model" / "corrected_v2" / dataset / f"seed_{seed}"
-        if augment_option == "ctgan":
+        if augment_option == "ctgan" or augment_option.startswith("compare_"):
             model_name = f"{dataset}_synthesizer"
-        elif augment_option == "tvae":
+        elif augment_option == "tvae" or augment_option.startswith("tvae_compare_"):
             model_name = f"{dataset}_TVAE_synthesizer"
         elif augment_option.startswith("tvae_"):
             model_name = f"{dataset}_tvae_synthesizer_onlyX"
@@ -42,6 +44,10 @@ def write_run_record(path, *, dataset, seed, train_option, augment_option,
         generator_provenance_path = model_root / f"{model_name}.provenance.json"
         with generator_provenance_path.open(encoding="utf-8") as provenance_file:
             generator_provenance = json.load(provenance_file)
+        if augment_option.endswith("dnn"):
+            dnn_dev_report_path = Path(synthetic_path).with_suffix(".dnn.json")
+            with dnn_dev_report_path.open(encoding="utf-8") as report_file:
+                dnn_dev_report = json.load(report_file)
     record = {
         "code_version": code_version,
         "source_sha256": code_hash.hexdigest(),
@@ -59,6 +65,8 @@ def write_run_record(path, *, dataset, seed, train_option, augment_option,
         "synthetic_quality": synthetic_quality,
         "generator_provenance_path": str(generator_provenance_path) if generator_provenance_path else None,
         "generator_provenance": generator_provenance,
+        "dnn_dev_report_path": str(dnn_dev_report_path) if dnn_dev_report_path else None,
+        "dnn_dev_report": dnn_dev_report,
         "split_manifest_path": split_manifest_path,
         "split_manifest": split_manifest,
         "classifier": classifier,

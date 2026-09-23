@@ -11,6 +11,7 @@ import os
 import json
 import hashlib
 from ensemble import *
+from dnn_labeler import fit_predict_dnn
 
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
@@ -172,7 +173,7 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns, t
                   numerical_columns_pca_gmm=None,
                   BN_model = None, BN_filename=None,
                   csv_file_name=None, npz_file_name=None,
-                  is_classification=True, seed=42):
+                  is_classification=True, seed=42, dnn_dev_data=None, dataset_name=None):
   """
   input: original data
   output: synthesized data.
@@ -254,6 +255,18 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns, t
     ensemble = Ensemble(x_original, y_original, x_synthesized, target_name=target_name, target_synthesizer=target_synthesizer,
                         filename=csv_file_name, verbose=verbose, is_classification=is_classification)
     _, synthesized_data = ensemble.fit()
+  elif target_synthesizer == 'dnn':
+    if dnn_dev_data is None:
+      raise ValueError('DNN labeling requires the reserved real dev split')
+    xdev, ydev = dnn_dev_data
+    if set(xdev.columns) != set(x_original.columns):
+      raise ValueError('DNN dev features do not match real training features')
+    synthesized_data = fit_predict_dnn(
+        x_original, y_original, xdev.loc[:, x_original.columns], ydev, x_synthesized,
+        target_name=target_name, is_classification=is_classification, seed=seed,
+        report_path=os.path.splitext(csv_file_name)[0] + '.dnn.json',
+        dataset_name=dataset_name,
+    )
   elif target_synthesizer == 'gmmNB':
     raise ValueError("gmmNB is not implemented yet")
     synthesized_data = create_label_gmmNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name)
@@ -312,20 +325,17 @@ def synthesize_from_trained_model(x_original, y_original, categorical_columns, t
 
 
 def synthesize_comparison_from_trained_model(x_original, y_original, categorical_columns, target_name,
-                  # features_synthesizer='CTGAN', # doesn't matter because we are loading a trained model
                   sample_size=100_000, return_onehot=True,
                   verbose=False, show_network=False,
                   target_synthesizer=None,
-                  synthesizer_file_name='synthesizer_onlyX.pkl',
                   numerical_columns_pca_gmm=None,
                   BN_model = None, BN_filename=None,
                   csv_file_name=None, npz_file_name=None,
-                  is_classification=True, seed=42):
+                  is_classification=True, seed=42, full_table_csv=None,
+                  dnn_dev_data=None, dataset_name=None):
 
   """
-  This function is going to create synthetic data using a trained synthesizer (trained model includes Y).
-  The target column (Y) is then going to be dropped and replaced with the Y predicted by the target synthesizer.
-  The purpose is to compare the generated data with Y vs. without Y.
+  Relabel the saved full-table sample's features after discarding its generated target.
   """
 
   if csv_file_name is None:
@@ -335,27 +345,18 @@ def synthesize_comparison_from_trained_model(x_original, y_original, categorical
     raise ValueError("Target synthesizer must be specified for comparison function")
   _validate_labeler_task(target_synthesizer, is_classification)
 
-  # load synthesizer
-  synthesizer = load_synthesizer(
-      synthesizer_file_name, expected_data=x_original, expected_seed=seed
-  )
-  if verbose:
-    print(f"Synthesizer loaded from {synthesizer_file_name}")
-
-  # synthesize x'
-  torch.manual_seed(seed)
-  np.random.seed(seed)
-  x_synthesized = synthesizer.sample(num_rows=sample_size)
-  if verbose:
-    print("Successfully synthesized X data")
-    print(f"Shape {x_synthesized.shape}")
-
-  # pre-encode backups
+  if full_table_csv is None:
+    raise ValueError('Full-table relabeling requires the saved full-table sample')
+  full_table = pd.read_csv(full_table_csv)
+  if target_name not in full_table or len(full_table) != sample_size:
+    raise ValueError('Full-table sample has the wrong target or row count')
+  x_synthesized = full_table.drop(columns=[target_name])
+  x_original, _ = onehot(x_original, x_original, categorical_columns, verbose=verbose)
+  if set(x_original.columns) != set(x_synthesized.columns):
+    raise ValueError('Full-table and real training features have different columns')
+  x_original = x_original.loc[:, x_synthesized.columns]
   x_original_backup = x_original.copy()
   x_synthesized_backup = x_synthesized.copy()
-
-  # one-hot encode
-  x_original, x_synthesized = onehot(x_original, x_synthesized, categorical_columns, verbose=verbose)
 
       # safe guard
   if not x_original.columns.equals(x_synthesized.columns):
@@ -385,6 +386,19 @@ def synthesize_comparison_from_trained_model(x_original, y_original, categorical
     ensemble = Ensemble(x_original, y_original, x_synthesized, target_name=target_name, target_synthesizer=target_synthesizer,
                         filename=csv_file_name, verbose=verbose, is_classification=is_classification)
     _, synthesized_data = ensemble.fit()
+
+  elif target_synthesizer == 'dnn':
+    if dnn_dev_data is None:
+      raise ValueError('DNN labeling requires the reserved real dev split')
+    xdev, ydev = dnn_dev_data
+    if set(xdev.columns) != set(x_original.columns):
+      raise ValueError('DNN dev features do not match real training features')
+    synthesized_data = fit_predict_dnn(
+        x_original, y_original, xdev.loc[:, x_original.columns], ydev, x_synthesized,
+        target_name=target_name, is_classification=is_classification, seed=seed,
+        report_path=os.path.splitext(csv_file_name)[0] + '.dnn.json',
+        dataset_name=dataset_name,
+    )
 
   elif target_synthesizer == 'gmmNB':
     raise ValueError("gmmNB is not implemented yet")

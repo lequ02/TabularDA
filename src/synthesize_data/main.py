@@ -30,7 +30,7 @@ def single_run(dataset=None, seed=None, generator=None):
     if canonical is None:
       raise ValueError(f"Unknown dataset {dataset!r}; choose from {', '.join(aliases)}")
     datasets = [available[canonical]]
-  seeds = (seed,) if seed is not None else (42, 43, 44)
+  seeds = (seed,) if seed is not None else (42,)
   generators = (generator.upper(),) if generator is not None else ('CTGAN', 'TVAE')
   if any(name not in {'CTGAN', 'TVAE'} for name in generators):
     raise ValueError("generator must be 'CTGAN' or 'TVAE'")
@@ -89,7 +89,7 @@ def create_synthetic_simulated():
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(description='Generate corrected synthetic datasets.')
   parser.add_argument('--dataset', choices=['adult', 'census_kdd', 'credit', 'covertype', 'intrusion', 'mnist12', 'mnist28', 'news'])
-  parser.add_argument('--seed', type=int, choices=[42, 43, 44])
+  parser.add_argument('--seed', type=int, choices=[42])
   parser.add_argument('--generator', choices=['CTGAN', 'TVAE'])
   args = parser.parse_args()
   single_run(dataset=args.dataset, seed=args.seed, generator=args.generator)
