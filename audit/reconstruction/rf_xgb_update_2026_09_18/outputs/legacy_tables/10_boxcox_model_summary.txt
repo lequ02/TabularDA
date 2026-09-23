@@ -1,0 +1,44 @@
+
+Call:
+lm(formula = transformed ~ y_synth * dataset + has_y + tvae, 
+    data = d)
+
+Residuals:
+      Min        1Q    Median        3Q       Max 
+-0.060935 -0.009151  0.000000  0.010132  0.066856 
+
+Coefficients:
+                                     Estimate Std. Error t value Pr(>|t|)    
+(Intercept)                         -0.231296   0.030332  -7.626 1.06e-09 ***
+y_synthtvae                         -0.043893   0.042260  -1.039 0.304396    
+y_synthcategorical                  -0.071275   0.033308  -2.140 0.037702 *  
+y_synthpca_gmm                      -0.049041   0.033308  -1.472 0.147735    
+y_synthrf                           -0.007125   0.033308  -0.214 0.831572    
+y_synthxgb                          -0.008897   0.033308  -0.267 0.790587    
+datasetCovertype                    -0.335409   0.041615  -8.060 2.41e-10 ***
+datasetMNIST12                      -0.337803   0.041615  -8.117 1.99e-10 ***
+datasetMNIST28                      -0.383448   0.041615  -9.214 5.14e-12 ***
+has_y1                              -0.002870   0.007357  -0.390 0.698258    
+tvae1                                0.013288   0.007357   1.806 0.077413 .  
+y_synthtvae:datasetCovertype        -0.217353   0.058852  -3.693 0.000586 ***
+y_synthcategorical:datasetCovertype  0.065692   0.046527   1.412 0.164701    
+y_synthpca_gmm:datasetCovertype      0.020854   0.046527   0.448 0.656105    
+y_synthrf:datasetCovertype           0.138166   0.046527   2.970 0.004725 ** 
+y_synthxgb:datasetCovertype          0.160829   0.046527   3.457 0.001188 ** 
+y_synthtvae:datasetMNIST12           0.526544   0.058852   8.947 1.24e-11 ***
+y_synthcategorical:datasetMNIST12    0.434863   0.046527   9.347 3.34e-12 ***
+y_synthpca_gmm:datasetMNIST12        0.410551   0.046527   8.824 1.86e-11 ***
+y_synthrf:datasetMNIST12             0.475327   0.046527  10.216 2.05e-13 ***
+y_synthxgb:datasetMNIST12            0.482128   0.046527  10.362 1.30e-13 ***
+y_synthtvae:datasetMNIST28           0.583205   0.058852   9.910 5.43e-13 ***
+y_synthcategorical:datasetMNIST28    0.498303   0.046527  10.710 4.39e-14 ***
+y_synthpca_gmm:datasetMNIST28        0.462500   0.046527   9.941 4.92e-13 ***
+y_synthrf:datasetMNIST28             0.524742   0.046527  11.278 7.74e-15 ***
+y_synthxgb:datasetMNIST28            0.535489   0.046527  11.509 3.87e-15 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.02943 on 46 degrees of freedom
+Multiple R-squared:  0.9826,	Adjusted R-squared:  0.9731 
+F-statistic: 103.7 on 25 and 46 DF,  p-value: < 2.2e-16
+
