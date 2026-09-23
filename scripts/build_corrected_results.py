@@ -9,8 +9,16 @@ import matplotlib.pyplot as plt
 from run_corrected_matrix import DATASETS, SEEDS, methods_for
 
 
-def expected_runs():
+def expected_runs(matrix='full'):
     expected = set()
+    if matrix == 'pilot':
+        from run_corrected_pilot import DATASETS as pilot_datasets, METHODS, SEED
+        for dataset in pilot_datasets:
+            expected.add((dataset, 'original', None, SEED))
+            for method in METHODS:
+                for mode in ('synthetic', 'mix'):
+                    expected.add((dataset, mode, method, SEED))
+        return expected
     for dataset in DATASETS:
         for seed in SEEDS:
             expected.add((dataset, "original", None, seed))
@@ -21,7 +29,7 @@ def expected_runs():
     return expected
 
 
-def build(run_root, output_root):
+def build(run_root, output_root, matrix='full'):
     records = sorted(run_root.rglob("*.run.json"))
     if not records:
         raise ValueError(f"No corrected run records found under {run_root}")
@@ -60,7 +68,7 @@ def build(run_root, output_root):
         row.update(record["test_scores"])
         rows.append(row)
 
-    planned = expected_runs()
+    planned = expected_runs(matrix)
     missing = planned - keys
     unexpected = keys - planned
     if missing or unexpected:
@@ -77,7 +85,7 @@ def build(run_root, output_root):
     )[metric_columns].agg(["count", "mean", "std"])
     summary.columns = [f"{name}_{statistic}" for name, statistic in summary.columns]
     output_root.mkdir(parents=True, exist_ok=True)
-    run_table.to_csv(output_root / "per_seed.csv", index=False)
+    run_table.to_csv(output_root / "per_run.csv", index=False)
     summary_table = summary.reset_index()
     summary_table.to_csv(output_root / "summary.csv", index=False)
     primary_metric = {
@@ -102,5 +110,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--runs", type=Path, default=Path("output/corrected_v2"))
     parser.add_argument("--out", type=Path, default=Path("output/corrected_v2/results"))
+    parser.add_argument("--matrix", choices=('full', 'pilot'), default='full')
     arguments = parser.parse_args()
-    build(arguments.runs, arguments.out)
+    build(arguments.runs, arguments.out, arguments.matrix)

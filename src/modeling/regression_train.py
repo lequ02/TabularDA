@@ -139,15 +139,10 @@ class train:
         os.makedirs(self.acc_dir, exist_ok=True)
         os.makedirs(self.w_dir, exist_ok=True)
 
-        if self.augment_option is None:
-            self.w_file_name = f"{self.model_name}_train_{self.train_option}_test_{self.test_option}_lr{self.learning_rate}_B{self.batch_size}_G{self.num_epochs}.weight.pth"
-        elif self.test_option == 'original':
-            self.w_file_name = f"{self.model_name}_train_{self.train_option}_augment_{self.augment_option}_mix_ratio{self.mix_ratio}_n{self.n_sample}_test_{self.test_option}_lr{self.learning_rate}_B{self.batch_size}_G{self.num_epochs}.weight.pth"
-        else:
-            self.w_file_name = f"{self.model_name}_train_{self.train_option}_augment_{self.augment_option}_mix_ratio{self.mix_ratio}_n{self.n_sample}_test_{self.test_option}_augment_{self.augment_option}_lr{self.learning_rate}_B{self.batch_size}_G{self.num_epochs}.weight.pth"
-        self.w_file_name = f"seed{self.seed}_{self.w_file_name}"
-        self.acc_file_name = f"{self.w_file_name}.acc.csv"
-        self.report_file_name = f"{self.w_file_name}.report.txt"
+        self.run_id = constants.run_name(self.dataset_name, self.seed, self.train_option, self.augment_option)
+        self.w_file_name = f"{self.run_id}.weights.pth"
+        self.acc_file_name = f"{self.run_id}.epochs.csv"
+        self.report_file_name = f"{self.run_id}.report.txt"
 
         print(f"weight_dir, weight_file: {self.w_dir}, {self.w_file_name}")
         print(f"acc_dir, acc_file: {self.acc_dir}, {self.acc_file_name}")
@@ -234,7 +229,7 @@ class train:
 
         print(f"Testing statistic: loss: {test_loss}, scores: {test_score}")
         write_run_record(
-            os.path.join(self.acc_dir, self.w_file_name + '.run.json'),
+            os.path.join(self.acc_dir, self.run_id + '.run.json'),
             dataset=self.dataset_name, seed=self.seed,
             train_option=self.train_option, augment_option=self.augment_option,
             synthetic_path=self.data_loader.synthetic_path,
@@ -245,7 +240,7 @@ class train:
             selected_epoch=self.selected_epoch, selection_metric=self.early_stop_criterion,
             test_loss=float(test_loss),
             test_scores={key: float(value) for key, value in test_score.items()},
-            predictions_path=os.path.join(self.acc_dir, self.w_file_name + '.predictions.csv'),
+            predictions_path=os.path.join(self.acc_dir, self.run_id + '.predictions.csv'),
             weight_path=self.w_dir + self.w_file_name,
         )
         self.plot_loss_and_f1_curves(train_losses, train_scores[self.metric_to_plot],
@@ -318,7 +313,7 @@ class train:
                 'source_id': self.data_loader.test_source_ids,
                 'y_true': np.asarray(all_labels).ravel(),
                 'y_pred': np.asarray(all_preds).ravel(),
-            }).to_csv(os.path.join(self.acc_dir, self.w_file_name + '.predictions.csv'), index=False)
+            }).to_csv(os.path.join(self.acc_dir, self.run_id + '.predictions.csv'), index=False)
         return loss, self.compute_scores(all_labels, all_preds)
 
 
@@ -396,7 +391,7 @@ class train:
         x_ticks = range(0, num_epochs, step)
 
         # Plot Loss Curves
-        loss_plot_file = os.path.join(self.acc_dir, f"{self.acc_file_name}_loss_curve.png")
+        loss_plot_file = os.path.join(self.acc_dir, f"{self.run_id}.loss_curve.png")
         plt.figure(figsize=(10, 6))
         plt.plot(train_losses, label='Training', color='blue')
         plt.plot(val_losses, label='Validation', color='orange')
@@ -412,7 +407,7 @@ class train:
         plt.close()
 
         # Plot F1 Score Curves
-        f1_plot_file = os.path.join(self.acc_dir, f"{self.acc_file_name}_{self.metric_to_plot}.png")
+        f1_plot_file = os.path.join(self.acc_dir, f"{self.run_id}.{self.metric_to_plot}_curve.png")
         plt.figure(figsize=(10, 6))
         plt.plot(train_f1_scores, label='Training', color='blue')
         plt.plot(val_f1_scores, label='Validation', color='orange')

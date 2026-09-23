@@ -10,7 +10,7 @@ from tqdm import tqdm
 import torch
 from torch import nn
 from torchsummary import summary
-from sklearn.metrics import accuracy_score, average_precision_score, f1_score, precision_score, recall_score, classification_report
+from sklearn.metrics import accuracy_score, average_precision_score, balanced_accuracy_score, f1_score, precision_score, recall_score, roc_auc_score
 
 from .models_folder import model_mnist12, model_mnist28, model_intrusion,model_adult,model_census
 from .trainer import trainer
@@ -199,15 +199,10 @@ class train:
         os.makedirs(self.acc_dir, exist_ok=True)
         os.makedirs(self.w_dir, exist_ok=True)
 
-        if self.augment_option is None:
-            self.w_file_name = f"{self.model_name}_train_{self.train_option}_test_{self.test_option}_lr{self.learning_rate}_B{self.batch_size}_G{self.num_epochs}.weight.pth"
-        elif self.test_option == 'original':
-            self.w_file_name = f"{self.model_name}_train_{self.train_option}_augment_{self.augment_option}_mix_ratio{self.mix_ratio}_n{self.n_sample}_test_{self.test_option}_lr{self.learning_rate}_B{self.batch_size}_G{self.num_epochs}.weight.pth"
-        else:
-            self.w_file_name = f"{self.model_name}_train_{self.train_option}_augment_{self.augment_option}_mix_ratio{self.mix_ratio}_n{self.n_sample}_test_{self.test_option}_augment_{self.augment_option}_lr{self.learning_rate}_B{self.batch_size}_G{self.num_epochs}.weight.pth"
-        self.w_file_name = f"seed{self.seed}_{self.w_file_name}"
-        self.acc_file_name = f"{self.w_file_name}.acc.csv"
-        self.report_file_name = f"{self.w_file_name}.report.txt"
+        self.run_id = constants.run_name(self.dataset_name, self.seed, self.train_option, self.augment_option)
+        self.w_file_name = f"{self.run_id}.weights.pth"
+        self.acc_file_name = f"{self.run_id}.epochs.csv"
+        self.report_file_name = f"{self.run_id}.report.txt"
 
         print(f"weight_dir, weight_file: {self.w_dir}, {self.w_file_name}")
         print(f"acc_dir, acc_file: {self.acc_dir}, {self.acc_file_name}")
@@ -294,9 +289,9 @@ class train:
         with open(self.acc_dir + self.report_file_name, 'w') as report_file:
             report_file.write(f"Testing statistic: loss: {test_loss}, scores: {test_score}")
         report_file.close()
-        predictions_path = os.path.join(self.acc_dir, self.w_file_name + '.predictions.csv')
+        predictions_path = os.path.join(self.acc_dir, self.run_id + '.predictions.csv')
         write_run_record(
-            os.path.join(self.acc_dir, self.w_file_name + '.run.json'),
+            os.path.join(self.acc_dir, self.run_id + '.run.json'),
             dataset=self.dataset_name, seed=self.seed,
             train_option=self.train_option, augment_option=self.augment_option,
             synthetic_path=self.data_loader.synthetic_path,
@@ -388,7 +383,7 @@ class train:
             if all_scores:
                 predictions['score'] = all_scores
             pd.DataFrame(predictions).to_csv(
-                os.path.join(self.acc_dir, self.w_file_name + '.predictions.csv'), index=False)
+                os.path.join(self.acc_dir, self.run_id + '.predictions.csv'), index=False)
         return loss, self.compute_scores(all_labels, all_preds, all_scores)
 
 
@@ -397,6 +392,8 @@ class train:
         for metric in list(self.eval_metrics.keys()):
             if metric == "accuracy":
                 ret_score[metric] = accuracy_score(y, y_hat)
+            elif metric == 'balanced_accuracy':
+                ret_score[metric] = balanced_accuracy_score(y, y_hat)
             elif metric == "f1":
                 for mtype in self.eval_metrics[metric]:
                     ret_score[metric + "_"+ mtype] = f1_score(y, y_hat, average = mtype, zero_division = 0)
@@ -410,6 +407,10 @@ class train:
                 if not y_score:
                     raise ValueError("PR-AUC requires binary prediction scores")
                 ret_score[metric] = average_precision_score(y, y_score)
+            elif metric == 'roc_auc':
+                if not y_score:
+                    raise ValueError("ROC-AUC requires binary prediction scores")
+                ret_score[metric] = roc_auc_score(y, y_score) if len(set(y)) > 1 else None
             else:
                 raise ValueError("Can not recognize the metrics: " + metric)
         return ret_score
@@ -432,7 +433,7 @@ class train:
         x_ticks = range(0, num_epochs, step)
 
         # Plot Loss Curves
-        loss_plot_file = os.path.join(self.acc_dir, f"{self.acc_file_name}_loss_curve.png")
+        loss_plot_file = os.path.join(self.acc_dir, f"{self.run_id}.loss_curve.png")
         plt.figure(figsize=(10, 6))
         plt.plot(train_losses, label='Training', color='blue')
         plt.plot(val_losses, label='Validation', color='orange')
@@ -448,7 +449,7 @@ class train:
         plt.close()
 
         # Plot F1 Score Curves
-        f1_plot_file = os.path.join(self.acc_dir, f"{self.acc_file_name}_{self.metric_to_plot}.png")
+        f1_plot_file = os.path.join(self.acc_dir, f"{self.run_id}.{self.metric_to_plot}_curve.png")
         plt.figure(figsize=(10, 6))
         plt.plot(train_f1_scores, label='Training', color='blue')
         plt.plot(val_f1_scores, label='Validation', color='orange')

@@ -2,12 +2,15 @@
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'src'))
+from modeling import constants
 DATASETS = (
     "adult", "census_kdd", "credit", "covertype", "intrusion",
     "mnist12", "mnist28", "news",
@@ -52,6 +55,7 @@ def classifier_command(dataset, seed, mode, method):
 
 
 def run_matrix(dataset_names, seeds, stage):
+    os.environ['CORRECTED_RUN_NAMESPACE'] = 'corrected_v2'
     output = ROOT / "output" / "corrected_v2"
     log_root = output / "logs"
     failures = []
@@ -64,7 +68,7 @@ def run_matrix(dataset_names, seeds, stage):
             for generator in ("ctgan", "tvae"):
                 generated = True
                 if stage in {"all", "generators"}:
-                    log_path = log_root / dataset / f"seed_{seed}" / f"{generator}_generation.log"
+                    log_path = log_root / dataset / f"seed_{seed}" / f"{dataset}_seed{seed}_{generator}_generate.log"
                     command = [
                         sys.executable, "synthesize_data/main.py",
                         "--dataset", dataset, "--seed", str(seed),
@@ -78,7 +82,7 @@ def run_matrix(dataset_names, seeds, stage):
                     continue
                 for method in methods_for(dataset, generator):
                     for mode in ("synthetic", "mix"):
-                        arm = f"{mode}_{method}"
+                        arm = constants.run_name(dataset, seed, mode, method)
                         if not generated:
                             failures.append({"dataset": dataset, "seed": seed,
                                              "arm": arm, "cause": f"{generator} generation failed"})
@@ -88,7 +92,7 @@ def run_matrix(dataset_names, seeds, stage):
                             failures.append({"dataset": dataset, "seed": seed,
                                              "arm": arm, "log": str(log_path)})
             if stage in {"all", "classifiers"}:
-                log_path = log_root / dataset / f"seed_{seed}" / "real.log"
+                log_path = log_root / dataset / f"seed_{seed}" / f"{constants.run_name(dataset, seed, 'original', None)}.log"
                 if not run_command(classifier_command(dataset, seed, "original", None), src_dir, log_path):
                     failures.append({"dataset": dataset, "seed": seed, "arm": "real", "log": str(log_path)})
 

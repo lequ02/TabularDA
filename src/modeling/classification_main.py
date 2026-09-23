@@ -1,8 +1,9 @@
 import argparse
 from pathlib import Path
 from .classification_train import train
+from . import constants
 ##### Doi output co san tren github thanh output1 va output luon la cai newest
-OUT_DIR = str(Path(__file__).resolve().parents[2] / "output" / "corrected_v2") + "/"
+OUT_DIR = str(Path(__file__).resolve().parents[2] / "output" / constants.RUN_NAMESPACE) + "/"
 
 
 def parse_args():
@@ -35,14 +36,20 @@ def main(args):
 
   w_dir = OUT_DIR + dataset_name + "/weight/"
   acc_dir = OUT_DIR + dataset_name + "/acc/"
-  eval_metrics = {"accuracy": None, "f1": ['macro', 'micro', 'weighted']} # add 'binary' to the list for binary classification (i.e: adult, census, credit)
+  averages = ['macro', 'micro', 'weighted']
+  eval_metrics = {
+      'accuracy': None,
+      'balanced_accuracy': None,
+      'precision': averages.copy(),
+      'recall': averages.copy(),
+      'f1': averages.copy(),
+  }
   metric_to_plot = "f1_micro"
   if dataset_name in {'adult', 'census_kdd', 'credit'}:
-    eval_metrics['f1'].append('binary')
-  if dataset_name == 'credit':
-    eval_metrics['precision'] = ['binary']
-    eval_metrics['recall'] = ['binary']
+    for metric in ('precision', 'recall', 'f1'):
+      eval_metrics[metric].append('binary')
     eval_metrics['pr_auc'] = None
+    eval_metrics['roc_auc'] = None
 
 
   train_model = train(

@@ -12,6 +12,7 @@ from synthesizer import *
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 # from datasets import load_adult, load_news, load_census, load_covertype
 from commons import create_train_test, handle_missing_values, check_directory, read_train_test_csv, onehot
+from modeling import constants
 
 
 class CreateSyntheticData:
@@ -36,44 +37,28 @@ class CreateSyntheticData:
             self.fsyn_name = self.features_synthesizer+"_" # e.g: 'TVAE' will be 'TVAE_'
 
         project_root = Path(__file__).resolve().parents[3]
-        corrected_data_root = Path(output_root) if output_root is not None else project_root / 'data' / 'corrected_v2'
-        corrected_model_root = project_root / 'sdv trained model' / 'corrected_v2'
+        corrected_data_root = Path(output_root) if output_root is not None else project_root / 'data' / constants.RUN_NAMESPACE
+        corrected_model_root = project_root / 'sdv trained model' / constants.RUN_NAMESPACE
+        generator = self.features_synthesizer
         self.paths = {
             'synthesizer_dir': str(corrected_model_root / ds_name / f'seed_{seed}') + os.sep,
             'data_dir': str(corrected_data_root / ds_name / f'seed_{seed}') + os.sep,
-            'train_csv': f'{ds_name}_train.csv',
-            'test_csv': f'{ds_name}_test.csv',
-            'train_csv_onehot': f'onehot_{ds_name}_train.csv',
-            'test_csv_onehot': f'onehot_{ds_name}_test.csv',
+            'train_csv': constants.split_name(ds_name, seed, 'train', 'raw'),
+            'dev_csv': constants.split_name(ds_name, seed, 'dev', 'raw'),
+            'test_csv': constants.split_name(ds_name, seed, 'test', 'raw'),
+            'train_csv_onehot': constants.split_name(ds_name, seed, 'train', 'onehot'),
+            'dev_csv_onehot': constants.split_name(ds_name, seed, 'dev', 'onehot'),
+            'test_csv_onehot': constants.split_name(ds_name, seed, 'test', 'onehot'),
 
-            'sdv_only_synthesizer': f'{ds_name}_synthesizer.pkl',
-            'sdv_only_csv': f'onehot_{ds_name}_sdv_100k.csv',
-
-            f'sdv_{self.fsyn_name}gaussian_synthesizer': f'{ds_name}_{self.fsyn_name}synthesizer_onlyX.pkl',
-            f'sdv_{self.fsyn_name}gaussian_csv': f'onehot_{ds_name}_sdv_{self.fsyn_name}gaussian_100k.csv',
-
-            f'sdv_{self.fsyn_name}categorical_synthesizer': f'{ds_name}_{self.fsyn_name}synthesizer_onlyX.pkl',
-            f'sdv_{self.fsyn_name}categorical_csv': f'onehot_{ds_name}_sdv_{self.fsyn_name}categorical_100k.csv',
-
-            f'sdv_{self.fsyn_name}pca_gmm_synthesizer': f'{ds_name}_{self.fsyn_name}synthesizer_onlyX.pkl',
-            f'sdv_{self.fsyn_name}pca_gmm_csv': f'onehot_{ds_name}_sdv_{self.fsyn_name}pca_gmm_100k.csv',
-
-            f'sdv_{self.fsyn_name}xgb_synthesizer': f'{ds_name}_{self.fsyn_name}synthesizer_onlyX.pkl',
-            f'sdv_{self.fsyn_name}xgb_csv': f'onehot_{ds_name}_sdv_{self.fsyn_name}xgb_100k.csv',
-            f'sdv_{self.fsyn_name}rf_synthesizer': f'{ds_name}_{self.fsyn_name}synthesizer_onlyX.pkl',
-            f'sdv_{self.fsyn_name}rf_csv': f'onehot_{ds_name}_sdv_{self.fsyn_name}rf_100k.csv',
-            f'sdv_{self.fsyn_name}dnn_synthesizer': f'{ds_name}_{self.fsyn_name}synthesizer_onlyX.pkl',
-            f'sdv_{self.fsyn_name}dnn_csv': f'onehot_{ds_name}_sdv_{self.fsyn_name}dnn_100k.csv',
-
-            'sdv_tvae_only_synthesizer': f'{ds_name}_TVAE_synthesizer.pkl',
-            'sdv_tvae_only_csv': f'onehot_{ds_name}_sdv_tvae_100k.csv',
-
-
-
-            ## don't need. file names for comparison is defined in synthesize_comparison_from_trained_model()
-            # 'sdv_compare_synthesizer': f'{ds_name}_synthesizer.pkl',
-            # 'sdv_compare_csv': f'onehot_{ds_name}_sdv_compare_100k.csv',
+            'sdv_only_synthesizer': constants.generator_name(ds_name, seed, 'ctgan', 'full'),
+            'sdv_only_csv': constants.synthetic_name(ds_name, seed, 'ctgan'),
+            'sdv_tvae_only_synthesizer': constants.generator_name(ds_name, seed, 'tvae', 'full'),
+            'sdv_tvae_only_csv': constants.synthetic_name(ds_name, seed, 'tvae'),
         }
+        for label in ('gaussian', 'categorical', 'pca_gmm', 'rf', 'xgb', 'dnn'):
+            key = f'sdv_{self.fsyn_name}{label}'
+            self.paths[f'{key}_synthesizer'] = constants.generator_name(ds_name, seed, generator, 'xonly')
+            self.paths[f'{key}_csv'] = constants.synthetic_name(ds_name, seed, self.fsyn_name + label)
 
     def create_synthetic_data(self):
         """
@@ -90,6 +75,14 @@ class CreateSyntheticData:
         self.create_synthetic_data_ensemble()
         self.create_synthetic_data_dnn()
         self.create_comparison_from_trained_model()
+
+    def create_pilot_data(self):
+        self.create_synthetic_data_sdv_only()
+        xtrain, ytrain, _, categorical_columns = self.read_train_data()
+        self.synthesize_data(xtrain, ytrain, categorical_columns, 'sdv_rf', 'rf')
+        self.synthesize_from_trained_model(xtrain, ytrain, categorical_columns, 'sdv_xgb', 'xgb')
+        self.create_synthetic_data_dnn()
+        self.create_comparison_from_trained_model(('rf', 'xgb', 'dnn'))
 
 
     def create_synthetic_data_sdv_only(self):
@@ -134,12 +127,13 @@ class CreateSyntheticData:
         xytrain = pd.concat([xtrain, ytrain], axis=1)
         self.synthesize_data(xytrain, ytrain, categorical_columns, 'sdv_tvae_only', '', features_synthesizer='TVAE')
 
-    def create_comparison_from_trained_model(self):
+    def create_comparison_from_trained_model(self, target_synthesizers=None):
         xtrain, ytrain, target_name, categorical_columns = self.read_train_data()
         print(f"Creating comparison from trained model for '{self.ds_name}' with features synthesizer: {self.features_synthesizer}")
-        target_synthesizers = ['pca_gmm', 'xgb', 'rf', 'dnn']
-        if self.is_classification:
-            target_synthesizers = ['gaussianNB', 'categoricalNB'] + target_synthesizers
+        if target_synthesizers is None:
+            target_synthesizers = ['pca_gmm', 'xgb', 'rf', 'dnn']
+            if self.is_classification:
+                target_synthesizers = ['gaussianNB', 'categoricalNB'] + target_synthesizers
         full_table_name = 'sdv_only_csv' if self.features_synthesizer == 'ctgan' else 'sdv_tvae_only_csv'
         full_table_csv = self.paths['data_dir'] + self.paths[full_table_name]
         dnn_dev_data = self.read_dev_data()
@@ -180,7 +174,7 @@ class CreateSyntheticData:
         return xtrain, ytrain, self.target_name, self.categorical_columns
 
     def read_dev_data(self):
-        dev_data = pd.read_csv(self.paths['data_dir'] + f'onehot_{self.ds_name}_dev.csv')
+        dev_data = pd.read_csv(self.paths['data_dir'] + self.paths['dev_csv_onehot'])
         return dev_data.drop(columns=[self.target_name]), dev_data[self.target_name]
 
     def synthesize_data(self, xtrain, ytrain, categorical_columns, synth_type, target_synthesizer, features_synthesizer='CTGAN'):
@@ -201,7 +195,9 @@ class CreateSyntheticData:
 
 
     def synthesize_comparison_from_trained_model(self, xtrain, ytrain, categorical_columns, synth_type, target_synthesizer, full_table_csv, dnn_dev_data=None):
-        csv_file_name = self.paths['data_dir'] + f'onehot_{self.ds_name}_{synth_type}_100k.csv'
+        label = {'gaussianNB': 'gaussian', 'categoricalNB': 'categorical'}.get(target_synthesizer, target_synthesizer)
+        method = ('tvae_' if self.features_synthesizer == 'tvae' else '') + 'compare_' + label
+        csv_file_name = self.paths['data_dir'] + constants.synthetic_name(self.ds_name, self.seed, method)
 
         synthesize_comparison_from_trained_model(xtrain, ytrain, categorical_columns, sample_size=self.sample_size_to_synthesize, target_synthesizer=target_synthesizer,
                         numerical_columns_pca_gmm=self.numerical_cols_pca_gmm,
@@ -224,10 +220,10 @@ class CreateSyntheticData:
                             xtrain_onehot, xdev_onehot, xtest_onehot):
         sets = [
             (xtrain, ytrain, self.paths['train_csv']),
-            (xdev, ydev, f'{self.ds_name}_dev.csv'),
+            (xdev, ydev, self.paths['dev_csv']),
             (xtest, ytest, self.paths['test_csv']),
             (xtrain_onehot, ytrain, self.paths['train_csv_onehot']),
-            (xdev_onehot, ydev, f'onehot_{self.ds_name}_dev.csv'),
+            (xdev_onehot, ydev, self.paths['dev_csv_onehot']),
             (xtest_onehot, ytest, self.paths['test_csv_onehot']),
         ]
         for x, y, filename in sets:
@@ -240,7 +236,7 @@ class CreateSyntheticData:
         split_details = {}
         files = {
             'train': (self.paths['train_csv'], self.paths['train_csv_onehot']),
-            'dev': (f'{self.ds_name}_dev.csv', f'onehot_{self.ds_name}_dev.csv'),
+            'dev': (self.paths['dev_csv'], self.paths['dev_csv_onehot']),
             'test': (self.paths['test_csv'], self.paths['test_csv_onehot']),
         }
         loaded = {}
@@ -352,5 +348,3 @@ class CreateSyntheticData:
         _, xtest_onehot = onehot.onehot(xtrain, xtest, self.categorical_columns)
         self._source_ids = {'train': train_ids, 'dev': dev_ids, 'test': test_ids}
         return xtrain, xdev, xtest, ytrain, ydev, ytest, xtrain_onehot, xdev_onehot, xtest_onehot
-
-

@@ -71,12 +71,15 @@ All paths below are created on the GPU host during the run. Each downstream run 
 
 | Artifact | Saved location for dataset `D`, seed 42 |
 | --- | --- |
-| Prepared real train/dev/test | Raw `data/corrected_v2/D/seed_42/D_{train,dev,test}.csv` and encoded `onehot_D_{train,dev,test}.csv`; `split_manifest.json` records their hashes and source IDs |
-| Full-table CTGAN/TVAE and X-only CTGAN/TVAE models | `sdv trained model/corrected_v2/D/seed_42/*.pkl`, with matching `.provenance.json` |
-| Synthesized tables | `data/corrected_v2/D/seed_42/onehot_D_sdv_*.csv`, with matching `.quality.json` |
+| Prepared real train/dev/test | `data/corrected_v2/D/seed_42/D_seed42_real_{train,dev,test}_{raw,onehot}.csv`; `split_manifest.json` records their hashes and source IDs |
+| Full-table CTGAN/TVAE and X-only CTGAN/TVAE models | `sdv trained model/corrected_v2/D/seed_42/D_seed42_{ctgan,tvae}_{full,xonly}.pkl`, with matching `.provenance.json` |
+| Synthesized tables | `data/corrected_v2/D/seed_42/D_seed42_GENERATOR_{full,xonly}_TARGET_100k.csv`, with matching `.quality.json` |
 | Target predictors | Beside each predictor-labeled synthetic CSV: matching `.predictor.pkl` for NB, PCA-GMM, RF, or XGB, or `.predictor.pt` for DNN; the DNN also writes `.dnn.json` dev metrics |
-| Downstream evaluation model | `output/corrected_v2/D/weight/*.weight.pth`, selected using real-dev loss |
+| Downstream evaluation model | `output/corrected_v2/D/weight/*.weights.pth`, selected using real-dev loss |
 | Evaluation record and real-test predictions | `output/corrected_v2/D/acc/*.run.json` and `*.predictions.csv` |
+| Checked results | `output/corrected_v2/results/per_run.csv` and `summary.csv` |
+
+The full run and the CTGAN pilot use the same filenames. The pilot uses separate `pilot_ctgan_v1` directories. See [PILOT_RUN_SPEC.md](PILOT_RUN_SPEC.md).
 
 No corrected scores are entered here. Run the tiny end-to-end checks, SDV API check, full GPU matrix, and result builder on suitable compute before treating any new comparison as complete.
 

@@ -10,7 +10,10 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # from datasets import load_adult, load_news, load_census, load_covertype, load_intrusion
 
-def single_run(dataset=None, seed=None, generator=None):
+def single_run(dataset=None, seed=None, generator=None, profile='full'):
+  if profile == 'pilot':
+    if dataset not in {'adult', 'mnist28', 'covertype'} or generator != 'CTGAN':
+      raise ValueError('Pilot requires one of adult, mnist28, covertype and CTGAN')
   datasets = [
       adult.CreateSyntheticDataAdult,
       census_kdd.CreateSyntheticDataCensusKdd,
@@ -37,7 +40,11 @@ def single_run(dataset=None, seed=None, generator=None):
   for run_seed in seeds:
     for feature_synthesizer in generators:
       for dataset_factory in datasets:
-        dataset_factory(feature_synthesizer=feature_synthesizer, seed=run_seed).create_synthetic_data()
+        job = dataset_factory(feature_synthesizer=feature_synthesizer, seed=run_seed)
+        if profile == 'pilot':
+          job.create_pilot_data()
+        else:
+          job.create_synthetic_data()
 
 
 
@@ -91,5 +98,6 @@ if __name__ == '__main__':
   parser.add_argument('--dataset', choices=['adult', 'census_kdd', 'credit', 'covertype', 'intrusion', 'mnist12', 'mnist28', 'news'])
   parser.add_argument('--seed', type=int, choices=[42])
   parser.add_argument('--generator', choices=['CTGAN', 'TVAE'])
+  parser.add_argument('--profile', choices=['full', 'pilot'], default='full')
   args = parser.parse_args()
-  single_run(dataset=args.dataset, seed=args.seed, generator=args.generator)
+  single_run(dataset=args.dataset, seed=args.seed, generator=args.generator, profile=args.profile)

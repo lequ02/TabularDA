@@ -7,6 +7,7 @@ from datasets import load_mnist28
 import numpy as np
 from PIL import Image
 from synthesizer import *
+from modeling import constants
 
 class CreateSyntheticDataMnist28(CreateSyntheticData.CreateSyntheticData):
     def __init__(self, feature_synthesizer = 'CTGAN', seed=42, output_root=None):
@@ -70,7 +71,7 @@ class CreateSyntheticDataMnist28(CreateSyntheticData.CreateSyntheticData):
         xtrain, ytrain, target_name, categorical_columns = self.read_train_data()
 
         
-        csv_file_name = self.paths['data_dir'] + f'onehot_{self.ds_name}_sdv_pca_gmm_cat_100k.csv'
+        csv_file_name = self.paths['data_dir'] + constants.synthetic_name(self.ds_name, self.seed, 'pca_gmm_cat')
 
         # load synthesizer
         synthesizer_file_name = self.paths['synthesizer_dir'] + self.paths[f'{synth_type}_synthesizer']

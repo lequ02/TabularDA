@@ -5,6 +5,7 @@ import hashlib
 import subprocess
 from importlib.metadata import version
 from pathlib import Path
+from . import constants
 
 
 def write_run_record(path, *, dataset, seed, train_option, augment_option,
@@ -30,11 +31,11 @@ def write_run_record(path, *, dataset, seed, train_option, augment_option,
     dnn_dev_report = None
     generator_model_path = None
     predictor_model_path = None
-    prepared_root = root / "data" / "corrected_v2" / dataset / f"seed_{seed}"
+    prepared_root = root / "data" / constants.RUN_NAMESPACE / dataset / f"seed_{seed}"
     prepared_real_paths = {
         split: {
-            "raw": str(prepared_root / f"{dataset}_{split}.csv"),
-            "onehot": str(prepared_root / f"onehot_{dataset}_{split}.csv"),
+            "raw": str(prepared_root / constants.split_name(dataset, seed, split, 'raw')),
+            "onehot": str(prepared_root / constants.split_name(dataset, seed, split, 'onehot')),
         }
         for split in ("train", "dev", "test")
     }
@@ -50,19 +51,12 @@ def write_run_record(path, *, dataset, seed, train_option, augment_option,
         synthetic_quality_path = Path(synthetic_path).with_suffix(".quality.json")
         with synthetic_quality_path.open(encoding="utf-8") as quality_file:
             synthetic_quality = json.load(quality_file)
-        model_root = root / "sdv trained model" / "corrected_v2" / dataset / f"seed_{seed}"
-        if augment_option == "ctgan" or augment_option.startswith("compare_"):
-            model_name = f"{dataset}_synthesizer"
-        elif augment_option == "tvae" or augment_option.startswith("tvae_compare_"):
-            model_name = f"{dataset}_TVAE_synthesizer"
-        elif augment_option.startswith("tvae_"):
-            model_name = f"{dataset}_tvae_synthesizer_onlyX"
-        else:
-            model_name = f"{dataset}_synthesizer_onlyX"
-        generator_model_path = model_root / f"{model_name}.pkl"
+        model_root = root / "sdv trained model" / constants.RUN_NAMESPACE / dataset / f"seed_{seed}"
+        generator, fit, _ = constants.method_parts(augment_option)
+        generator_model_path = model_root / constants.generator_name(dataset, seed, generator, fit)
         if not generator_model_path.is_file():
             raise FileNotFoundError(f"Missing generator model: {generator_model_path}")
-        generator_provenance_path = model_root / f"{model_name}.provenance.json"
+        generator_provenance_path = generator_model_path.with_suffix('.provenance.json')
         with generator_provenance_path.open(encoding="utf-8") as provenance_file:
             generator_provenance = json.load(provenance_file)
         if augment_option not in {"ctgan", "tvae"}:

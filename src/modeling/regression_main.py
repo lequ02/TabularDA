@@ -1,8 +1,9 @@
 import argparse
 from pathlib import Path
 from .regression_train import train
+from . import constants
 ##### Doi output co san tren github thanh output1 va output luon la cai newest
-OUT_DIR = str(Path(__file__).resolve().parents[2] / "output" / "corrected_v2") + "/"
+OUT_DIR = str(Path(__file__).resolve().parents[2] / "output" / constants.RUN_NAMESPACE) + "/"
 
 
 def parse_args():
