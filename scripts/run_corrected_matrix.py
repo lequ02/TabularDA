@@ -98,7 +98,7 @@ def run_matrix(dataset_names, seeds, stage):
     if failures:
         raise SystemExit(f"{len(failures)} corrected runs failed; see {failure_path}")
     if stage in {"all", "classifiers"} and full_matrix:
-        command = [sys.executable, "audit/build_corrected_results.py"]
+        command = [sys.executable, "scripts/build_corrected_results.py"]
         subprocess.run(command, cwd=ROOT, check=True)
 
 

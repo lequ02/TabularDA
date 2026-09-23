@@ -10,6 +10,27 @@ This list derives from `FIX_PLAN.md`, `src/synthesize_data/main.py`, `final_resu
 - Seeds: 42, 43, 44. Synthetic sample count: 100,000 for every synthetic-only arm. Each CTGAN and TVAE fit uses 500 epochs and batch size 500 on the configured GPU; record the effective parameters, package versions, and fit data hash. Every classifier arm uses batch size 128, learning rate 0.001, and a budget of 100 epochs with patience 30. Mixed arms use all reserved real training rows plus the same 100,000 synthetic rows. Choose the checkpoint by minimum real-dev loss, then evaluate the restored checkpoint on real test once.
 - New artifacts go under `data/corrected_v2`, `sdv trained model/corrected_v2`, and `output/corrected_v2`; no historical CSV/checkpoint/workbook is a corrected result.
 
+## Raw dataset sources
+
+The synthesis step reads the original source again for each generator run, then
+creates train/dev/test files under `data/corrected_v2/<dataset>/seed_<seed>/`.
+These corrected files do not exist until synthesis has run.
+
+| Corrected dataset | Source used by `src/datasets.py` |
+| --- | --- |
+| Adult | UCI repository ID 2 via `fetch_ucirepo` |
+| Census KDD | UCI repository ID 117 via `fetch_ucirepo` |
+| Credit | Local `data/credit/creditcard.csv` |
+| Covertype | UCI repository ID 31 via `fetch_ucirepo` |
+| Intrusion | Local `data/intrusion/kddcup.data.corrected.csv` |
+| MNIST12 and MNIST28 | OpenML `mnist_784`, version 1; MNIST12 is derived from the same source images |
+| News | UCI repository ID 332 via `fetch_ucirepo` |
+
+The two local source CSVs are ignored by Git and must be copied to those paths
+on the GPU host. The UCI and OpenML loaders need access to their respective
+sources (or an existing local cache). Historical `data/<dataset>/` splits are
+not inputs to corrected runs.
+
 ## Arms for each classification dataset
 
 For Adult, Census KDD, Credit, Covertype, Intrusion, MNIST12, and MNIST28, run each applicable arm below as **synthetic-only** and **mixed** training, plus one real-only arm. A mixed arm uses the same 100,000 synthetic rows and the same reserved real training rows; it gets its own result row. The generator's full-table and X-only models are fitted independently on real train.
@@ -34,4 +55,4 @@ Report binary F1 and macro-F1 for Adult/Census KDD/Credit; macro-F1 for Covertyp
 
 No corrected scores are entered here. Run the tiny end-to-end checks, SDV API check, full GPU matrix, and result builder on suitable compute before treating any new comparison as complete.
 
-On a GPU host with the pinned requirements installed, `python audit/run_corrected_matrix.py --dataset adult --seed 42` runs one isolated dataset/seed and writes logs under `output/corrected_v2/logs`. Run `python audit/run_corrected_matrix.py` for the complete matrix. The script writes `failures.json`; the result builder refuses to publish tables until every planned run record exists. Neither command has been executed on the local laptop.
+On a GPU host with the pinned requirements installed, `python scripts/run_corrected_matrix.py --dataset adult --seed 42` runs one isolated dataset/seed and writes logs under `output/corrected_v2/logs`. Run `python scripts/run_corrected_matrix.py` for the complete matrix. The script writes `failures.json`; the result builder refuses to publish tables until every planned run record exists. Neither command has been executed on the local laptop.
