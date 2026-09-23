@@ -1,6 +1,6 @@
 # CTGAN pilot
 
-Run `python scripts/run_corrected_pilot.py` from the repository root on a GPU host. `--dry-run` lists the commands; `--dataset adult` selects one dataset; `--stage generators` or `--stage classifiers` runs one stage.
+Run `python scripts/run_corrected_pilot.py` from the repository root on a GPU host. `--dry-run` lists the commands; `--dataset adult` selects one dataset; `--stage generators` or `--stage classifiers` runs one stage. `--jobs 2` runs two datasets at a time on the same GPU while keeping each dataset's steps in order; the default is one job. Compare elapsed time before using `--jobs 3`.
 
 The pilot covers Adult, MNIST28, and Covertype with seed 42. It fits full-table and X-only CTGAN for each dataset. It evaluates the CTGAN-generated target, RF/XGB/DNN labels on X-only samples, and RF/XGB/DNN relabeling of full-table samples. Each synthetic table gets synthetic-only and mixed downstream training, plus one real-only baseline: **6 generator fits, 21 synthetic tables, 45 downstream runs**. CTGAN uses 500 epochs, batch size 500, and 100,000 sampled rows. The downstream DNN uses batch size 128, learning rate 0.001, at most 100 epochs, and patience 30. Test evaluation uses the checkpoint selected by real-development loss.
 
