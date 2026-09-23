@@ -46,17 +46,10 @@ class PCA_GMM:
         X_original_backup = self.X_original.copy()
         X_synthesized_backup = self.X_synthesized.copy()
 
-        print("\n\n original")
-        print(X_original_backup.head())
-        print("\n\n synthesized")
-        print(X_synthesized_backup.head())
-        print(X_original_backup.columns)
         # Check if columns order in synthetic and original are the same
         if list(X_original_backup.columns) != list(X_synthesized_backup.columns):
             raise ValueError("Columns order in synthetic and original data are not the same")
 
-        print("\n\nnumerical cols: ", self.numerical_cols)
-        print(type(self.numerical_cols))
         # if (self.numerical_cols != []) and (self.numerical_cols != pd.Index([])):
         if len(self.numerical_cols) > 0:  # check if numerical_cols is not empty, works for both list and pd.Index 
         
@@ -87,9 +80,6 @@ class PCA_GMM:
 
             pca_numeric_cols = pca_numeric_original.columns
 
-            print("\n\n")
-            print(pca_X_original.head())
-            print(pca_numeric_cols)
 
         else:
             pca_X_original = self.X_original.copy()
@@ -133,12 +123,12 @@ class PCA_GMM:
                 print('Train F1', train_f1)
 
         else: # regression
-            train_mape = np.mean(np.abs(y_hat_train - y_train) / y_train)
+            train_mae = sklearn.metrics.mean_absolute_error(y_train, y_hat_train)
             train_r2 = sklearn.metrics.r2_score(y_train, y_hat_train)
 
-            eval_metrics = {'mape': train_mape, 'r2': train_r2}
+            eval_metrics = {'mae': train_mae, 'r2': train_r2}
             if self.verbose:
-                print('Train MAPE: ', train_mape)
+                print('Train MAE: ', train_mae)
                 print('Train R2: ', train_r2)
 
         # Predict target of synthesized data
@@ -156,8 +146,5 @@ class PCA_GMM:
 
         if self.filename:
             synthesized_df.to_csv(self.filename, index=False)
-
-        print("\n\nsynthesized data pca_gmm")
-        print(synthesized_df.head())
 
         return eval_metrics, synthesized_df

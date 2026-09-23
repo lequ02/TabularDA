@@ -6,12 +6,12 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 from datasets import load_adult, load_news, load_census, load_covertype
 
 class CreateSyntheticDataCensus(CreateSyntheticData.CreateSyntheticData):
-    def __init__(self, feature_synthesizer = 'CTGAN'):
+    def __init__(self, feature_synthesizer = 'CTGAN', seed=42, output_root=None):
         ds_name = 'census'
         categorical_columns = ['workclass', 'education', 'marital-status', 'occupation',
                             'relationship', 'race', 'sex', 'native-country']
         super().__init__(ds_name, load_census, 'income', categorical_columns=categorical_columns, features_synthesizer=feature_synthesizer,
-                            sample_size_to_synthesize=100_000, missing_values_strategy='drop', test_size=0.2)
+                            sample_size_to_synthesize=100_000, missing_values_strategy='drop', test_size=0.2, seed=seed, output_root=output_root)
         
     def prepare_train_test(self):
         """
@@ -27,9 +27,8 @@ class CreateSyntheticDataCensus(CreateSyntheticData.CreateSyntheticData):
         y_original = y_original['income'].map({'<=50K': 0, '>50K': 1})
 
         data = pd.concat([x_original, y_original], axis=1)
-        xtrain, xtest, ytrain, ytest, xtrain_onehot, xtest_onehot = self.test_split_and_handle_missing_onehot(data, test_size=self.test_size, missing_values_strategy=self.missing_values_strategy)
-        # save train, test data to csv
-        self.save_to_csv(xtrain, ytrain, xtest, ytest, self.paths['data_dir']+self.paths['train_csv'], self.paths['data_dir']+self.paths['test_csv'])
-        # save onehot encoded train, test data to csv
-        self.save_to_csv(xtrain_onehot, ytrain, xtest_onehot, ytest, self.paths['data_dir']+self.paths['train_csv_onehot'], self.paths['data_dir']+self.paths['test_csv_onehot'])
-        return xtrain, xtest, ytrain, ytest, self.target_name, self.categorical_columns
+        splits = self.test_split_and_handle_missing_onehot(data, test_size=self.test_size, missing_values_strategy=self.missing_values_strategy)
+        xtrain, xdev, xtest, ytrain, ydev, ytest, xtrain_onehot, xdev_onehot, xtest_onehot = splits
+        self.save_train_dev_test(xtrain, xdev, xtest, ytrain, ydev, ytest, xtrain_onehot, xdev_onehot, xtest_onehot)
+        self.save_split_manifest()
+        return xtrain, xdev, xtest, ytrain, ydev, ytest, self.target_name, self.categorical_columns

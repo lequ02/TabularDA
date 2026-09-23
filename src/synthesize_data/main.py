@@ -3,81 +3,44 @@ from synthesizer import *
 import sys
 import os
 import pandas as pd
+import argparse
 from create_synthetic_data import news, census, covertype, intrusion, credit, adult, mnist28, mnist12, census_kdd
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # from datasets import load_adult, load_news, load_census, load_covertype, load_intrusion
 
-def single_run():
-  # adult.CreateSyntheticDataAdult().create_synthetic_data()
-  # census.CreateSyntheticDataCensus().create_synthetic_data()
-  # credit.CreateSyntheticDataCredit().create_synthetic_data()
-  # news.create_synthetic_data_news()
-  # covertype.create_synthetic_data_covertype()
-  # intrusion.create_synthetic_data_intrusion()
-  # credit.create_synthetic_data_credit()
-  # mnist28.CreateSyntheticDataMnist28().create_synthetic_data()
-  # mnist12.CreateSyntheticDataMnist12().create_synthetic_data()
-  # census_kdd.CreateSyntheticDataCensusKdd().create_synthetic_data()
+def single_run(dataset=None, seed=None, generator=None):
+  datasets = [
+      adult.CreateSyntheticDataAdult,
+      census_kdd.CreateSyntheticDataCensusKdd,
+      credit.CreateSyntheticDataCredit,
+      covertype.CreateSyntheticDataCovertype,
+      intrusion.CreateSyntheticDataIntrusion,
+      mnist12.CreateSyntheticDataMnist12,
+      mnist28.CreateSyntheticDataMnist28,
+      news.CreateSyntheticDataNews,
+  ]
+  available = {factory.__name__.removeprefix('CreateSyntheticData'): factory for factory in datasets}
+  aliases = {'adult': 'Adult', 'census_kdd': 'CensusKdd', 'credit': 'Credit',
+             'covertype': 'Covertype', 'intrusion': 'Intrusion', 'mnist12': 'Mnist12',
+             'mnist28': 'Mnist28', 'news': 'News'}
+  if dataset is not None:
+    canonical = aliases.get(dataset.lower())
+    if canonical is None:
+      raise ValueError(f"Unknown dataset {dataset!r}; choose from {', '.join(aliases)}")
+    datasets = [available[canonical]]
+  seeds = (seed,) if seed is not None else (42, 43, 44)
+  generators = (generator.upper(),) if generator is not None else ('CTGAN', 'TVAE')
+  if any(name not in {'CTGAN', 'TVAE'} for name in generators):
+    raise ValueError("generator must be 'CTGAN' or 'TVAE'")
+  for run_seed in seeds:
+    for feature_synthesizer in generators:
+      for dataset_factory in datasets:
+        dataset_factory(feature_synthesizer=feature_synthesizer, seed=run_seed).create_synthetic_data()
 
 
 
-  # adult.CreateSyntheticDataAdult().create_synthetic_data_pca_gmm()
-  # census.CreateSyntheticDataCensus().create_synthetic_data_pca_gmm()
-  # covertype.CreateSyntheticDataCovertype().create_synthetic_data_pca_gmm()
-  # credit.CreateSyntheticDataCredit().create_synthetic_data_pca_gmm()
-  # intrusion.CreateSyntheticDataIntrusion().create_synthetic_data_pca_gmm()
-  # mnist12.CreateSyntheticDataMnist12().create_synthetic_data_pca_gmm()
-  # mnist28.CreateSyntheticDataMnist28().create_synthetic_data_pca_gmm()
-  # mnist28.CreateSyntheticDataMnist28().synthesize_categorical_pca_gmm_from_trained_model()
-  # mnist12.CreateSyntheticDataMnist12().synthesize_categorical_pca_gmm_from_trained_model()
-  # news.CreateSyntheticDataNews().create_synthetic_data_pca_gmm()
-
-  # adult.CreateSyntheticDataAdult().create_synthetic_data_tvae_only()
-  # census.CreateSyntheticDataCensus().create_synthetic_data_tvae_only()
-  # census_kdd.CreateSyntheticDataCensusKdd().create_synthetic_data_tvae_only()
-  # credit.CreateSyntheticDataCredit().create_synthetic_data_tvae_only()
-  # covertype.CreateSyntheticDataCovertype().create_synthetic_data_tvae_only()
-  # intrusion.CreateSyntheticDataIntrusion().create_synthetic_data_tvae_only()
-  # mnist28.CreateSyntheticDataMnist28().create_synthetic_data_tvae_only()
-  # mnist12.CreateSyntheticDataMnist12().create_synthetic_data_tvae_only()
-  # news.CreateSyntheticDataNews().create_synthetic_data_tvae_only()
-
-  # adult.CreateSyntheticDataAdult().create_synthetic_data_ensemble()
-  # census.CreateSyntheticDataCensus().create_synthetic_data_ensemble()
-  # census_kdd.CreateSyntheticDataCensusKdd().create_synthetic_data_ensemble()
-  # credit.CreateSyntheticDataCredit().create_synthetic_data_ensemble()
-  # covertype.CreateSyntheticDataCovertype().create_synthetic_data_ensemble() # done
-  # intrusion.CreateSyntheticDataIntrusion().create_synthetic_data_ensemble()
-  # mnist28.CreateSyntheticDataMnist28().create_synthetic_data_ensemble()
-  # mnist12.CreateSyntheticDataMnist12().create_synthetic_data_ensemble()
-  # news.CreateSyntheticDataNews().create_synthetic_data_ensemble()
-  
-  # adult.CreateSyntheticDataAdult().create_comparison_from_trained_model()
-  # census.CreateSyntheticDataCensus().create_comparison_from_trained_model()
-  # census_kdd.CreateSyntheticDataCensusKdd().create_comparison_from_trained_model()
-  # credit.CreateSyntheticDataCredit().create_comparison_from_trained_model()
-  # covertype.CreateSyntheticDataCovertype().create_comparison_from_trained_model()
-  # intrusion.CreateSyntheticDataIntrusion().create_comparison_from_trained_model()
-  # mnist28.CreateSyntheticDataMnist28().create_comparison_from_trained_model()
-  # mnist12.CreateSyntheticDataMnist12().create_comparison_from_trained_model()
-  # news.CreateSyntheticDataNews().create_comparison_from_trained_model()
-
-
-
-  adult.CreateSyntheticDataAdult(feature_synthesizer='TVAE').create_synthetic_data()
-  census.CreateSyntheticDataCensus(feature_synthesizer='TVAE').create_synthetic_data()
-  census_kdd.CreateSyntheticDataCensusKdd(feature_synthesizer='TVAE').create_synthetic_data()
-  credit.CreateSyntheticDataCredit(feature_synthesizer='TVAE').create_synthetic_data()
-  covertype.CreateSyntheticDataCovertype(feature_synthesizer='TVAE').create_synthetic_data()
-  # intrusion.CreateSyntheticDataIntrusion(feature_synthesizer='TVAE').create_synthetic_data()
-  mnist28.CreateSyntheticDataMnist28(feature_synthesizer='TVAE').create_synthetic_data()
-  mnist12.CreateSyntheticDataMnist12(feature_synthesizer='TVAE').create_synthetic_data()
-  news.CreateSyntheticDataNews(feature_synthesizer='TVAE').create_synthetic_data()
-
-
-  
   # pass
 
 
@@ -124,7 +87,9 @@ def create_synthetic_simulated():
 
 
 if __name__ == '__main__':
-  # main()
-  print("RUN THIS SCRIPT FROM /SRC/")
-  print("the command should be python synthesize_data/main.py")
-  single_run()
+  parser = argparse.ArgumentParser(description='Generate corrected synthetic datasets.')
+  parser.add_argument('--dataset', choices=['adult', 'census_kdd', 'credit', 'covertype', 'intrusion', 'mnist12', 'mnist28', 'news'])
+  parser.add_argument('--seed', type=int, choices=[42, 43, 44])
+  parser.add_argument('--generator', choices=['CTGAN', 'TVAE'])
+  args = parser.parse_args()
+  single_run(dataset=args.dataset, seed=args.seed, generator=args.generator)

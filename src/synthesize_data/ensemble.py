@@ -67,21 +67,21 @@ class Ensemble():
         else:
             y_syn_pred = model.predict(self.x_synthesized)
 
+        y_hat_train = model.predict(self.x_original)
+        if self.is_classification:
+            train_f1 = {}
+            train_f1['weighted'] = sklearn.metrics.f1_score(self.y_original, y_hat_train, average='weighted')
+            train_f1['macro'] = sklearn.metrics.f1_score(self.y_original, y_hat_train, average='macro')
+            train_f1['micro'] = sklearn.metrics.f1_score(self.y_original, y_hat_train, average='micro')
+            accuracy = sklearn.metrics.accuracy_score(self.y_original, y_hat_train)
+            eval_metrics = {'accuracy': accuracy, 'f1': train_f1}
+        else:  # regression
+            mae = sklearn.metrics.mean_absolute_error(self.y_original, y_hat_train)
+            mape = sklearn.metrics.mean_absolute_percentage_error(self.y_original, y_hat_train)
+            r2 = sklearn.metrics.r2_score(self.y_original, y_hat_train)
+            eval_metrics = {'mae': mae, 'mape': mape, 'r2': r2}
         if self.verbose:
             print("Ensemble model training results:")
-            y_hat_train = model.predict(self.x_original)
-            if self.is_classification:
-                train_f1 = {}
-                train_f1['weighted'] = sklearn.metrics.f1_score(self.y_original, y_hat_train, average='weighted')
-                train_f1['macro'] = sklearn.metrics.f1_score(self.y_original, y_hat_train, average='macro')
-                train_f1['micro'] = sklearn.metrics.f1_score(self.y_original, y_hat_train, average='micro')
-                accuracy = sklearn.metrics.accuracy_score(self.y_original, y_hat_train)
-                eval_metrics = {'accuracy': accuracy, 'f1': train_f1}
-            else:  # regression
-                mae = sklearn.metrics.mean_absolute_error(self.y_original, y_hat_train)
-                mape = sklearn.metrics.mean_absolute_percentage_error(self.y_original, y_hat_train)
-                r2 = sklearn.metrics.r2_score(self.y_original, y_hat_train)
-                eval_metrics = {'mae': mae, 'mape': mape, 'r2': r2}
             print(eval_metrics)
 
         # Combine synthesized data with the predictions
@@ -106,5 +106,4 @@ class Ensemble():
                 return xgb.XGBRegressor()
             elif self.target_synthesizer == 'rf':
                 return sklearn.ensemble.RandomForestRegressor()
-        else:
-            raise ValueError("Invalid target synthesizer. Must be one of ['xgb', 'rf']")
+        raise ValueError("Invalid target synthesizer. Must be one of ['xgb', 'rf']")
