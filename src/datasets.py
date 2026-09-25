@@ -89,11 +89,23 @@ def load_intrusion(verbose=False):
     return x, y
 
 def load_credit(verbose=False):
-    df = pd.read_csv('../data/credit/creditcard.csv')
-    y = df[['Class']]
-    x = df.drop(columns=['Class'])
-
-    return x, y
+    # CTGAN/SDGym source: https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud
+    # Fetch its public OpenML copy by stable dataset ID.
+    # The paper's benchmark excludes Time, leaving 29 continuous features.
+    # https://www.openml.org/d/1597
+    dataset = fetch_openml(data_id=1597, target_column='Class', as_frame=True)
+    x = dataset.data
+    y = pd.to_numeric(dataset.target, errors='raise').rename('Class').to_frame()
+    expected_features = [*(f'V{i}' for i in range(1, 29)), 'Amount']
+    source_columns = set(x.columns)
+    if (source_columns not in (set(expected_features), set(expected_features) | {'Time'})
+            or len(x.columns) != len(source_columns) or len(x) != 284_807):
+        raise ValueError('OpenML creditcard dataset has an unexpected feature schema or row count')
+    if y['Class'].value_counts().to_dict() != {0: 284_315, 1: 492}:
+        raise ValueError('OpenML creditcard dataset has unexpected target labels')
+    if verbose:
+        print(dataset.details)
+    return x.loc[:, expected_features], y
 
 
 def load_mnist28(verbose=False):
