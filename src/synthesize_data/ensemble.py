@@ -1,10 +1,11 @@
-import sklearn
 import pickle
 from pathlib import Path
 import pandas as pd
 import numpy as np
 import xgboost as xgb
 import sklearn
+import sklearn.ensemble
+import sklearn.metrics
 
 def sanitize_column_names(columns):
     """
@@ -28,9 +29,10 @@ def sanitize_column_names(columns):
 
 class Ensemble():
     def __init__(self, x_original, y_original, x_synthesized, target_name, target_synthesizer, filename, verbose=True, is_classification=True, artifact_path=None):
-        self.x_original = x_original
+        # Sanitizing names for XGBoost must not change the caller's schema.
+        self.x_original = x_original.copy()
         # self.y_original = y_original
-        self.x_synthesized = x_synthesized
+        self.x_synthesized = x_synthesized.copy()
         self.target_name = target_name
         self.filename = filename
         self.ensemble_model = None
