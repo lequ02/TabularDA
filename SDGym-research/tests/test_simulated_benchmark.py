@@ -9,6 +9,7 @@ from synthetic_data_benchmark.simulated_benchmark import (
     mixture_log_prob,
     mixture_oracle,
     prepare,
+    read_table,
     sample_mixture,
 )
 
@@ -64,3 +65,9 @@ def test_rejects_changed_prepared_split(tmp_path):
     path.write_text(path.read_text(encoding="utf-8") + "0,0\n", encoding="utf-8")
     with pytest.raises(ValueError, match="test table changed"):
         evaluate("grid", 42, "identity", tmp_path, None, 100, 1, "cpu")
+
+
+def test_preserves_literal_na_bayesian_state(tmp_path):
+    path = tmp_path / "states.csv"
+    path.write_text("state\nNA\n", encoding="utf-8")
+    assert read_table(path, "child").loc[0, "state"] == "NA"
