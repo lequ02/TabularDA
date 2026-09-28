@@ -73,7 +73,7 @@ class PCA_GMM:
             pca_X_original, pca_synthesized_df= self.X_original.copy(), self.X_synthesized.copy()
 
             # after pca, number of numerical columns may have changed
-            pca_numeric_original, pca_numeric_synthesized, pca = pca_df(self.X_original[self.numerical_cols], self.X_synthesized[self.numerical_cols], self.target_name, n_components=self.pca_n_components)
+            pca_numeric_original, pca_numeric_synthesized, pca = pca_df(self.X_original[self.numerical_cols], self.X_synthesized[self.numerical_cols], None, n_components=self.pca_n_components)
 
             pca_X_original.drop(columns=self.numerical_cols, inplace=True)
             pca_synthesized_df.drop(columns=self.numerical_cols, inplace=True)

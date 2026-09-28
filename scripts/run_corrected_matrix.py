@@ -15,7 +15,7 @@ DATASETS = (
     "adult", "census_kdd", "credit", "covertype", "intrusion",
     "mnist12", "mnist28", "news",
 )
-SEEDS = (42,)
+SEEDS = (42, 43)
 CLASSIFICATION_LABELERS = ("gaussian", "categorical", "pca_gmm", "rf", "xgb", "dnn")
 REGRESSION_LABELERS = ("pca_gmm", "rf", "xgb", "dnn")
 

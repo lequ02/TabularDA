@@ -3,6 +3,57 @@
 Synthetic Data Gym: A framework to benchmark the performance of synthetic data generators for
 non-temporal tabular data.
 
+## CTGAN paper simulated benchmark
+
+The paper-style simulated benchmark is implemented in
+`synthetic_data_benchmark/simulated_benchmark.py`. It covers Grid, GridR, Ring,
+Asia, Alarm, Child, and Insurance. Each prepared dataset has independent oracle
+train and test samples. `L_syn` is mean synthetic-row log likelihood under the
+fixed oracle. `L_test` is mean real-test-row log likelihood under an oracle of the
+same structure refitted on synthetic rows. Mixture refits use the oracle component
+count and diagonal covariance; Bayesian refits retain the oracle graph and learn
+its conditional probabilities from synthetic rows. For Bayesian probabilities,
+the evaluator clips zero probabilities to `1e-8` before taking logarithms, as in
+the historical evaluator.
+
+Run these commands from `SDGym-research` with the repository-root requirements
+installed. Preparation and evaluation are separate so every method receives the
+same saved training and test tables. Repeat for each dataset and seed. The defaults
+are 10,000 train rows, 10,000 test rows, 10,000 synthetic rows, and 300 epochs
+with batch size 500 for CTGAN and TVAE.
+
+```powershell
+python -m synthetic_data_benchmark.simulated_benchmark prepare --dataset grid --seed 42
+python -m synthetic_data_benchmark.simulated_benchmark evaluate --dataset grid --seed 42 --method identity
+python -m synthetic_data_benchmark.simulated_benchmark evaluate --dataset grid --seed 42 --method ctgan
+python -m synthetic_data_benchmark.simulated_benchmark evaluate --dataset grid --seed 42 --method tvae
+```
+
+For a new method, fit it using only
+`data/simulated_paper/seed_42/grid/train.csv`, write a CSV with the same columns
+and 10,000 generated rows, then score it against the saved oracle and test table:
+
+```powershell
+python -m synthetic_data_benchmark.simulated_benchmark evaluate --dataset grid --seed 42 --method my_method --synthetic path/to/my_method.csv
+```
+
+After all seven datasets have been evaluated for the requested methods and seeds,
+create the paper-style GM and BN family averages:
+
+```powershell
+python -m synthetic_data_benchmark.simulated_benchmark summarize --methods identity ctgan tvae my_method --seeds 42 43
+```
+
+The command writes `per_run.csv` and `summary.csv` under `data/simulated_paper`.
+It requires every requested method/dataset/seed result; an incomplete comparison
+raises an error. Existing `simulated_label` tables are a separate label-generation
+experiment and are not part of the paper's seven oracle-likelihood tests.
+
+The Bayesian oracle BIF files in `synthetic_data_benchmark/oracles` came from the
+[Bayesian Network Repository](https://www.bnlearn.com/bnrepository/), cited by
+the [CTGAN paper](https://proceedings.neurips.cc/paper/8953-modeling-tabular-data-using-conditional-gan.pdf).
+The repository lists its content under [CC BY-SA](https://creativecommons.org/licenses/by-sa/4.0/).
+
 # Getting started
 
 ## Installation

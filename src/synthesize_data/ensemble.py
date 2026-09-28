@@ -1,35 +1,14 @@
 import pickle
 from pathlib import Path
 import pandas as pd
-import numpy as np
 import xgboost as xgb
 import sklearn
 import sklearn.ensemble
 import sklearn.metrics
 
-def sanitize_column_names(columns):
-    """
-    Sanitizes column names for XGBoost compatibility.
-    XGBoost does not allow special characters ([, ] or <) in column names.
-    """
-    sanitized_columns = []
-    
-    for i, col in enumerate(columns):
-        sanitized_col = col
-        # Replace special characters with safe alternatives
-        sanitized_col = sanitized_col.replace('<', '_lt_').replace('>', '_gt_').replace('[', '_lbracket_').replace(']', '_rbracket_')
-        
-        # If two columns end up with the same name, add a unique suffix to distinguish them
-        if sanitized_col in sanitized_columns:
-            sanitized_col = f"{sanitized_col}_{i}"  # Append a number to make it unique
-        
-        sanitized_columns.append(sanitized_col)
-    
-    return sanitized_columns
-
 class Ensemble():
     def __init__(self, x_original, y_original, x_synthesized, target_name, target_synthesizer, filename, verbose=True, is_classification=True, artifact_path=None):
-        # Sanitizing names for XGBoost must not change the caller's schema.
+        # Model feature names must not change the caller's schema.
         self.x_original = x_original.copy()
         # self.y_original = y_original
         self.x_synthesized = x_synthesized.copy()
@@ -51,9 +30,10 @@ class Ensemble():
         self.original_x_columns = self.x_original.columns.tolist()
         self.original_synthesized_columns = self.x_synthesized.columns.tolist()
 
-        # Sanitize column names for XGBoost
-        self.x_original.columns = sanitize_column_names(self.x_original.columns)
-        self.x_synthesized.columns = sanitize_column_names(self.x_synthesized.columns)
+        # XGBoost requires safe, unique feature names; keep the source schema for output.
+        model_columns = [f'feature_{i}' for i in range(len(self.original_x_columns))]
+        self.x_original.columns = model_columns
+        self.x_synthesized.columns = model_columns
     
     def label_encode(self, y):
         le = sklearn.preprocessing.LabelEncoder()

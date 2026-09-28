@@ -10,7 +10,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # from datasets import load_adult, load_news, load_census, load_covertype, load_intrusion
 
-def single_run(dataset=None, seed=None, generator=None, profile='full'):
+def single_run(dataset=None, seed=None, generator=None, profile='full', resume_from_ensemble=False):
   if profile == 'pilot':
     if dataset not in {'adult', 'mnist28', 'covertype'} or generator != 'CTGAN':
       raise ValueError('Pilot requires one of adult, mnist28, covertype and CTGAN')
@@ -41,7 +41,11 @@ def single_run(dataset=None, seed=None, generator=None, profile='full'):
     for feature_synthesizer in generators:
       for dataset_factory in datasets:
         job = dataset_factory(feature_synthesizer=feature_synthesizer, seed=run_seed)
-        if profile == 'pilot':
+        if resume_from_ensemble:
+          job.create_synthetic_data_ensemble()
+          job.create_synthetic_data_dnn()
+          job.create_comparison_from_trained_model()
+        elif profile == 'pilot':
           job.create_pilot_data()
         else:
           job.create_synthetic_data()
@@ -96,8 +100,12 @@ def create_synthetic_simulated():
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(description='Generate corrected synthetic datasets.')
   parser.add_argument('--dataset', choices=['adult', 'census_kdd', 'credit', 'covertype', 'intrusion', 'mnist12', 'mnist28', 'news'])
-  parser.add_argument('--seed', type=int, choices=[42])
+  parser.add_argument('--seed', type=int, choices=[42, 43])
   parser.add_argument('--generator', choices=['CTGAN', 'TVAE'])
   parser.add_argument('--profile', choices=['full', 'pilot'], default='full')
+  parser.add_argument('--resume-from-ensemble', action='store_true')
   args = parser.parse_args()
-  single_run(dataset=args.dataset, seed=args.seed, generator=args.generator, profile=args.profile)
+  if args.resume_from_ensemble and (args.dataset != 'census_kdd' or args.seed != 42 or args.generator is None or args.profile != 'full'):
+    parser.error('--resume-from-ensemble requires Census KDD, seed 42, a generator, and the full profile')
+  single_run(dataset=args.dataset, seed=args.seed, generator=args.generator,
+             profile=args.profile, resume_from_ensemble=args.resume_from_ensemble)
