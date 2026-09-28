@@ -48,7 +48,14 @@ def test_bayesian_oracle_and_fixed_structure(tmp_path):
     assert np.isfinite(result["l_syn"])
     assert np.isfinite(result["l_test"])
     train = pd.read_csv(tmp_path / "seed_42" / "asia" / "train.csv", dtype=str)
-    assert np.isfinite(bn_log_prob(train, bn_model("asia"))).all()
+    model = bn_model("asia")
+    assert np.isfinite(bn_log_prob(train, model)).all()
+    row = train.iloc[0]
+    joint = np.prod([
+        cpd.get_value(**{variable: row[variable] for variable in cpd.variables})
+        for cpd in model.get_cpds()
+    ])
+    assert bn_log_prob(train.iloc[:1], model)[0] == pytest.approx(np.log(joint + 1e-8))
 
 
 def test_rejects_changed_prepared_split(tmp_path):

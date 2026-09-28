@@ -63,16 +63,15 @@ def bn_model(name):
 
 
 def bn_log_prob(data, model):
-    score = np.zeros(len(data), dtype=float)
+    probability = np.ones(len(data), dtype=float)
     for cpd in model.get_cpds():
         indices = []
         for variable in cpd.variables:
             states = {value: index for index, value in
                       enumerate(cpd.state_names[variable])}
             indices.append(data[variable].map(states).to_numpy(dtype=int))
-        probabilities = cpd.values[tuple(indices)]
-        score += np.log(np.maximum(probabilities, 1e-8))
-    return score
+        probability *= cpd.values[tuple(indices)]
+    return np.log(probability + 1e-8)
 
 
 def validate_table(data, columns, oracle, dataset):
