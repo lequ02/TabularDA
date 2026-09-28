@@ -16,15 +16,9 @@ from sklearn.linear_model import LinearRegression as LRR
 from sklearn.neural_network import MLPClassifier as MLPC
 from sklearn.neural_network import MLPRegressor as MLPR
 
-from sklearn.mixture import GaussianMixture as GMM
-
 from sklearn.metrics import accuracy_score, f1_score, r2_score
-from sklearn.utils import shuffle
 
 from ..utils import CATEGORICAL, CONTINUOUS, ORDINAL
-
-from scipy.stats import multivariate_normal
-import itertools
 
 # from pomegranate import BayesianNetwork
 

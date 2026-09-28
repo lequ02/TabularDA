@@ -13,7 +13,7 @@ fixed oracle. `L_test` is mean real-test-row log likelihood under an oracle of t
 same structure refitted on synthetic rows. Mixture refits use the oracle component
 count and diagonal covariance; Bayesian refits retain the oracle graph and learn
 its conditional probabilities from synthetic rows. For Bayesian probabilities,
-the evaluator clips zero probabilities to `1e-8` before taking logarithms, as in
+the evaluator adds `1e-8` to each joint row probability before taking logarithms, as in
 the historical evaluator.
 
 Run these commands from `SDGym-research` with the repository-root requirements
@@ -21,6 +21,7 @@ installed. Preparation and evaluation are separate so every method receives the
 same saved training and test tables. Repeat for each dataset and seed. The defaults
 are 10,000 train rows, 10,000 test rows, 10,000 synthetic rows, and 300 epochs
 with batch size 500 for CTGAN and TVAE.
+Use `--device cpu` on a machine without CUDA.
 
 ```powershell
 python -m synthetic_data_benchmark.simulated_benchmark prepare --dataset grid --seed 42
