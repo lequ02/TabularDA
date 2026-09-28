@@ -1,4 +1,4 @@
-"""Retry the failed seed-42 corrected runs on a selected GPU."""
+"""Retry the failed seed-42 corrected runs with available GPUs visible."""
 
 import argparse
 import json
@@ -14,11 +14,12 @@ DATASETS = ('census_kdd', 'credit', 'intrusion')
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--gpu', type=int, required=True, help='GPU number on the host')
+    parser.add_argument('--gpu', type=int, help='Restrict visibility to one GPU')
     args = parser.parse_args()
 
     os.environ['CORRECTED_RUN_NAMESPACE'] = 'corrected_v2'
-    os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu)
+    if args.gpu is not None:
+        os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu)
     cache = ROOT / '.cache' / 'corrected_v2' / 'seed_42'
     for name, folder in (('SCIKIT_LEARN_DATA', 'sklearn'),
                          ('XDG_CACHE_HOME', 'xdg'), ('MPLCONFIGDIR', 'matplotlib')):
