@@ -1,0 +1,36 @@
+Synthesizer loaded from /home/thuy/Research/minh_data_synth/TabularDA/sdv trained model/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly.pkl
+Successfully synthesized 100000 rows with 37 columns
+xtrain_prep shape: (162962, 372)
+xtest_prep shape: (100000, 372)
+Training ensemble model...
+Ensemble model training results:
+{'accuracy': 0.9644456989973123, 'f1': {'weighted': 0.9608792537446285, 'macro': 0.813886651308265, 'micro': 0.9644456989973123}}
+Successfully synthesized X and y data with xgb
+Data is saved at /home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly_xgb_100k.csv
+Synthesizer loaded from /home/thuy/Research/minh_data_synth/TabularDA/sdv trained model/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly.pkl
+Successfully synthesized 100000 rows with 37 columns
+xtrain_prep shape: (162962, 372)
+xtest_prep shape: (100000, 372)
+Training ensemble model...
+Ensemble model training results:
+{'accuracy': 0.9999754544004124, 'f1': {'weighted': 0.9999754520886945, 'macro': 0.9998927503846509, 'micro': 0.9999754544004124}}
+Successfully synthesized X and y data with rf
+Data is saved at /home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly_rf_100k.csv
+Synthesizer loaded from /home/thuy/Research/minh_data_synth/TabularDA/sdv trained model/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly.pkl
+Successfully synthesized 100000 rows with 37 columns
+xtrain_prep shape: (162962, 372)
+xtest_prep shape: (100000, 372)
+Traceback (most recent call last):
+  File "/home/thuy/Research/minh_data_synth/TabularDA/src/synthesize_data/main.py", line 110, in <module>
+    single_run(dataset=args.dataset, seed=args.seed, generator=args.generator,
+  File "/home/thuy/Research/minh_data_synth/TabularDA/src/synthesize_data/main.py", line 46, in single_run
+    job.create_synthetic_data_dnn()
+  File "/home/thuy/Research/minh_data_synth/TabularDA/src/synthesize_data/create_synthetic_data/CreateSyntheticData.py", line 119, in create_synthetic_data_dnn
+    self.synthesize_from_trained_model(
+  File "/home/thuy/Research/minh_data_synth/TabularDA/src/synthesize_data/create_synthetic_data/CreateSyntheticData.py", line 189, in synthesize_from_trained_model
+    synthesize_from_trained_model(xtrain, ytrain, categorical_columns, sample_size=self.sample_size_to_synthesize, target_synthesizer=target_synthesizer,
+  File "/home/thuy/Research/minh_data_synth/TabularDA/src/synthesize_data/synthesizer.py", line 270, in synthesize_from_trained_model
+    synthesized_data = fit_predict_dnn(
+  File "/home/thuy/Research/minh_data_synth/TabularDA/src/synthesize_data/dnn_labeler.py", line 214, in fit_predict_dnn
+    raise ValueError(f"DNN failed dev quality gate: {report}")
+ValueError: DNN failed dev quality gate: {'dataset': 'census_kdd', 'task': 'classification', 'seed': 42, 'selected_epoch': 3, 'epochs_run': 33, 'dev_loss': 0.2493422031402588, 'dev_loss_history': [0.24961267411708832, 0.24941855669021606, 0.2493422031402588, 0.25065696239471436, 0.2568558156490326, 0.2608488202095032, 0.2653898596763611, 0.28413376212120056, 0.2855108678340912, 0.2895100712776184, 0.3149835169315338, 0.33675822615623474, 0.35933342576026917, 0.3440517485141754, 0.3790668845176697, 0.3777215778827667, 0.40322306752204895, 0.4341442584991455, 0.4432529807090759, 0.4475785791873932, 0.4418815076351166, 0.4753960967063904, 0.5017290115356445, 0.5190001130104065, 0.5258373022079468, 0.5527507662773132, 0.554864227771759, 0.6440211534500122, 0.6122179627418518, 0.599208652973175, 0.6127804517745972, 0.6216395497322083, 0.6323948502540588], 'dev_accuracy': 0.9195618499668068, 'dev_macro_f1': 0.7416744130749202, 'majority_dev_accuracy': 0.9365456959504315, 'majority_dev_macro_f1': 0.48361662619625767, 'converged': True, 'quality_gate_passed': False}
