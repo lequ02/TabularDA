@@ -1,3 +1,6 @@
+import json
+
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -47,3 +50,22 @@ def test_mixture_extension_labels_a_saved_feature_table():
     result = runner.labeled(features, "grid")
     assert result["label"].tolist() == [1, 1, 0]
     pd.testing.assert_frame_equal(features, result.drop(columns="label"))
+
+
+def test_simulated_dnn_keeps_dev_selected_checkpoint_without_quality_gate(tmp_path):
+    rng = np.random.default_rng(7)
+    train = pd.DataFrame(rng.normal(size=(32, 2)), columns=["feature_0", "feature_1"])
+    dev = pd.DataFrame(rng.normal(size=(16, 2)), columns=train.columns)
+    synthetic = pd.DataFrame(rng.normal(size=(8, 2)), columns=train.columns)
+    train_labels = pd.Series(rng.integers(0, 2, size=len(train)))
+    dev_labels = pd.Series(rng.integers(0, 2, size=len(dev)))
+    report_path = tmp_path / "dnn.json"
+
+    labels = runner.predict_labels(
+        "dnn", train, train_labels, dev, dev_labels, synthetic,
+        "grid", 7, report_path, "cpu")
+
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    assert len(labels) == len(synthetic)
+    assert report["selected_epoch"] >= 1
+    assert report["quality_gate_enforced"] is False

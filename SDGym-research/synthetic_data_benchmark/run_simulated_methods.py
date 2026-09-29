@@ -178,7 +178,7 @@ def predict_labels(labeler, x_train, y_train, x_dev, y_dev, x_synthetic,
             x_train, y_train, x_dev, y_dev, x_synthetic,
             target_name="label", is_classification=True, seed=seed,
             report_path=report_path, dataset_name=dataset,
-            device_name=device)
+            device_name=device, enforce_quality_gate=False)
         return result["label"]
     raise ValueError(f"Unknown labeler: {labeler}")
 
