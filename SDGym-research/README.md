@@ -5,6 +5,52 @@ non-temporal tabular data.
 
 ## CTGAN paper simulated benchmark
 
+To run **all paper baselines and all labeled CTGAN/TVAE method variants** on all
+seven simulated datasets, activate the repository environment and run from
+`SDGym-research`:
+
+```powershell
+python -m synthetic_data_benchmark.run_simulated_methods prepare --seeds 42 43
+python -m synthetic_data_benchmark.run_simulated_methods run --seeds 42 43 --methods all --device cuda
+```
+
+On a multi-GPU host, select the device with `--gpu-index 0` (or another CUDA
+index). CTGAN, TVAE, and DNN labeler fits use that GPU. Fits run one at a time
+so several large models do not compete for the same GPU memory.
+
+The device flags are optional; without them the runner uses CUDA when available
+and CPU otherwise. Use `--device cpu` to force CPU or `--device cuda` to require
+CUDA. For a small selection, for example:
+
+```powershell
+python -m synthetic_data_benchmark.run_simulated_methods prepare --datasets grid asia --seeds 42
+python -m synthetic_data_benchmark.run_simulated_methods run --datasets grid asia --seeds 42 --methods ctgan tvae ctgan-xgb ctgan-rf tvae-nb --device cpu
+```
+
+The `prepare` command samples and saves **one oracle train/test split per
+dataset and seed**. The `run` command reads those CSV files. It fits CTGAN or
+TVAE once for each required full-table or X-only source, saves that sample as a
+CSV, and reuses that saved file across labelers. `--methods all` includes
+`identity`, paper `ctgan` and
+`tvae`, full-table labeled baselines, and X-only and full-feature relabeling
+with GaussianNB, CategoricalNB, PCA-GMM, RF, XGB, and DNN. `ctgan-nb` and
+`tvae-nb` select GaussianNB for the continuous mixtures and CategoricalNB for
+the categorical Bayesian networks. The default sample sizes are 10,000 rows
+each for train, test, and synthetic, with 300 generator epochs. To regenerate
+an existing saved sample, use a new `--root` directory.
+
+The seven paper simulations have no target labels. The runner keeps their
+`L_syn` and `L_test` results under the `paper` benchmark. Hybrid labelers use
+a separate `labeled_extension`: Grid/GridR/Ring use the fixed boundary
+`feature_1 > 1.5 * feature_0 + 0.8`; Bayesian networks use `dysp`, `BP`,
+`Disease`, and `Accident` as targets. A fresh oracle dev sample supports DNN
+checkpoint selection. A fixed random forest trained on each synthetic table
+is evaluated on the untouched real test table, yielding accuracy and macro F1.
+Mixture likelihoods score the two generated features only; Bayesian likelihoods
+score the full joint table. These labeled scores are **not paper Table 2
+scores**. Results are saved in `data/simulated_paper/simulated_methods_per_run.csv`
+and `simulated_methods_summary.csv`, with separate `benchmark` values.
+
 The paper-style simulated benchmark is implemented in
 `synthetic_data_benchmark/simulated_benchmark.py`. It covers Grid, GridR, Ring,
 Asia, Alarm, Child, and Insurance. Each prepared dataset has independent oracle
