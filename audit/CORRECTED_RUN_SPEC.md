@@ -1,13 +1,13 @@
-# Corrected experiment run list (frozen before new test scores)
+# Corrected experiment run list
 
-This list derives from `FIX_PLAN.md`, `src/synthesize_data/main.py`, `final_results.xlsx`, and the later `April29.csv` reconstruction, with the expanded arms requested for the corrected run. Historical `census` is an Adult alias and is excluded as an independent dataset. Relabeling full-table features is a separate experiment from fitting a generator on X only.
+The seed-42 method list was frozen before new test scores. Seed 43 was added on 2026-09-28 to repeat every configuration; no methods were added or removed. This list derives from `FIX_PLAN.md`, `src/synthesize_data/main.py`, `final_results.xlsx`, and the later `April29.csv` reconstruction, with the expanded arms requested for the corrected run. Historical `census` is an Adult alias and is excluded as an independent dataset. Relabeling full-table features is a separate experiment from fitting a generator on X only.
 
 ## Common settings
 
 - Datasets: Adult, genuine Census KDD, Credit, Covertype, Intrusion, MNIST12, MNIST28, News.
 - Split version: `corrected_v2`. Make one source-image split for MNIST; use the 60,000/10,000 MNIST28 source version and derive both 12×12 and 28×28 inputs from those IDs. Keep the historical 56,000/14,000 MNIST12 version identified as `legacy_56k_14k`; do not pool its scores.
 - Reserve real train/dev/test before any fit. All methods within a dataset and seed share the same real dev/test IDs. Group identical processed features where the claim is performance on unseen features. Record duplicate policy and both raw and model-input overlap counts.
-- Seed: 42 only for this run. Synthetic sample count: 100,000 for every synthetic arm. Each CTGAN and TVAE fit uses 500 epochs and batch size 500 on the configured GPU; record the effective parameters, package versions, and fit data hash. Every downstream model arm uses batch size 128, learning rate 0.001, and a budget of 100 epochs with patience 30. Mixed arms use all reserved real training rows plus the same 100,000 synthetic rows. Choose the checkpoint by minimum real-dev loss, then evaluate the restored checkpoint on real test once.
+- Seeds: 42 and 43. Synthetic sample count: 100,000 for every synthetic arm. Each CTGAN and TVAE fit uses 500 epochs and batch size 500 on the configured GPU; record the effective parameters, package versions, and fit data hash. Every downstream model arm uses batch size 128, learning rate 0.001, and a budget of 100 epochs with patience 30. Mixed arms use all reserved real training rows plus the same 100,000 synthetic rows. Choose the checkpoint by minimum real-dev loss, then evaluate the restored checkpoint on real test once.
 - New artifacts go under `data/corrected_v2`, `sdv trained model/corrected_v2`, and `output/corrected_v2`; no historical CSV/checkpoint/workbook is a corrected result.
 
 ## Raw dataset sources
@@ -20,14 +20,13 @@ These corrected files do not exist until synthesis has run.
 | --- | --- |
 | Adult | UCI repository ID 2 via `fetch_ucirepo` |
 | Census KDD | UCI repository ID 117 via `fetch_ucirepo` |
-| Credit | Local `data/credit/creditcard.csv` |
+| Credit | OpenML dataset 1597 via `fetch_openml` |
 | Covertype | UCI repository ID 31 via `fetch_ucirepo` |
-| Intrusion | Local `data/intrusion/kddcup.data.corrected.csv` |
+| Intrusion | Full KDD Cup 1999 via `fetch_kddcup99(percent10=False)` |
 | MNIST12 and MNIST28 | OpenML `mnist_784`, version 1; MNIST12 is derived from the same source images |
 | News | UCI repository ID 332 via `fetch_ucirepo` |
 
-The two local source CSVs are ignored by Git and must be copied to those paths
-on the GPU host. The UCI and OpenML loaders need access to their respective
+The UCI, OpenML, and scikit-learn loaders need access to their respective
 sources (or an existing local cache). Historical `data/<dataset>/` splits are
 not inputs to corrected runs.
 
@@ -55,7 +54,9 @@ Each synthetic row below is evaluated with **synthetic-only** and **mixed** down
 | MNIST12 | Classification | 2 | 26 | 53 |
 | MNIST28 | Classification | 2 | 26 | 53 |
 | News | Regression | 2 | 18 | 37 |
-| **Total, seed 42** | | **16** | **200** | **408** |
+| **Total, per seed** | | **16** | **200** | **408** |
+
+The two-seed target is 32 generator invocations, 400 synthetic tables, and 816 downstream runs. Both seeds use the same reserved real split; the seed changes generator and model randomness.
 
 GaussianNB and CategoricalNB are classification-only, so they are excluded from News's continuous `shares` target. News uses MSE for downstream dev selection and reports MSE, MAE, and R² on test. DNN labeling selects its own checkpoint using the reserved real dev split and fails if dev loss does not plateau or if it does not beat the task-specific trivial baseline: majority-class accuracy and macro-F1 for classification, macro-F1 plus fraud recall and PR-AUC for Credit, and mean-predictor R² for News. The DNN dev report is saved beside each DNN-labeled CSV; News's DNN `dev_loss` is MSE after target standardization, while `dev_r2` uses the original target units. Passing these gates can be confirmed only after the GPU run.
 
@@ -63,7 +64,7 @@ GaussianNB and CategoricalNB are classification-only, so they are excluded from 
 
 Report binary F1 and macro-F1 for Adult/Census KDD/Credit; macro-F1 for Covertype/Intrusion; accuracy and macro-F1 for MNIST; MSE/MAE/R² for News. Credit additionally requires fraud-class precision, recall, and PR-AUC. Save per-seed row-level test predictions and one run record containing source/split hashes, source IDs, label counts, columns, exact and near-duplicate checks, code and package versions, generator metadata/parameters, classifier settings, selected dev epoch, classification synthetic label counts (or a target range for News), and output paths. Tables and figures may use only completed records and must retain real-only, synthetic-only, and mixed rows separately.
 
-With one seed, the result table reports individual scores; between-seed variation is unavailable.
+Report individual scores for both seeds and their between-seed variation.
 
 ## Saved artifacts
 

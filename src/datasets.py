@@ -1,7 +1,7 @@
 
 import pandas as pd
 from ucimlrepo import fetch_ucirepo
-from sklearn.datasets import fetch_openml
+from sklearn.datasets import fetch_kddcup99, fetch_openml
 
 
 def load_dataset(dataset_id, verbose=False):
@@ -82,10 +82,13 @@ def load_covertype(verbose=False):
     return load_dataset(31, verbose)
 
 def load_intrusion(verbose=False):
-    df = pd.read_csv('../data/intrusion/kddcup.data.corrected.csv')
-    y = df[['target']]
-    x = df.drop(columns=['target'])
-
+    dataset = fetch_kddcup99(percent10=False, as_frame=True)
+    x = dataset.data
+    for column in ('protocol_type', 'service', 'flag'):
+        x[column] = x[column].str.decode('utf-8')
+    y = dataset.target.str.decode('utf-8').rename('target').to_frame()
+    if verbose:
+        print(dataset.DESCR)
     return x, y
 
 def load_credit(verbose=False):

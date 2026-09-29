@@ -9,13 +9,14 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+os.environ['CORRECTED_RUN_NAMESPACE'] = 'corrected_v2'
 sys.path.insert(0, str(ROOT / 'src'))
 from modeling import constants
 DATASETS = (
     "adult", "census_kdd", "credit", "covertype", "intrusion",
     "mnist12", "mnist28", "news",
 )
-SEEDS = (42,)
+SEEDS = (42, 43)
 CLASSIFICATION_LABELERS = ("gaussian", "categorical", "pca_gmm", "rf", "xgb", "dnn")
 REGRESSION_LABELERS = ("pca_gmm", "rf", "xgb", "dnn")
 
@@ -55,7 +56,6 @@ def classifier_command(dataset, seed, mode, method):
 
 
 def run_matrix(dataset_names, seeds, stage):
-    os.environ['CORRECTED_RUN_NAMESPACE'] = 'corrected_v2'
     output = ROOT / "output" / "corrected_v2"
     log_root = output / "logs"
     failures = []
@@ -80,13 +80,11 @@ def run_matrix(dataset_names, seeds, stage):
                                          "arm": f"{generator}_generation", "log": str(log_path)})
                 if stage not in {"all", "classifiers"}:
                     continue
+                if not generated:
+                    continue
                 for method in methods_for(dataset, generator):
                     for mode in ("synthetic", "mix"):
                         arm = constants.run_name(dataset, seed, mode, method)
-                        if not generated:
-                            failures.append({"dataset": dataset, "seed": seed,
-                                             "arm": arm, "cause": f"{generator} generation failed"})
-                            continue
                         log_path = log_root / dataset / f"seed_{seed}" / f"{arm}.log"
                         if not run_command(classifier_command(dataset, seed, mode, method), src_dir, log_path):
                             failures.append({"dataset": dataset, "seed": seed,

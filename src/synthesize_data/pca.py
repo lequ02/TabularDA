@@ -15,14 +15,13 @@ def pca_df(df_original, df_synthesized, target_name, verbose=True, n_components=
     df_original_pca, df_synthesized_pca
     """
     only_num_flag = False
-    if target_name not in df_original.columns or target_name not in df_synthesized.columns:
-        print(f"Warning: Target column {target_name} not found in the dataset.")
-        print("Assumes the dfs only contain numerical columns.")
+    if target_name is None:
         only_num_flag = True
         x_original = df_original.values
         x_synthesized = df_synthesized.values
-
     else:
+        if target_name not in df_original.columns or target_name not in df_synthesized.columns:
+            raise ValueError(f"Target column {target_name} not found in the dataset.")
         y_original = df_original[target_name]
         y_synthesized = df_synthesized[target_name]
 
