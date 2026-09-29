@@ -26,6 +26,8 @@ def fit_predict_dnn(
     report_path,
     dataset_name,
     artifact_path=None,
+    device_name=None,
+    enforce_quality_gate=True,
 ):
     """Fit on real train rows, select on real dev rows, and label synthetic X."""
     if not x_train.columns.equals(x_dev.columns) or not x_train.columns.equals(x_synthetic.columns):
@@ -37,7 +39,9 @@ def fit_predict_dnn(
     torch.manual_seed(seed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device(device_name or ("cuda" if torch.cuda.is_available() else "cpu"))
+    if device.type == "cuda" and not torch.cuda.is_available():
+        raise ValueError("DNN requested CUDA, but CUDA is unavailable")
 
     train_x = _numeric_array(x_train, "train")
     dev_x = _numeric_array(x_dev, "dev")
@@ -207,10 +211,11 @@ def fit_predict_dnn(
         }
         quality_passed = r2 > max(0.0, baseline_r2)
     report["quality_gate_passed"] = bool(quality_passed)
+    report["quality_gate_enforced"] = bool(enforce_quality_gate)
     _write_report(report_path, report)
-    if not stopped_early:
+    if enforce_quality_gate and not stopped_early:
         raise ValueError(f"DNN did not converge within the {max_epochs}-epoch budget")
-    if not quality_passed:
+    if enforce_quality_gate and not quality_passed:
         raise ValueError(f"DNN failed dev quality gate: {report}")
     if artifact_path:
         Path(artifact_path).parent.mkdir(parents=True, exist_ok=True)
