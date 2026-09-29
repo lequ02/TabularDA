@@ -69,3 +69,23 @@ def test_simulated_dnn_keeps_dev_selected_checkpoint_without_quality_gate(tmp_pa
     assert len(labels) == len(synthetic)
     assert report["selected_epoch"] >= 1
     assert report["quality_gate_enforced"] is False
+
+
+def test_run_one_skips_completed_labeler_fit(tmp_path, monkeypatch):
+    folder = tmp_path / "seed_42" / "grid"
+    folder.mkdir(parents=True)
+    (folder / "ctgan-rf_labeled.json").write_text("{}", encoding="utf-8")
+    features = pd.DataFrame({"feature_0": [0.0], "feature_1": [1.0]})
+    source = folder / "ctgan_paper_sample.csv"
+    source.write_text("feature_0,feature_1\n0,1\n", encoding="utf-8")
+    monkeypatch.setattr(runner, "verified_split", lambda *args: (
+        folder, {}, features, features))
+    monkeypatch.setattr(runner, "sample_and_save", lambda *args: (features, source))
+    monkeypatch.setattr(runner, "predict_labels", lambda *args: pytest.fail(
+        "completed labeler was fitted again"))
+    seen = []
+    monkeypatch.setattr(runner, "score_labeled", lambda *args: seen.append(args[5]))
+
+    runner.run_one(tmp_path, "grid", 42, ["ctgan-rf"], 1, 1, 1, 1, "cpu")
+
+    assert seen == [None]

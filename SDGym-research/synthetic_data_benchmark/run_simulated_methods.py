@@ -308,7 +308,10 @@ def run_one(root, dataset, seed, methods, train_rows, test_rows, rows,
     if any(method.endswith("dnn") for method in methods):
         dev = prepared_dev(folder, dataset, seed, test_rows)[list(test.columns)]
     for name in methods:
-        print(f"{dataset} seed={seed} method={name}", flush=True)
+        suffix = "result" if name in PAPER_METHODS else "labeled"
+        completed = (folder / f"{name}_{suffix}.json").exists()
+        print(f"{'skip' if completed else 'run'} {dataset} seed={seed} method={name}",
+              flush=True)
         if name == "identity":
             if rows != train_rows:
                 raise ValueError("identity requires synthetic_rows = train_rows")
