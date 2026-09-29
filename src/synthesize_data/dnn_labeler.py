@@ -26,6 +26,7 @@ def fit_predict_dnn(
     report_path,
     dataset_name,
     artifact_path=None,
+    device_name=None,
 ):
     """Fit on real train rows, select on real dev rows, and label synthetic X."""
     if not x_train.columns.equals(x_dev.columns) or not x_train.columns.equals(x_synthetic.columns):
@@ -37,7 +38,9 @@ def fit_predict_dnn(
     torch.manual_seed(seed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device(device_name or ("cuda" if torch.cuda.is_available() else "cpu"))
+    if device.type == "cuda" and not torch.cuda.is_available():
+        raise ValueError("DNN requested CUDA, but CUDA is unavailable")
 
     train_x = _numeric_array(x_train, "train")
     dev_x = _numeric_array(x_dev, "dev")
