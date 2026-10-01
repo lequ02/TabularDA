@@ -7,7 +7,7 @@ import sklearn.ensemble
 import sklearn.metrics
 
 class Ensemble():
-    def __init__(self, x_original, y_original, x_synthesized, target_name, target_synthesizer, filename, verbose=True, is_classification=True, artifact_path=None):
+    def __init__(self, x_original, y_original, x_synthesized, target_name, target_synthesizer, filename, verbose=True, is_classification=True, artifact_path=None, random_state=None):
         # Model feature names must not change the caller's schema.
         self.x_original = x_original.copy()
         # self.y_original = y_original
@@ -19,6 +19,7 @@ class Ensemble():
         self.target_synthesizer = target_synthesizer
         self.is_classification = is_classification
         self.artifact_path = artifact_path
+        self.random_state = random_state
         
         if self.is_classification:
             self.label_encoder, self.y_original = self.label_encode(y_original) # have to label encode the y_original or xgboost will throw error
@@ -90,12 +91,12 @@ class Ensemble():
     def get_ensemble_model(self):
         if self.is_classification:
             if self.target_synthesizer == 'xgb':
-                return xgb.XGBClassifier()
+                return xgb.XGBClassifier(random_state=self.random_state)
             elif self.target_synthesizer == 'rf':
-                return sklearn.ensemble.RandomForestClassifier()
+                return sklearn.ensemble.RandomForestClassifier(random_state=self.random_state)
         elif not self.is_classification:
             if self.target_synthesizer == 'xgb':
-                return xgb.XGBRegressor()
+                return xgb.XGBRegressor(random_state=self.random_state)
             elif self.target_synthesizer == 'rf':
-                return sklearn.ensemble.RandomForestRegressor()
+                return sklearn.ensemble.RandomForestRegressor(random_state=self.random_state)
         raise ValueError("Invalid target synthesizer. Must be one of ['xgb', 'rf']")

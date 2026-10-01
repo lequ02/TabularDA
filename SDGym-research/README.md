@@ -69,6 +69,23 @@ are 10,000 train rows, 10,000 test rows, 10,000 synthetic rows, and 300 epochs
 with batch size 500 for CTGAN and TVAE.
 Use `--device cpu` on a machine without CUDA.
 
+This is a paper-style benchmark using `ctgan==0.10.2`, not an exact execution
+of the 2019 implementation. Modern CTGAN uses discriminator weight decay
+`1e-6`; the historical implementation used zero. Modern preprocessing uses
+RDT and learns categorical ordering from the training frame. GM evaluation
+uses five seeded GMM initializations, which can affect `L_test` independently
+of generator quality. GridR centers and sampled train/test tables also depend
+on the preparation seed. Compare per-dataset runs and repeated seeds before
+attributing differences from Table 2 to a method improvement.
+
+Saved generator samples now require JSON recording their training table,
+settings and sample hash. Cached likelihood and labeled results also verify
+their split and oracle hashes. Older caches without the required metadata are
+rejected; use a fresh `--root` for corrected runs.
+RF and XGB labelers now receive the experiment seed explicitly. CategoricalNB
+preserves binary indicators rather than quantile-binning rare 0/1 features into
+a constant. These labeler fixes affect the labeled extension, not paper rows.
+
 ```powershell
 python -m synthetic_data_benchmark.simulated_benchmark prepare --dataset grid --seed 42
 python -m synthetic_data_benchmark.simulated_benchmark evaluate --dataset grid --seed 42 --method identity

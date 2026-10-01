@@ -1,7 +1,10 @@
 
 import pandas as pd
+import hashlib
+import tempfile
+from urllib.request import urlopen
 from ucimlrepo import fetch_ucirepo
-from sklearn.datasets import fetch_kddcup99, fetch_openml
+from sklearn.datasets import fetch_openml
 
 
 def load_dataset(dataset_id, verbose=False):
@@ -82,13 +85,41 @@ def load_covertype(verbose=False):
     return load_dataset(31, verbose)
 
 def load_intrusion(verbose=False):
-    dataset = fetch_kddcup99(percent10=False, as_frame=True)
-    x = dataset.data
-    for column in ('protocol_type', 'service', 'flag'):
-        x[column] = x[column].str.decode('utf-8')
-    y = dataset.target.str.decode('utf-8').rename('target').to_frame()
+    # Same full archive and checksum as sklearn's fetch_kddcup99(percent10=False).
+    # Parse typed columns directly instead of its enormous Python-object matrix.
+    url = 'https://ndownloader.figshare.com/files/5976045'
+    checksum = '3b6c942aa0356c0ca35b7b595a26c89d343652c9db428893e7494f837b274292'
+    columns = (
+        'duration protocol_type service flag src_bytes dst_bytes land wrong_fragment '
+        'urgent hot num_failed_logins logged_in num_compromised root_shell su_attempted '
+        'num_root num_file_creations num_shells num_access_files num_outbound_cmds '
+        'is_host_login is_guest_login count srv_count serror_rate srv_serror_rate '
+        'rerror_rate srv_rerror_rate same_srv_rate diff_srv_rate srv_diff_host_rate '
+        'dst_host_count dst_host_srv_count dst_host_same_srv_rate dst_host_diff_srv_rate '
+        'dst_host_same_src_port_rate dst_host_srv_diff_host_rate dst_host_serror_rate '
+        'dst_host_srv_serror_rate dst_host_rerror_rate dst_host_srv_rerror_rate target'
+    ).split()
+    text_columns = {'protocol_type', 'service', 'flag', 'target'}
+    dtypes = {column: ('object' if column in text_columns else
+                       'float64' if column.endswith('_rate') else 'int64') for column in columns}
+    print('Downloading full Intrusion dataset from ' + url, flush=True)
+    with tempfile.TemporaryFile() as archive:
+        digest = hashlib.sha256()
+        with urlopen(url, timeout=120) as response:
+            for block in iter(lambda: response.read(1024 * 1024), b''):
+                digest.update(block)
+                archive.write(block)
+        if digest.hexdigest() != checksum:
+            raise ValueError('Intrusion download checksum does not match the official archive')
+        archive.seek(0)
+        data = pd.read_csv(archive, compression='gzip', header=None, names=columns, dtype=dtypes)
+    if len(data) != 4_898_431 or data.isna().any().any():
+        raise ValueError('Full Intrusion dataset has unexpected rows or missing values')
+    y = data[['target']]
+    x = data.drop(columns=['target'])
+    print(f'Loaded full Intrusion dataset: {len(data)} rows, 41 features', flush=True)
     if verbose:
-        print(dataset.DESCR)
+        print('KDD Cup 1999 full dataset; downloaded archive SHA-256: ' + checksum)
     return x, y
 
 def load_credit(verbose=False):

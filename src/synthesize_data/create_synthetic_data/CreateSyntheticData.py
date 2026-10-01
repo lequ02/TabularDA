@@ -239,42 +239,53 @@ class CreateSyntheticData:
             'dev': (self.paths['dev_csv'], self.paths['dev_csv_onehot']),
             'test': (self.paths['test_csv'], self.paths['test_csv_onehot']),
         }
-        loaded = {}
+        # Keep only row fingerprints, rather than all six full CSV dataframes.
+        fingerprints = {}
         for split_name, (raw_name, onehot_name) in files.items():
             split_details[split_name] = {}
             for view, filename in [('raw', raw_name), ('onehot', onehot_name)]:
                 path = self.paths['data_dir'] + filename
-                frame = pd.read_csv(path)
                 file_hash = hashlib.sha256()
                 with open(path, 'rb') as source_file:
                     for block in iter(lambda: source_file.read(1024 * 1024), b''):
                         file_hash.update(block)
-                loaded[(split_name, view)] = frame
+                full_hashes, feature_hashes = [], []
+                rows, counts = 0, {}
+                target_min, target_max = float('inf'), float('-inf')
+                for frame in pd.read_csv(path, chunksize=50_000):
+                    rows += len(frame)
+                    full_hashes.append(pd.util.hash_pandas_object(frame, index=False).to_numpy())
+                    feature_hashes.append(pd.util.hash_pandas_object(
+                        frame.drop(columns=[self.target_name]), index=False).to_numpy())
+                    if self.is_classification:
+                        for label, count in frame[self.target_name].value_counts(dropna=False).items():
+                            counts[str(label)] = counts.get(str(label), 0) + int(count)
+                    else:
+                        target_min = min(target_min, float(frame[self.target_name].min()))
+                        target_max = max(target_max, float(frame[self.target_name].max()))
+                fingerprints[(split_name, view)] = (
+                    np.concatenate(full_hashes), np.concatenate(feature_hashes))
                 split_details[split_name][view] = {
-                    'rows': len(frame),
+                    'rows': rows,
                     'columns': [str(column) for column in frame.columns],
                     'target_counts': (
-                        {str(label): int(count) for label, count in frame[self.target_name].value_counts(dropna=False).items()}
+                        counts
                         if self.is_classification else None
                     ),
                     'target_range': (
-                        [float(frame[self.target_name].min()), float(frame[self.target_name].max())]
+                        [target_min, target_max]
                         if not self.is_classification else None
                     ),
                     'sha256': file_hash.hexdigest(),
                 }
         overlaps = {}
         for view in ('raw', 'onehot'):
-            train = loaded[('train', view)]
-            train_full = set(pd.util.hash_pandas_object(train, index=False).tolist())
-            train_features = set(pd.util.hash_pandas_object(train.drop(columns=[self.target_name]), index=False).tolist())
+            train_full, train_features = fingerprints[('train', view)]
             for split_name in ('dev', 'test'):
-                candidate = loaded[(split_name, view)]
-                candidate_full = pd.util.hash_pandas_object(candidate, index=False)
-                candidate_features = pd.util.hash_pandas_object(candidate.drop(columns=[self.target_name]), index=False)
+                candidate_full, candidate_features = fingerprints[(split_name, view)]
                 overlap = {
-                    'exact_full_rows': int(candidate_full.isin(train_full).sum()),
-                    'exact_feature_rows': int(candidate_features.isin(train_features).sum()),
+                    'exact_full_rows': int(np.isin(candidate_full, train_full).sum()),
+                    'exact_feature_rows': int(np.isin(candidate_features, train_features).sum()),
                 }
                 overlaps[f'train_vs_{split_name}_{view}'] = overlap
                 if overlap['exact_feature_rows']:
@@ -344,7 +355,7 @@ class CreateSyntheticData:
             xdev, ydev, target_name=self.target_name, strategy=strategy, fitted_imputer=fitted_imputer)
         xtest, ytest = handle_missing_values.handle_missing_values(
             xtest, ytest, target_name=self.target_name, strategy=strategy, fitted_imputer=fitted_imputer)
-        xtrain_onehot, xdev_onehot = onehot.onehot(xtrain, xdev, self.categorical_columns)
-        _, xtest_onehot = onehot.onehot(xtrain, xtest, self.categorical_columns)
+        xtrain_onehot, xdev_onehot, xtest_onehot = onehot.onehot_many(
+            xtrain, (xdev, xtest), self.categorical_columns)
         self._source_ids = {'train': train_ids, 'dev': dev_ids, 'test': test_ids}
         return xtrain, xdev, xtest, ytrain, ydev, ytest, xtrain_onehot, xdev_onehot, xtest_onehot

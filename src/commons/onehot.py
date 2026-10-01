@@ -1,35 +1,30 @@
 from sklearn.preprocessing import OneHotEncoder
 import pandas as pd
+import numpy as np
 
 
 def onehot(xtrain, xtest, categorical_columns, verbose=False):
-    # Copy data to avoid modifying originals
-    xtrain_copy = xtrain.copy()
-    xtest_copy = xtest.copy()
-
-    if not categorical_columns:
-        return xtrain_copy, xtest_copy
-
-    # Apply OneHotEncoder to categorical columns
-    encoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
-    encoder.fit(xtrain_copy[categorical_columns])
-
-    # Transform both train and test sets
-    xtrain_encoded = encoder.transform(xtrain_copy[categorical_columns])
-    xtest_encoded = encoder.transform(xtest_copy[categorical_columns])
-
-    # Create DataFrame for one-hot encoded columns
-    encoded_columns = encoder.get_feature_names_out(categorical_columns)
-    xtrain_onehot_df = pd.DataFrame(xtrain_encoded, columns=encoded_columns, index=xtrain_copy.index)
-    xtest_onehot_df = pd.DataFrame(xtest_encoded, columns=encoded_columns, index=xtest_copy.index)
-
-    # Concatenate numerical columns and one-hot encoded columns
-    numerical_cols = [column for column in xtrain.columns if column not in categorical_columns]
-    xtrain_prep = pd.concat([xtrain[numerical_cols], xtrain_onehot_df], axis=1)
-    xtest_prep = pd.concat([xtest[numerical_cols], xtest_onehot_df], axis=1)
+    xtrain_prep, xtest_prep = onehot_many(xtrain, (xtest,), categorical_columns)
 
     if verbose:
         print("xtrain_prep shape:", xtrain_prep.shape)
         print("xtest_prep shape:", xtest_prep.shape)
 
     return xtrain_prep, xtest_prep
+
+
+def onehot_many(xtrain, holdouts, categorical_columns):
+    """Fit once on training data; keep binary indicators in one-byte columns."""
+    frames = (xtrain, *holdouts)
+    if not categorical_columns:
+        return tuple(frame.copy() for frame in frames)
+    encoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore', dtype=np.uint8)
+    encoder.fit(xtrain[categorical_columns])
+    encoded_columns = encoder.get_feature_names_out(categorical_columns)
+    numerical_cols = [column for column in xtrain.columns if column not in categorical_columns]
+    results = []
+    for frame in frames:
+        encoded = pd.DataFrame(encoder.transform(frame[categorical_columns]),
+                               columns=encoded_columns, index=frame.index)
+        results.append(pd.concat([frame[numerical_cols], encoded], axis=1))
+    return tuple(results)
