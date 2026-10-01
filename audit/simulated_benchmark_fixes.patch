@@ -1,0 +1,316 @@
+diff --git a/SDGym-research/README.md b/SDGym-research/README.md
+index 1849477..9ec0279 100644
+--- a/SDGym-research/README.md
++++ b/SDGym-research/README.md
+@@ -69,6 +69,23 @@ are 10,000 train rows, 10,000 test rows, 10,000 synthetic rows, and 300 epochs
+ with batch size 500 for CTGAN and TVAE.
+ Use `--device cpu` on a machine without CUDA.
+ 
++This is a paper-style benchmark using `ctgan==0.10.2`, not an exact execution
++of the 2019 implementation. Modern CTGAN uses discriminator weight decay
++`1e-6`; the historical implementation used zero. Modern preprocessing uses
++RDT and learns categorical ordering from the training frame. GM evaluation
++uses five seeded GMM initializations, which can affect `L_test` independently
++of generator quality. GridR centers and sampled train/test tables also depend
++on the preparation seed. Compare per-dataset runs and repeated seeds before
++attributing differences from Table 2 to a method improvement.
++
++Saved generator samples now require JSON recording their training table,
++settings and sample hash. Cached likelihood and labeled results also verify
++their split and oracle hashes. Older caches without the required metadata are
++rejected; use a fresh `--root` for corrected runs.
++RF and XGB labelers now receive the experiment seed explicitly. CategoricalNB
++preserves binary indicators rather than quantile-binning rare 0/1 features into
++a constant. These labeler fixes affect the labeled extension, not paper rows.
++
+ ```powershell
+ python -m synthetic_data_benchmark.simulated_benchmark prepare --dataset grid --seed 42
+ python -m synthetic_data_benchmark.simulated_benchmark evaluate --dataset grid --seed 42 --method identity
+diff --git a/SDGym-research/synthetic_data_benchmark/run_simulated_methods.py b/SDGym-research/synthetic_data_benchmark/run_simulated_methods.py
+index d50380a..007e0e7 100644
+--- a/SDGym-research/synthetic_data_benchmark/run_simulated_methods.py
++++ b/SDGym-research/synthetic_data_benchmark/run_simulated_methods.py
+@@ -7,6 +7,7 @@ import argparse
+ import hashlib
+ import json
+ import sys
++from importlib.metadata import version
+ from pathlib import Path
+ 
+ import numpy as np
+@@ -108,7 +109,20 @@ def target_name(dataset):
+ 
+ def sample_and_save(folder, name, train, dataset, seed, rows, epochs, device):
+     path = folder / f"{name}_sample.csv"
+-    if path.exists():
++    meta_path = path.with_suffix(".json")
++    settings = {
++        "name": name, "dataset": dataset, "seed": seed, "rows": rows,
++        "epochs": epochs, "device": device,
++        "train_sha256": hashlib.sha256(train.to_csv(index=False).encode("utf-8")).hexdigest(),
++    }
++    if path.exists() or meta_path.exists():
++        if not path.exists() or not meta_path.exists():
++            raise ValueError(f"Saved sample provenance is incomplete: {path}. Use a new --root.")
++        metadata = json.loads(meta_path.read_text(encoding="utf-8"))
++        if any(metadata.get(key) != value for key, value in settings.items()):
++            raise ValueError(f"Saved sample settings differ: {path}. Use a new --root.")
++        if metadata.get("sample_sha256") != sha256(path):
++            raise ValueError(f"Saved sample changed: {path}")
+         sample = read_table(path, dataset)
+     else:
+         method = name.split("_")[0]
+@@ -127,6 +141,9 @@ def sample_and_save(folder, name, train, dataset, seed, rows, epochs, device):
+         sample.to_csv(path, index=False)
+     if list(sample.columns) != list(train.columns) or len(sample) != rows:
+         raise ValueError(f"Saved sample schema or row count differs: {path}")
++    if not meta_path.exists():
++        meta_path.write_text(json.dumps({**settings, "sample_sha256": sha256(path)}, indent=2),
++                             encoding="utf-8")
+     return sample, path
+ 
+ 
+@@ -161,7 +178,7 @@ def predict_labels(labeler, x_train, y_train, x_dev, y_dev, x_synthetic,
+ 
+         _, result = Ensemble(x_train, y_train, x_synthetic, "label", labeler,
+                              str(report_path.with_suffix(".encoded.csv")),
+-                             verbose=False).fit()
++                             verbose=False, random_state=seed).fit()
+         report_path.with_suffix(".encoded.csv").unlink()
+         return result["label"]
+     if labeler == "pca_gmm":
+@@ -188,15 +205,17 @@ def checked_score(folder, root, dataset, seed, name, sample_path, rows,
+     path = folder / f"{name}_result.json"
+     if path.exists():
+         result = json.loads(path.read_text(encoding="utf-8"))
++        manifest = json.loads((folder / "manifest.json").read_text(encoding="utf-8"))
+         if (result["synthetic_sha256"] != sha256(sample_path) or
+                 result["synthetic_rows"] != rows or
+-                result["dataset"] != dataset or result["seed"] != seed):
+-            raise ValueError(f"Existing score uses another sample: {path}")
++                result["dataset"] != dataset or result["seed"] != seed or
++                result["method"] != name or
++                any(result.get(key) != manifest[key] for key in
++                    ("train_sha256", "test_sha256", "oracle_sha256"))):
++            raise ValueError(f"Existing score inputs differ: {path}. Use a new --root.")
+         return result
+     result = evaluate(dataset, seed, name, root, sample_path, rows, epochs, device)
+     if name in GENERATORS:
+-        from importlib.metadata import version
+-
+         result["model_epochs"] = epochs
+         result["batch_size"] = 500
+         result["device"] = device
+@@ -220,7 +239,10 @@ def score_labeled(folder, root, dataset, seed, name, synthetic, test,
+                 previous["train_sha256"] != manifest["train_sha256"] or
+                 previous["test_sha256"] != manifest["test_sha256"] or
+                 previous["synthetic_rows"] != rows or
+-                previous["epochs"] != epochs or previous["device"] != device):
++                previous["epochs"] != epochs or previous["device"] != device or
++                (previous.get("dataset"), previous.get("seed"), previous.get("method")) !=
++                (dataset, seed, name) or
++                previous.get("oracle_sha256") != manifest["oracle_sha256"]):
+             raise ValueError(f"Labeled result inputs differ: {sample_path}")
+         return previous
+     if result_path.exists():
+@@ -251,6 +273,7 @@ def score_labeled(folder, root, dataset, seed, name, synthetic, test,
+     classifier.fit(x_fit, synthetic[target])
+     predictions = classifier.predict(x_holdout)
+     result = {
++        "oracle_sha256": manifest["oracle_sha256"],
+         "dataset": dataset, "seed": seed, "method": name,
+         "benchmark": "labeled_extension", "target": target,
+         "test_accuracy": float(accuracy_score(test[target], predictions)),
+@@ -351,11 +374,11 @@ def run_one(root, dataset, seed, methods, train_rows, test_rows, rows,
+             x_raw = source_sample.drop(columns=target) if full else source_sample
+             x_train, x_dev, x_synthetic = encode_features(
+                 train.drop(columns=target),
+-                (dev if dev is not None else test).drop(columns=target),
++                (dev if labeler == "dnn" else train).drop(columns=target),
+                 x_raw, dataset)
+             predictions = predict_labels(
+                 labeler, x_train, train[target], x_dev,
+-                (dev if dev is not None else test)[target], x_synthetic,
++                (dev if labeler == "dnn" else train)[target], x_synthetic,
+                 dataset, seed, folder / f"{name}_labeler.json", device)
+             synthetic = x_raw.copy()
+             synthetic[target] = np.asarray(predictions)
+@@ -373,6 +396,9 @@ def summarize_runs(root, datasets, seeds, methods):
+                 suffix = "result" if method in PAPER_METHODS else "labeled"
+                 path = folder / f"{method}_{suffix}.json"
+                 record = json.loads(path.read_text(encoding="utf-8"))
++                if (record.get("method"), record.get("seed"), record.get("dataset")) != (
++                        method, seed, dataset):
++                    raise ValueError(f"Result identity does not match its path: {path}")
+                 record["benchmark"] = ("paper" if method in PAPER_METHODS
+                                        else "labeled_extension")
+                 record["family"] = "GM" if dataset in MIXTURES else "BN"
+diff --git a/SDGym-research/tests/test_run_simulated_methods.py b/SDGym-research/tests/test_run_simulated_methods.py
+index a8dba43..1a38756 100644
+--- a/SDGym-research/tests/test_run_simulated_methods.py
++++ b/SDGym-research/tests/test_run_simulated_methods.py
+@@ -39,7 +39,7 @@ def test_generator_sample_is_saved_and_reused(tmp_path, monkeypatch):
+     pd.testing.assert_frame_equal(first, second)
+     assert path == same_path
+     assert len(calls) == 1
+-    with pytest.raises(ValueError, match="row count"):
++    with pytest.raises(ValueError, match="settings differ"):
+         runner.sample_and_save(tmp_path, "ctgan_xonly", train, "grid", 42,
+                                5, 2, "cpu")
+ 
+@@ -89,3 +89,87 @@ def test_run_one_skips_completed_labeler_fit(tmp_path, monkeypatch):
+     runner.run_one(tmp_path, "grid", 42, ["ctgan-rf"], 1, 1, 1, 1, "cpu")
+ 
+     assert seen == [None]
++
++
++def test_saved_generator_rejects_changed_epochs_or_training(tmp_path, monkeypatch):
++    train = pd.DataFrame({"feature_0": [0., 1.], "feature_1": [1., 2.]})
++    monkeypatch.setattr(runner, "generate", lambda *args: train.copy())
++    runner.sample_and_save(tmp_path, "ctgan_paper", train, "grid", 42, 2, 1, "cpu")
++    with pytest.raises(ValueError, match="settings differ"):
++        runner.sample_and_save(tmp_path, "ctgan_paper", train, "grid", 42, 2, 300, "cpu")
++    with pytest.raises(ValueError, match="settings differ"):
++        runner.sample_and_save(tmp_path, "ctgan_paper", train + 1, "grid", 42, 2, 1, "cpu")
++
++
++def test_saved_generator_rejects_changed_sample(tmp_path, monkeypatch):
++    train = pd.DataFrame({"feature_0": [0., 1.], "feature_1": [1., 2.]})
++    monkeypatch.setattr(runner, "generate", lambda *args: train.copy())
++    _, path = runner.sample_and_save(tmp_path, "ctgan_paper", train, "grid", 42, 2, 1, "cpu")
++    (train + 3).to_csv(path, index=False)
++    with pytest.raises(ValueError, match="sample changed"):
++        runner.sample_and_save(tmp_path, "ctgan_paper", train, "grid", 42, 2, 1, "cpu")
++
++
++def test_rare_binary_feature_survives_categorical_nb_preprocessing():
++    from synthesize_data.naive_bayes import _fit_quantile_bins
++
++    train = pd.DataFrame({"rare": [0] * 95 + [1] * 5})
++    train_codes, test_codes = _fit_quantile_bins(train, pd.DataFrame({"rare": [0, 1]}))
++    assert train_codes[:, 0].tolist() == train["rare"].tolist()
++    assert test_codes[:, 0].tolist() == [0, 1]
++
++
++def test_rf_labeler_is_independent_of_global_random_state(tmp_path):
++    rng = np.random.default_rng(18)
++    train = pd.DataFrame(rng.normal(size=(100, 2)), columns=["a", "b"])
++    labels = pd.Series(rng.integers(0, 2, size=100))
++    synthetic = pd.DataFrame(rng.normal(size=(100, 2)), columns=train.columns)
++    arguments = ("rf", train, labels, train, labels, synthetic, "grid", 7,
++                 tmp_path / "labeler.json", "cpu")
++    np.random.seed(1)
++    first = runner.predict_labels(*arguments)
++    np.random.seed(999)
++    second = runner.predict_labels(*arguments)
++    np.testing.assert_array_equal(first, second)
++
++
++def test_summary_rejects_result_identity_mismatch(tmp_path):
++    folder = tmp_path / "seed_42" / "grid"
++    folder.mkdir(parents=True)
++    (folder / "identity_result.json").write_text(json.dumps({
++        "dataset": "ring", "seed": 42, "method": "identity", "l_syn": -2., "l_test": -3.
++    }), encoding="utf-8")
++    with pytest.raises(ValueError, match="identity"):
++        runner.summarize_runs(tmp_path, ["grid"], [42], ["identity"])
++
++
++def test_cached_likelihood_rejects_changed_oracle_provenance(tmp_path):
++    folder = runner.prepare("grid", 42, 100, 100, tmp_path)
++    result = runner.checked_score(folder, tmp_path, "grid", 42, "identity",
++                                  folder / "train.csv", 100, 1, "cpu")
++    assert runner.checked_score(folder, tmp_path, "grid", 42, "identity",
++                                folder / "train.csv", 100, 1, "cpu") == result
++    path = folder / "manifest.json"
++    manifest = json.loads(path.read_text(encoding="utf-8"))
++    manifest["oracle_sha256"] = "changed-oracle"
++    path.write_text(json.dumps(manifest), encoding="utf-8")
++    with pytest.raises(ValueError, match="inputs differ"):
++        runner.checked_score(folder, tmp_path, "grid", 42, "identity",
++                             folder / "train.csv", 100, 1, "cpu")
++
++
++def test_labeled_result_reuses_only_matching_oracle(tmp_path):
++    folder = runner.prepare("grid", 42, 100, 100, tmp_path)
++    manifest = json.loads((folder / "manifest.json").read_text(encoding="utf-8"))
++    train = runner.read_table(folder / "train.csv", "grid")
++    test = runner.labeled(runner.read_table(folder / "test.csv", "grid"), "grid")
++    args = (folder, tmp_path, "grid", 42, "ctgan-rf", runner.labeled(train, "grid"),
++            test, folder / "train.csv", manifest, 100, 1, "cpu")
++    first = runner.score_labeled(*args)
++    assert runner.score_labeled(*args) == first
++    path = folder / "ctgan-rf_labeled.json"
++    record = json.loads(path.read_text(encoding="utf-8"))
++    record["oracle_sha256"] = "different-oracle"
++    path.write_text(json.dumps(record), encoding="utf-8")
++    with pytest.raises(ValueError, match="inputs differ"):
++        runner.score_labeled(*args)
+diff --git a/src/synthesize_data/ensemble.py b/src/synthesize_data/ensemble.py
+index 6b0591d..6fa7036 100644
+--- a/src/synthesize_data/ensemble.py
++++ b/src/synthesize_data/ensemble.py
+@@ -7,7 +7,7 @@ import sklearn.ensemble
+ import sklearn.metrics
+ 
+ class Ensemble():
+-    def __init__(self, x_original, y_original, x_synthesized, target_name, target_synthesizer, filename, verbose=True, is_classification=True, artifact_path=None):
++    def __init__(self, x_original, y_original, x_synthesized, target_name, target_synthesizer, filename, verbose=True, is_classification=True, artifact_path=None, random_state=None):
+         # Model feature names must not change the caller's schema.
+         self.x_original = x_original.copy()
+         # self.y_original = y_original
+@@ -19,6 +19,7 @@ class Ensemble():
+         self.target_synthesizer = target_synthesizer
+         self.is_classification = is_classification
+         self.artifact_path = artifact_path
++        self.random_state = random_state
+         
+         if self.is_classification:
+             self.label_encoder, self.y_original = self.label_encode(y_original) # have to label encode the y_original or xgboost will throw error
+@@ -90,12 +91,12 @@ class Ensemble():
+     def get_ensemble_model(self):
+         if self.is_classification:
+             if self.target_synthesizer == 'xgb':
+-                return xgb.XGBClassifier()
++                return xgb.XGBClassifier(random_state=self.random_state)
+             elif self.target_synthesizer == 'rf':
+-                return sklearn.ensemble.RandomForestClassifier()
++                return sklearn.ensemble.RandomForestClassifier(random_state=self.random_state)
+         elif not self.is_classification:
+             if self.target_synthesizer == 'xgb':
+-                return xgb.XGBRegressor()
++                return xgb.XGBRegressor(random_state=self.random_state)
+             elif self.target_synthesizer == 'rf':
+-                return sklearn.ensemble.RandomForestRegressor()
++                return sklearn.ensemble.RandomForestRegressor(random_state=self.random_state)
+         raise ValueError("Invalid target synthesizer. Must be one of ['xgb', 'rf']")
+diff --git a/src/synthesize_data/naive_bayes.py b/src/synthesize_data/naive_bayes.py
+index 9dee6eb..848db1c 100644
+--- a/src/synthesize_data/naive_bayes.py
++++ b/src/synthesize_data/naive_bayes.py
+@@ -16,8 +16,13 @@ def _fit_quantile_bins(xtrain, xtest, n_bins=10):
+     raise ValueError("CategoricalNB inputs must be finite numeric values.")
+   bins = []
+   for column in range(train_values.shape[1]):
+-    quantiles = np.linspace(0, 1, n_bins + 1)[1:-1]
+-    edges = np.unique(np.quantile(train_values[:, column], quantiles))
++    if set(np.unique(train_values[:, column])).issubset({0.0, 1.0}):
++      # One-hot indicators are already categorical. A rare indicator has all
++      # quantiles equal to zero, making digitize(0, [0]) == digitize(1, [0]).
++      edges = np.array([0.5])
++    else:
++      quantiles = np.linspace(0, 1, n_bins + 1)[1:-1]
++      edges = np.unique(np.quantile(train_values[:, column], quantiles))
+     bins.append(edges)
+   train_codes = np.column_stack([
+     np.digitize(train_values[:, column], bins[column])
+@@ -67,7 +72,8 @@ def create_label_categoricalNB(xtrain, ytrain, xtest, target_name, filename=None
+   cnb = CategoricalNB(alpha=alpha, force_alpha=force_alpha).fit(xtrain_codes, ytrain)
+   if artifact_path:
+     Path(artifact_path).parent.mkdir(parents=True, exist_ok=True)
+-    bins = [np.unique(np.quantile(np.asarray(xtrain[column], dtype=float),
++    bins = [np.array([0.5]) if set(xtrain[column].unique()).issubset({0.0, 1.0}) else
++            np.unique(np.quantile(np.asarray(xtrain[column], dtype=float),
+                                   np.linspace(0, 1, 11)[1:-1]))
+             for column in xtrain.columns]
+     with open(artifact_path, "wb") as artifact_file:
