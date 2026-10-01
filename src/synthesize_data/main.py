@@ -105,7 +105,7 @@ if __name__ == '__main__':
   parser.add_argument('--profile', choices=['full', 'pilot'], default='full')
   parser.add_argument('--resume-from-ensemble', action='store_true')
   args = parser.parse_args()
-  if args.resume_from_ensemble and (args.dataset != 'census_kdd' or args.seed != 42 or args.generator is None or args.profile != 'full'):
-    parser.error('--resume-from-ensemble requires Census KDD, seed 42, a generator, and the full profile')
+  if args.resume_from_ensemble and (args.dataset != 'census_kdd' or args.seed is None or args.generator is None or args.profile != 'full'):
+    parser.error('--resume-from-ensemble requires Census KDD, a seed, a generator, and the full profile')
   single_run(dataset=args.dataset, seed=args.seed, generator=args.generator,
              profile=args.profile, resume_from_ensemble=args.resume_from_ensemble)

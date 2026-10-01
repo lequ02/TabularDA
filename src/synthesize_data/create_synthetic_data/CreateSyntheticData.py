@@ -328,6 +328,16 @@ class CreateSyntheticData:
         train_local, dev_local = next(GroupShuffleSplit(n_splits=1, test_size=dev_fraction, random_state=42).split(
             train_dev_ids, groups=groups[train_dev_ids]))
         train_ids, dev_ids = train_dev_ids[train_local], train_dev_ids[dev_local]
+        if self.is_classification:
+            # Every evaluated class needs a training example. Move its entire
+            # feature group so rare classes cannot break the no-overlap split.
+            missing = set(data[self.target_name].dropna()) - set(data.iloc[train_ids][self.target_name])
+            for label in sorted(missing):
+                first = np.flatnonzero(data[self.target_name].eq(label).to_numpy())[0]
+                moved = np.flatnonzero(groups == groups[first])
+                train_ids = np.sort(np.concatenate((train_ids, moved)))
+                dev_ids = dev_ids[~np.isin(dev_ids, moved)]
+                test_ids = test_ids[~np.isin(test_ids, moved)]
         self._source_ids = {'train': train_ids, 'dev': dev_ids, 'test': test_ids}
         return tuple(data.iloc[ids].reset_index(drop=True) for ids in (train_ids, dev_ids, test_ids))
 

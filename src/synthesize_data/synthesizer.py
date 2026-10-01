@@ -12,11 +12,32 @@ import json
 import hashlib
 from ensemble import *
 from dnn_labeler import fit_predict_dnn
+from ctgan.data_transformer import DataTransformer
 
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 # print(sys.path)
 from commons.onehot import onehot
+
+
+def _transform_float32(self, raw_data):
+  """Encode one column at a time into the dtype used by CTGAN/TVAE training."""
+  if not isinstance(raw_data, pd.DataFrame):
+    raw_data = pd.DataFrame(raw_data, columns=[str(i) for i in range(raw_data.shape[1])])
+  output = np.empty((len(raw_data), self.output_dimensions), dtype=np.float32)
+  start = 0
+  for info in self._column_transform_info_list:
+    column = raw_data[[info.column_name]]
+    transform = self._transform_continuous if info.column_type == 'continuous' else self._transform_discrete
+    end = start + info.output_dimensions
+    output[:, start:end] = transform(info, column)
+    start = end
+  return output
+
+
+# ctgan 0.10.2 has no transformer injection API. Its default transforms columns
+# in parallel and retains two additional float64 copies of the expanded table.
+DataTransformer.transform = _transform_float32
 
 def synthesize_data(x_original, y_original, categorical_columns, target_name,
                     features_synthesizer='CTGAN',
@@ -359,6 +380,8 @@ def synthesize_comparison_from_trained_model(x_original, y_original, categorical
   if target_name not in full_table or len(full_table) != sample_size:
     raise ValueError('Full-table sample has the wrong target or row count')
   x_synthesized = full_table.drop(columns=[target_name])
+  if numerical_columns_pca_gmm is None:
+    numerical_columns_pca_gmm = x_original.columns.difference(categorical_columns)
   x_original, _ = onehot(x_original, x_original, categorical_columns, verbose=verbose)
   if set(x_original.columns) != set(x_synthesized.columns):
     raise ValueError('Full-table and real training features have different columns')
@@ -380,10 +403,6 @@ def synthesize_comparison_from_trained_model(x_original, y_original, categorical
   elif target_synthesizer == 'categoricalNB':
     synthesized_data = create_label_categoricalNB(x_original, y_original, x_synthesized, target_name = target_name, filename=csv_file_name, artifact_path=predictor_artifact)
   elif target_synthesizer == 'pca_gmm':
-    # print("num cols: ", x_original_backup.columns.difference(categorical_columns))
-    if numerical_columns_pca_gmm is None:
-      numerical_columns_pca_gmm =  x_original_backup.columns.difference(categorical_columns)
-
     pca_gmm = PCA_GMM(x_original, y_original, x_synthesized,
                       numerical_cols =  numerical_columns_pca_gmm,
                       pca_n_components=0.99, gmm_n_components=10, verbose=verbose,

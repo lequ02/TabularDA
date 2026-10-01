@@ -55,7 +55,20 @@ def classifier_command(dataset, seed, mode, method):
     return command
 
 
-def run_matrix(dataset_names, seeds, stage):
+def completed_run(output, dataset, seed, mode, method):
+    path = output / dataset / 'acc' / (constants.run_name(dataset, seed, mode, method) + '.run.json')
+    if not path.is_file():
+        return False
+    record = json.loads(path.read_text())
+    assert (record['dataset'], record['seed'], record['train_option'], record['augment_option']) == (dataset, seed, mode, method)
+    assert record['selected_dev_epoch'] is not None
+    assert Path(record['predictions_path']).is_file() and Path(record['downstream_weight_path']).is_file()
+    return True
+
+
+def run_matrix(dataset_names, seeds, stage, resume=False):
+    if resume and stage != 'classifiers':
+        raise ValueError('Resume requires the classifiers stage; generation has separate artifact dependencies')
     output = ROOT / "output" / "corrected_v2"
     log_root = output / "logs"
     failures = []
@@ -84,12 +97,16 @@ def run_matrix(dataset_names, seeds, stage):
                     continue
                 for method in methods_for(dataset, generator):
                     for mode in ("synthetic", "mix"):
+                        if resume and completed_run(output, dataset, seed, mode, method):
+                            continue
                         arm = constants.run_name(dataset, seed, mode, method)
                         log_path = log_root / dataset / f"seed_{seed}" / f"{arm}.log"
                         if not run_command(classifier_command(dataset, seed, mode, method), src_dir, log_path):
                             failures.append({"dataset": dataset, "seed": seed,
                                              "arm": arm, "log": str(log_path)})
             if stage in {"all", "classifiers"}:
+                if resume and completed_run(output, dataset, seed, 'original', None):
+                    continue
                 log_path = log_root / dataset / f"seed_{seed}" / f"{constants.run_name(dataset, seed, 'original', None)}.log"
                 if not run_command(classifier_command(dataset, seed, "original", None), src_dir, log_path):
                     failures.append({"dataset": dataset, "seed": seed, "arm": "real", "log": str(log_path)})
@@ -113,6 +130,7 @@ if __name__ == "__main__":
     parser.add_argument("--dataset", choices=DATASETS)
     parser.add_argument("--seed", type=int, choices=SEEDS)
     parser.add_argument("--stage", choices=("all", "generators", "classifiers"), default="all")
+    parser.add_argument("--resume", action="store_true", help="Preserve completed classifier runs")
     args = parser.parse_args()
     run_matrix((args.dataset,) if args.dataset else DATASETS,
-               (args.seed,) if args.seed is not None else SEEDS, args.stage)
+               (args.seed,) if args.seed is not None else SEEDS, args.stage, args.resume)

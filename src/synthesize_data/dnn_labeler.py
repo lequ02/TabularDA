@@ -73,8 +73,12 @@ def fit_predict_dnn(
             raise ValueError("Classification DNN requires at least two training classes")
         counts = np.bincount(train_y, minlength=class_count)
         class_weights = (len(train_y) / (class_count * np.maximum(counts, 1))) ** 0.5
+        # Census's accuracy gate and dev selection must use the same class prior.
+        weights = None if dataset_name == "census_kdd" else torch.tensor(
+            class_weights, dtype=torch.float32, device=device
+        )
         criterion = nn.CrossEntropyLoss(
-            weight=torch.tensor(class_weights, dtype=torch.float32, device=device)
+            weight=weights
         )
         output_count = class_count
     else:

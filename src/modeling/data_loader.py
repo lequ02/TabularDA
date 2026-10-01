@@ -49,7 +49,7 @@ def _fit_label_encoder(train_df, dev_df, target_name, problem_type):
 
 
 def _encode_labels(encoder, df, target_name):
-    encoded = df.copy()
+    encoded = df
     labels = encoded[target_name]
     unknown = pd.unique(labels[~labels.isin(encoder.classes_)])
     if len(unknown):
@@ -110,7 +110,14 @@ class data_loader:
 
     @staticmethod
     def drop_index_col(df):
-        return df.drop(columns=["Unnamed: 0"], errors="ignore")
+        return df.drop(columns=["Unnamed: 0"]) if "Unnamed: 0" in df.columns else df
+
+    def _read_table(self, path):
+        columns = pd.read_csv(path, nrows=0).columns
+        dtypes = {column: np.float32 for column in columns
+                  if column not in {self.paths["target_name"], "Unnamed: 0"}} if self.dataset_name == "intrusion" else None
+        table = pd.concat(pd.read_csv(path, dtype=dtypes, chunksize=50_000), ignore_index=True)
+        return self.drop_index_col(table)
 
     def _align_table(self, df):
         target = self.paths["target_name"]
@@ -119,27 +126,27 @@ class data_loader:
         features = set(df.columns) - {target}
         if features != set(self.feature_columns):
             raise ValueError("Input feature columns do not match corrected real training data.")
-        return df.reindex(columns=self.feature_columns + [target])
+        return df.reindex(columns=self.feature_columns + [target], copy=False)
 
     def load_train_augment_data(self, train_option, augment_option, mix_ratio=-1, n_sample=-1, validation=0.2):
         if train_option not in {"original", "synthetic", "mix"}:
             raise ValueError("train_option must be 'original', 'synthetic', or 'mix'.")
         target = self.paths["target_name"]
-        real_df = self.drop_index_col(pd.read_csv(self.paths["train_original"]))
-        if target not in real_df.columns:
+        real_train = self._read_table(self.paths["train_original"])
+        if target not in real_train.columns:
             raise ValueError(f"Training data is missing target column {target!r}.")
-        self.feature_columns = sorted(column for column in real_df.columns if column != target)
-        real_df = real_df.reindex(columns=self.feature_columns + [target])
+        self.feature_columns = sorted(column for column in real_train.columns if column != target)
 
         # These corrected_v2 partitions were created before generator fitting.
-        real_train = real_df
-        dev_df = self.drop_index_col(pd.read_csv(self.paths["dev"]))
+        dev_df = self._read_table(self.paths["dev"])
         real_train = self._align_table(real_train)
         dev_df = self._align_table(dev_df)
         self.label_encoder, real_train, dev_df, self.num_classes = _fit_label_encoder(
             real_train, dev_df, target, self.problem_type
         )
-        self.scaler = StandardScaler().fit(real_train[self.feature_columns])
+        self.scaler = StandardScaler()
+        for start in range(0, len(real_train), 50_000):
+            self.scaler.partial_fit(real_train.iloc[start:start + 50_000][self.feature_columns].to_numpy())
         self.train_columns = self.feature_columns + [target]
 
         if train_option == "original":
@@ -148,9 +155,7 @@ class data_loader:
             if not augment_option or augment_option not in self.paths.get("synthetic", {}):
                 raise ValueError(f"Unsupported augment_option: {augment_option!r}")
             self.synthetic_path = self.paths["synthetic"][augment_option]
-            synthetic_df = self.drop_index_col(
-                pd.read_csv(self.synthetic_path)
-            )
+            synthetic_df = self._read_table(self.synthetic_path)
             synthetic_df = self._align_table(synthetic_df)
             self.synthetic_label_counts = (
                 _label_counts(synthetic_df, target)
@@ -171,7 +176,7 @@ class data_loader:
     def load_test_data(self):
         if self.train_columns is None or self.scaler is None:
             raise ValueError("Training data must be loaded before test data.")
-        test_df = self.drop_index_col(pd.read_csv(self.paths["test"]))
+        test_df = self._read_table(self.paths["test"])
         test_df = self._align_table(test_df)
         if self.label_encoder is not None:
             test_df = _encode_labels(self.label_encoder, test_df, self.paths["target_name"])
@@ -182,8 +187,10 @@ class data_loader:
 
     def _load_data_in_batches(self, df, shuffle=False):
         target = self.paths["target_name"]
-        df = df.reindex(columns=self.feature_columns + [target])
-        X = self.scaler.transform(df[self.feature_columns])
+        X = np.empty((len(df), len(self.feature_columns)), dtype=np.float32)
+        for start in range(0, len(df), 50_000):
+            batch = df.iloc[start:start + 50_000][self.feature_columns].to_numpy()
+            X[start:start + 50_000] = self.scaler.transform(batch, copy=False)
         y = df[target].to_numpy()
         X_tensor = torch.as_tensor(X, dtype=torch.float32)
         y_dtype = torch.float32 if not self.multi_y else torch.long
