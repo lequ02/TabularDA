@@ -1,0 +1,302 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=0.85in,headheight=14pt]{geometry}
+\usepackage{lmodern,amsmath,amssymb,amsthm,booktabs,array,longtable,graphicx,lscape,float}
+\usepackage{fancyhdr}
+\usepackage{color}
+\definecolor{linkblue}{rgb}{0.1,0.2,0.35}
+\usepackage[colorlinks=true,linkcolor=linkblue,citecolor=linkblue,urlcolor=linkblue]{hyperref}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small Synthetic tabular data on known distributions}
+\fancyhead[R]{\small Experimental report}
+\fancyfoot[C]{\thepage}
+\setlength{\parskip}{0.2em}
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.08}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prb}{\mathbb{P}}
+\newcommand{\ind}{\mathbf{1}}
+\newcommand{\KL}{D_{\mathrm{KL}}}
+\newcommand{\Lsyn}{L_{\mathrm{syn}}}
+\newcommand{\Ltest}{L_{\mathrm{test}}}
+\newcommand{\Normal}{\mathcal{N}}
+\newtheorem{proposition}{Proposition}
+\title{Likelihood and Predictive Utility of Synthetic Tabular Data:\\CTGAN and TVAE on Known Distributions}
+\author{}
+\date{1 October 2026}
+\begin{document}
+\maketitle
+\begin{abstract}
+We evaluate CTGAN and TVAE on four established Bayesian networks and three mixed-data distributions with an analytically specified classification target. The mixed benchmarks isolate independent Gaussian features, independent multimodal features, and dependent multimodal features while retaining a common categorical mechanism and target noise model. Each dataset is evaluated with original-data training, complete-table synthesis, and six supervised relabelers applied to either jointly generated or separately generated features. The experiment contains 378 dataset--seed--method evaluations. Evaluation combines original-model likelihood, likelihood under a synthetic-data refit, test accuracy, macro F1, and agreement with the exact Bayes classifier. Bayesian-network likelihoods use the historical SDGym adjustment $\log(p+10^{-8})$. Relabeling frequently recovers the prediction performance of original-data training without recovering its joint-distribution score. For example, CTGAN--joint--XGB attains 95.06\% accuracy on Insurance, while 48.33\% of its rows have zero probability under the original network. We derive the Bayes accuracy and the relationship between noisy-target accuracy and oracle agreement, and compare the results with the original CTGAN paper and its supplement.
+\end{abstract}
+
+\section{Scope and experimental design}
+Xu et al.~\cite{xu2019} evaluate synthetic data through two likelihood directions on simulated data and through downstream prediction on real data. We retain both likelihood directions and extend the simulated setting with explicit prediction tasks. Four datasets, Asia, Alarm, Child, and Insurance, retain their Bayesian-network joint distributions. Three further datasets, Gaussian, Grid, and Ring, use a common mixed-data construction with a known decision boundary. The new Grid and Ring tasks differ from the original paper's two-column Gaussian-mixture datasets. Their scores are therefore reported as additional results, separately from the archived reproduction of the original mixture benchmark.
+
+For each dataset and seed $s\in\{42,43\}$, the original distribution $P$ supplies independent training and test tables of 10,000 rows each. Each synthesizer produces 10,000 rows. Every method within a dataset--seed pair uses the same original test table. We fit all supervised relabelers on the original training table and train a fresh evaluation classifier on the resulting labeled table. All reported current-run means are arithmetic averages over the two seeds. Seed dispersion is displayed in the figures; it is not a confidence interval.
+
+\section{Data-generating distributions}
+\subsection{Mixed-data construction}
+Write a row as $Z=(X_0,X_1,C,Y)$, where $C$ is the column \texttt{feature\_3} and $Y$ is \texttt{target}. The feature vector used for prediction is $W=(X_0,X_1,C)$. Let $\sigma(t)=(1+e^{-t})^{-1}$. For all three mixed datasets,
+\begin{align}
+ C\mid X_0=x_0,X_1=x_1 &\sim \operatorname{Bernoulli}(a(x)),
+ &a(x)&=\sigma(\kappa x_0x_1), \label{eq:category}\\
+ h^*(x,c)&=\ind\{x_1+[1+\beta(2c-1)]x_0>0\}, \label{eq:boundary}\\
+ E&\sim\operatorname{Bernoulli}(\eta),\quad E\perp(X_0,X_1,C),
+ &Y&=h^*(X,C)\mathbin{\oplus} E. \label{eq:noise}
+\end{align}
+Here $\oplus$ denotes exclusive OR. We use $\kappa=2$, $\beta=0.75$, and $\eta=0.10$. Changing $C$ changes the coefficient of $X_0$ from 0.25 to 1.75. The normalized joint density, relative to Lebesgue measure on $\mathbb{R}^2$ and counting measure on $\{0,1\}^2$, is
+\begin{equation}
+ p(x,c,y)=f_X(x)\,a(x)^c[1-a(x)]^{1-c}
+ (1-\eta)^{\ind\{y=h^*(x,c)\}}\eta^{\ind\{y\ne h^*(x,c)\}}.
+ \label{eq:mixedjoint}
+\end{equation}
+Only $f_X$ changes between datasets. Feature scaling uses known population moments, not estimated moments from a training or test table.
+
+\paragraph{Gaussian.} The continuous features are independent standard normals:
+\begin{equation}
+ X_0,X_1\stackrel{\mathrm{iid}}{\sim}\Normal(0,1),\qquad
+ f_X(x)=\phi(x_0)\phi(x_1).
+\end{equation}
+
+\paragraph{Grid.} Let $A=\{-4,-2,0,2,4\}$, $M_0,M_1\stackrel{\mathrm{iid}}{\sim}\operatorname{Unif}(A)$, and $U_0,U_1\stackrel{\mathrm{iid}}{\sim}\Normal(0,1)$, mutually independent. With $\tau=0.20$ and $s_G=\sqrt{8+\tau^2}$, set
+\begin{equation}
+ X_j=\frac{M_j+\tau U_j}{s_G},\qquad
+ f_X(x)=\prod_{j=0}^{1}\left[\frac15\sum_{m\in A}
+ \phi\left(x_j;\frac{m}{s_G},\frac{\tau^2}{s_G^2}\right)\right].
+ \label{eq:grid}
+\end{equation}
+Here $\phi(\cdot;\mu,v)$ denotes a normal density with variance $v$. The resulting distribution has 25 equally weighted joint components and independent coordinates.
+
+\paragraph{Ring.} Let $K\sim\operatorname{Unif}\{0,\ldots,7\}$, $\theta_k=k\pi/4$, $\mu_k=(\cos\theta_k,\sin\theta_k)$, and $U\sim\Normal(0,I_2)$ independent of $K$. With $s_R=\sqrt{1/2+\tau^2}$, set
+\begin{equation}
+ X=\frac{\mu_K+\tau U}{s_R},\qquad
+ f_X(x)=\frac18\sum_{k=0}^{7}
+ \phi_2\left(x;\frac{\mu_k}{s_R},\frac{\tau^2}{s_R^2}I_2\right).
+ \label{eq:ring}
+\end{equation}
+The same latent component selects both coordinates. Ring tests dependence that is absent from Gaussian and Grid.
+
+\begin{proposition}[Feature and target structure]
+In all three mixed datasets, each continuous coordinate has mean zero and variance one. Gaussian and Grid have independent coordinates. Ring has zero covariance but dependent coordinates. Furthermore, $\Prb(C=1\mid X_j)=1/2$ for $j=0,1$, and both $h^*(W)$ and $Y$ are marginally balanced.
+\end{proposition}
+\begin{proof}
+The Gaussian statement is immediate. For Grid, $\E M_j=0$ and $\E M_j^2=8$; independence follows from independent coordinate-specific component and noise draws. For Ring, $\E\mu_K=0$, $\E\mu_K\mu_K^\top=I_2/2$, and the stated scale gives identity covariance. Dependence follows from
+\[
+ \E[X_0^2X_1^2]=\frac{1/8+\tau^2+\tau^4}{(1/2+\tau^2)^2}<1
+ =\E[X_0^2]\E[X_1^2].
+\]
+Each feature distribution is invariant to reflection of either coordinate. Conditional reflection symmetry and $\sigma(t)+\sigma(-t)=1$ give the category marginal. Simultaneous negation of $X_0,X_1$ preserves $a(x)$ and reverses the score in~\eqref{eq:boundary}. Its zero set has probability zero. Hence $h^*$ is balanced, and independent symmetric label flips preserve that balance.
+\end{proof}
+
+\subsection{Bayesian-network construction}
+Let $V=(V_1,\ldots,V_d)$ follow a directed acyclic graph $\mathcal{G}$ with the packaged BIF conditional probability tables. The joint mass function is
+\begin{equation}
+ p(v)=\prod_{j=1}^{d}p_j(v_j\mid v_{\operatorname{pa}(j)}).
+ \label{eq:bnjoint}
+\end{equation}
+Rows are sampled ancestrally in topological order. The original conditional tables, including exact zero probabilities, are retained. There is no added target noise. Table~\ref{tab:bntasks} specifies the target; all remaining nodes are observed features. Integer codes identify categorical states and have no ordinal interpretation.
+\begin{table}[H]\centering
+\caption{Bayesian-network prediction tasks. Cardinality counts the target's possible states.}\label{tab:bntasks}
+\begin{tabular}{lrrlr}\toprule
+Dataset & Nodes & Features & Target node & Cardinality\\\midrule
+Asia & 8 & 7 & \texttt{dysp} & 2\\
+Alarm & 37 & 36 & \texttt{BP} & 3\\
+Child & 20 & 19 & \texttt{Disease} & 6\\
+Insurance & 27 & 26 & \texttt{Accident} & 4\\\bottomrule
+\end{tabular}
+\end{table}
+For an original-distribution feature vector $w$, the exact posterior and Bayes decision are
+\begin{equation}
+ \pi_y(w)=\Prb(Y=y\mid W=w)=\frac{p(w,y)}{\sum_{u\in\mathcal{Y}}p(w,u)},
+ \qquad h^*(w)=\arg\max_{y\in\mathcal{Y}}\pi_y(w).
+ \label{eq:bnposterior}
+\end{equation}
+Ties are resolved by the lowest state index. Evaluating all target states is exact because every other node is observed. The conditional distribution depends on the network's relevant conditional structure; no claim is made that every feature is needed for prediction.
+
+\section{Synthesis and supervised relabeling}
+CTGAN uses a conditional adversarial generator and TVAE uses a variational autoencoder~\cite{xu2019,ctganimplementation}. We use CTGAN package version 0.10.2 with 300 epochs, batch size 500, and the package's remaining defaults. A complete-table generator is fitted to $(W,Y)$; a feature-only generator is fitted separately to $W$. In the latter case, $W$ is generated by the synthesizer itself. No external sampler separates features from a fitted complete-table model.
+
+Let $q_G(w,y)$ denote the complete-table generator distribution, $q_{G,W}(w)=\sum_y q_G(w,y)$ its feature marginal, $q_{G,F}(w)$ the separately fitted feature generator, and $a_\ell$ a relabeler trained on the original training table. The three synthetic families are
+\begin{align}
+ Q_{G,\mathrm{base}}(w,y)&=q_G(w,y),\\
+ Q_{G,\mathrm{joint},\ell}(w,y)&=q_{G,W}(w)\ind\{y=a_\ell(w)\},\\
+ Q_{G,\mathrm{features},\ell}(w,y)&=q_{G,F}(w)\ind\{y=a_\ell(w)\}.
+ \label{eq:families}
+\end{align}
+Joint variants retain the sampled features and replace only the generated target. Feature-only variants generate $W$ with their separately trained synthesizer and then attach a target. All six labelers within each source group receive the same feature rows. Relabeling is deterministic and does not add independent label noise.
+
+The six relabelers are Gaussian naive Bayes (GNB), categorical naive Bayes (CNB), PCA--GMM, random forest (RF), XGBoost (XGB), and a neural classifier (DNN). GNB models each encoded feature with a Gaussian within each class. CNB quantile-bins continuous features into ten bins and leaves categorical features discrete. PCA--GMM standardizes the encoded input, projects it to two principal components, and fits four full-covariance Gaussian components per observed class with empirical class priors. RF uses 100 trees. XGB uses 100 trees of maximum depth six and learning rate 0.1. Other than CNB, the labelers one-hot encode categorical inputs using the known state schema.
+
+Every downstream evaluation uses a newly fitted DNN with two 64-unit hidden layers, standardized inputs, batch size 256, at most 100 iterations, and early stopping on an internal 10\% training split. The DNN relabeler has the same architecture but is fitted separately to original training data. RF never replaces the downstream evaluation DNN. With two generators and six labelers, there are
+\begin{equation}
+ 1+2[1+2(6)]=27
+\end{equation}
+methods per dataset--seed pair: one original-data baseline, two complete-table baselines, and 24 relabeling variants. Seven datasets and two seeds give $7\times2\times27=378$ evaluations.
+
+\section{Evaluation}
+\subsection{Two likelihood directions}
+Let $S=\{z_i\}_{i=1}^{N}$ be the method's training table and $T=\{z_j^{\mathrm{test}}\}_{j=1}^{M}$ the independent original test table. For the original baseline, $S$ is the original training sample. Let $\widehat q_S$ be a normalized probability model fitted using $S$ alone. Define
+\begin{equation}
+ g_\epsilon(t)=\log(t+\epsilon),\qquad
+ \epsilon_D=\begin{cases}0,&D\in\{\text{Gaussian, Grid, Ring}\},\\10^{-8},&D\text{ is a BN dataset}.
+ \end{cases}
+\end{equation}
+The reported likelihoods are
+\begin{equation}
+ \widehat\Lsyn(S)=\frac1N\sum_{i=1}^{N}g_{\epsilon_D}(p(z_i)),\qquad
+ \widehat\Ltest(S,T)=\frac1M\sum_{j=1}^{M}g_{\epsilon_D}(\widehat q_S(z_j^{\mathrm{test}})).
+ \label{eq:likelihoods}
+\end{equation}
+All logarithms are natural. The BN adjustment matches the historical SDGym scoring code~\cite{sdgymhistorical}. It is applied once to the full joint mass, not to individual conditional probabilities. Computation uses $\operatorname{logaddexp}(\log p,\log\epsilon)$, preserving numerical stability. The probability model used for Bayesian decisions remains unadjusted.
+
+The likelihood directions answer different questions. $\Lsyn$ measures the plausibility of generated rows under the original model; concentrating samples in high-density regions can increase it. $\Ltest$ measures how a model fitted to the synthetic table covers original test rows. For unadjusted normalized densities,
+\begin{equation}
+ \E_P[\log q(Z)]=\E_P[\log p(Z)]-\KL(P\Vert Q).
+ \label{eq:kl}
+\end{equation}
+The original baseline is an empirical reference, not a guaranteed finite-sample maximum. On a finite BN state space $\Omega$, $q+\epsilon$ is not normalized. With $q_\epsilon=(q+\epsilon)/(1+\epsilon|\Omega|)$,
+\begin{equation}
+ \E_P[\log(q(Z)+\epsilon)]
+ =\E_P[\log p(Z)]-\KL(P\Vert Q_\epsilon)+\log(1+\epsilon|\Omega|).
+\end{equation}
+Thus the exact KL identity for $Q$ must not be assigned to the adjusted score. Likelihood magnitudes are compared within a dataset and scoring convention.
+
+\subsection{Density refits for \texorpdfstring{$\Ltest$}{L-test}}
+For Gaussian, $\widehat f_X$ is one fitted diagonal Gaussian. For Grid, it is the product of two fitted five-component univariate mixtures. For Ring, it is an eight-component two-dimensional mixture with spherical covariance in each component. Fits use one seeded initialization and covariance regularization $10^{-6}$.
+
+The mixed category refit is $\widehat q_C(1\mid x)=\sigma(\widehat\theta_0+\widehat\theta_1x_0x_1)$, where
+\begin{equation}
+ \widehat\theta=\arg\min_{\theta\in\mathbb{R}^2}
+ \left\{\sum_{i=1}^{N}\left[\log(1+e^{\theta^\top d_i})-c_i\theta^\top d_i\right]
+ +\frac12\|\theta\|_2^2\right\},\quad d_i=(1,x_{0i}x_{1i})^\top.
+\end{equation}
+The quadratic term is a unit Gaussian coefficient prior. For the target refit, candidate $b$ values are interval midpoints between the distinct breakpoints
+\[
+ -\frac{x_{0i}+x_{1i}}{(2c_i-1)x_{0i}}
+\]
+that lie in $(0,1)$, with endpoints 0 and 1. We select the first midpoint with minimum training error, write that error count as $m$, and set
+\begin{equation}
+ \widehat\eta=\min\left\{\frac{m+1/2}{N+1},\frac12\right\},\qquad
+ \widehat q_Y(y\mid x,c)=
+ (1-\widehat\eta)^{\ind\{y=h_{\widehat\beta}(x,c)\}}
+ \widehat\eta^{\ind\{y\ne h_{\widehat\beta}(x,c)\}}.
+\end{equation}
+This is a Jeffreys-smoothed error fraction capped at $1/2$. The resulting mixed refit is $\widehat q_S=\widehat f_X\widehat q_C\widehat q_Y$.
+
+For BN data, the graph and state cardinalities are fixed. If $n_{jku}$ counts state $k$ of node $j$ with parent configuration $u$, and $r_j$ is the node's cardinality, we use
+\begin{equation}
+ \widehat p_j(k\mid u)=\frac{n_{jku}+\alpha}{\sum_{k'=1}^{r_j}n_{jk'u}+r_j\alpha},
+ \qquad\alpha=\frac12,
+ \qquad\widehat q_S(v)=\prod_j\widehat p_j(v_j\mid v_{\operatorname{pa}(j)}).
+ \label{eq:bnrefit}
+\end{equation}
+The prior is applied to every table cell. The historical SDGym evaluator instead uses pomegranate's \texttt{from\_structure} refit. Our BN scoring adjustment matches the historical formula; the refitting estimator is explicitly specified by~\eqref{eq:bnrefit}.
+
+\subsection{Prediction, Bayes agreement, and support}
+Let $\widehat h_S$ be the fresh DNN trained on $S$. Test accuracy and agreement with the oracle are
+\begin{equation}
+ \widehat{\operatorname{Acc}}=\frac1M\sum_j\ind\{\widehat h_S(w_j)=y_j\},\qquad
+ \widehat A_{h^*}=\frac1M\sum_j\ind\{\widehat h_S(w_j)=h^*(w_j)\}.
+\end{equation}
+For every target class $k$, let $\mathrm{TP}_k,\mathrm{FP}_k,\mathrm{FN}_k$ be the test confusion counts. Macro F1 averages over all oracle classes, including a class absent from predictions:
+\begin{equation}
+ \widehat{\operatorname{F1}}_{\mathrm{macro}}
+ =\frac1{|\mathcal{Y}|}\sum_{k\in\mathcal{Y}}
+ \frac{2\mathrm{TP}_k}{2\mathrm{TP}_k+\mathrm{FP}_k+\mathrm{FN}_k}.
+\end{equation}
+A zero denominator contributes zero. We also report the exact support-violation fraction
+\begin{equation}
+ \widehat v(S)=\frac1N\sum_i\ind\{p(z_i)=0\}.
+ \label{eq:support}
+\end{equation}
+For example, Asia's \texttt{either} node is the logical OR of \texttt{lung} and \texttt{tub}. A row with \texttt{lung=yes}, \texttt{tub=no}, and \texttt{either=no} has exactly zero joint mass. Relabeling \texttt{dysp} cannot repair that feature contradiction. An impossible row contributes $\log(10^{-8})=-18.4207$ to adjusted $\Lsyn$, and
+\begin{equation}
+ \widehat\Lsyn=\frac1N\sum_{i:p(z_i)>0}\log(p(z_i)+\epsilon)+\widehat v\log\epsilon.
+\end{equation}
+The adjustment also changes sufficiently small nonzero probabilities. Support violations therefore remain a separate diagnostic rather than being inferred from the adjusted score alone.
+
+\begin{proposition}[Bayes accuracy and noisy-target utility]
+For the mixed construction with $\eta<1/2$, $h^*$ is the Bayes classifier and its population accuracy is $1-\eta$. Any binary classifier $h$ evaluated on independent original rows satisfies
+\begin{equation}
+ \Prb(h(W)=Y)=\eta+(1-2\eta)\Prb(h(W)=h^*(W)).
+ \label{eq:agreementidentity}
+\end{equation}
+\end{proposition}
+\begin{proof}
+Conditional on $W$, the label equals $h^*(W)$ with probability $1-\eta>1/2$. If $h=h^*$, its conditional accuracy is $1-\eta$; otherwise it is $\eta$. Averaging these two cases proves~\eqref{eq:agreementidentity}. In particular, $h=h^*$ has accuracy $1-\eta$.
+\end{proof}
+For BN data, the Bayes accuracy is instead $\E_W[\max_y\pi_y(W)]$, estimated in the figures by the mean maximum exact posterior on test features. The mixed reference is 90\%. These references are expected accuracies; a finite test accuracy can exceed them. Equation~\eqref{eq:agreementidentity} is a population relationship and does not equate the two empirical metrics on a particular realized noise sample.
+
+\begin{proposition}[Hard relabeling does not preserve label noise]
+Suppose a mixed-data method generates $W$ exactly from $P_W$ and assigns $Y=h^*(W)$ deterministically. Compared with $P$, its expected $\Lsyn$ increases by $\eta\log[(1-\eta)/\eta]$, although it removes all label noise and has $\KL(P\Vert Q)=+\infty$.
+\end{proposition}
+\begin{proof}
+The feature and category contributions to $\log p$ are identical in expectation. Under $P$, the target contribution is $(1-\eta)\log(1-\eta)+\eta\log\eta$; under the hard-labeled $Q$, it is $\log(1-\eta)$. Their difference gives the stated expression. The event $Y\ne h^*(W)$ has positive $P$ probability $\eta$ but zero $Q$ probability, proving the KL statement. At $\eta=0.10$, the likelihood increase is approximately 0.220 nats per row.
+\end{proof}
+This construction explains why high predictive utility and an improved $\Lsyn$ do not establish preservation of the full noisy joint distribution. The actual relabelers are learned classifiers, not oracle-labeling methods.
+
+\section{Comparison with the original CTGAN benchmark}
+\subsection{Published likelihood results}
+The main paper's Table 2 averages scores over three original Gaussian-mixture datasets and four BN datasets. Table~\ref{tab:paperaverages} transcribes its simulated-data columns. Appendix~\ref{app:paper} gives the supplement's dataset-level numbers for all published baselines. The supplement labels CTGAN as ``TGAN'' in its BN table. Its last GM row is printed as a second ``TVAE'' row; we identify it as CTGAN because its two GM averages match the main paper's CTGAN row.
+@@PAPER_AVERAGES@@
+The main table reports TVAE's BN mean $(\Lsyn,\Ltest)=(-6.76,-9.59)$. Averaging the supplement's four TVAE BN entries gives $(-10.1275,-9.8675)$. This is an internal numerical inconsistency, not a rounding difference. We use the supplement for dataset-specific comparisons and retain the main table as a separate published result.
+
+\subsection{Current Bayesian-network replication}
+Table~\ref{tab:bncomparison} compares the current original-data, CTGAN, and TVAE baselines with supplement Table 3. The original baseline corresponds to the paper's Identity method. Both reported likelihood directions use the joint-probability adjustment $10^{-8}$.
+@@BN_COMPARISON@@
+Across the four BN datasets, CTGAN's current mean scores are $(-12.513,-10.765)$, compared with the supplement's $(-11.665,-10.603)$. TVAE's current means are $(-10.001,-9.704)$, compared with $(-10.128,-9.868)$. CTGAN's largest dataset-level discrepancy is Asia in $\Lsyn$: $-3.722$ versus $-2.56$. TVAE is close on Asia, Alarm, and Child in $\Lsyn$, and has a higher Insurance score than the supplement ($-14.064$ versus $-14.7$).
+
+The experiment matches the paper's 10,000 training and test rows, 300 epochs, and batch size 500. It uses modern CTGAN/TVAE implementations and newly sampled tables. The BN refit differs as specified in~\eqref{eq:bnrefit}. Consequently, matching the epsilon convention removes the exact-zero discrepancy but does not identify the remaining generator and refitting contributions. Attribution of those contributions requires a controlled implementation comparison, rather than a comparison of these aggregate scores.
+
+\subsection{Archived reproduction of the original mixture benchmark}
+The original mixture distributions contain only two continuous columns, have component covariance $0.05I_2$, and contain no categorical feature or prediction target. Grid has 25 component centers on $\{-4,-2,0,2,4\}^2$; Ring has eight centers on the unit circle. The archived GridR reproduction perturbs each Grid center by an independent uniform offset in $[-0.5,0.5]^2$. Table~\ref{tab:archivedgm} reports the archived Identity, CTGAN, and TVAE means from the two recorded seeds, separately from the new mixed-data experiment.
+@@ARCHIVED_GM@@
+The archived GM averages are $(-3.520,-3.028)$ for CTGAN and $(-2.706,-3.173)$ for TVAE. The corresponding supplement averages are $(-5.723,-3.397)$ and $(-2.650,-5.417)$. TVAE's Grid $\Ltest$ is the largest discrepancy: $-4.520$ in the archive versus $-11.26$ in the supplement. The archived refit used five GMM initializations. Its recorded generation settings are 300 epochs and batch size 500, but it predates sample-specific configuration hashing; the archive is not a controlled historical-versus-modern implementation experiment.
+
+\section{Additional predictive and relabeling results}
+\subsection{Generator baselines and original-data training}
+Table~\ref{tab:baselines} gives the fresh run's baseline prediction and support metrics. The mixed-data original baselines reach 89.43\%, 90.09\%, and 89.75\% accuracy on Gaussian, Grid, and Ring. Their agreement with $h^*$ is 99.28\%, 99.71\%, and 99.56\%. TVAE's baseline accuracy is higher than CTGAN's on all three mixed datasets, with the largest difference on Gaussian (86.39\% versus 77.72\%).
+@@BASELINE_UTILITY@@
+Prediction and support quality need not agree. On Asia, CTGAN reaches 85.67\% accuracy and 99.71\% oracle agreement while 4.72\% of its rows violate the original network. On Insurance, CTGAN reaches 88.93\% accuracy while 50.39\% of its rows are impossible under that network. TVAE's Insurance violation rate is 11.71\%. These fractions are calculated from exact original probabilities, before the reporting adjustment.
+
+\subsection{Effects of supervised relabeling}
+Table~\ref{tab:accuracyselection} reports the synthetic method with the highest observed mean accuracy in each dataset. This is a descriptive selection from the 26 synthetic methods, not an additional evaluation run. Complete method tables are provided in Appendix~\ref{app:results}.
+@@ACCURACY_SELECTION@@
+RF, XGB, and DNN relabeling frequently brings mixed-data accuracy close to original-data training. For Gaussian, TVAE--joint--RF reaches 89.52\% accuracy; CTGAN's generated-target baseline is 77.72\%. For Grid, CTGAN--features--RF reaches 90.12\%; for Ring, CTGAN--features--DNN reaches 89.73\%. Their oracle agreements are 99.39\%, 99.77\%, and 99.54\%, respectively. Equation~\eqref{eq:agreementidentity} explains the concentration of these accuracies near 90\%: once the decision boundary is learned, independent target noise remains.
+
+On Alarm, CTGAN--joint--XGB raises accuracy from the CTGAN baseline's 55.31\% to 81.64\%, with 97.40\% oracle agreement. On Insurance, the same variant reaches 95.06\% accuracy and 97.85\% oracle agreement, yet its adjusted $\Ltest=-14.765$ remains below the original-data value $-12.898$, and its support-violation fraction is 48.33\%. Relabeling improves the predictive relationship without reconstructing all BN constraints. A target replacement can alter constraints involving that target, but cannot repair a contradiction involving only retained features.
+
+Likelihood and prediction also rank source families differently. Gaussian TVAE--features--RF has $\Lsyn=-3.046$, higher than the original baseline's $-3.686$, but $\Ltest=-4.209$, lower than the original baseline's $-3.679$. On the new Grid benchmark, TVAE's feature-only variants have a substantial two-seed spread in $\Ltest$, visible in Appendix~\ref{app:figures}. This establishes seed sensitivity of those fitted results; the scores alone do not identify a particular missing mode.
+
+\section{Reproducibility}
+The primary data are the completed standalone run's \texttt{per\_run.csv}, \texttt{summary.csv}, and \texttt{config.json}. They contain 378 unique dataset--seed--method records and 189 method means. The run uses NumPy 1.26.4, pandas 2.2.3, SciPy 1.15.3, scikit-learn 1.5.2, CTGAN 0.10.2, PyTorch 2.5.1, pgmpy 0.1.26, and XGBoost 2.1.4. CTGAN and TVAE ran on an NVIDIA GeForce GTX 1080 Ti; supervised labelers, refits, and evaluation DNNs ran on CPU.
+
+The standalone benchmark was extended at revision \texttt{0c8b363}; revision \texttt{b33d21b} introduced the historical BN likelihood adjustment and report refresh. BN likelihoods were recomputed from saved tables without regenerating samples or retraining prediction models. All 378 refreshed log entries match the result records. Prediction metrics, oracle agreements, support-violation fractions, and mixed-data likelihoods were preserved. Four focused checks cover exact joint probabilities, normalized refits, epsilon scoring, and evaluation data flow. The report's numeric tables and vector figures are generated from the saved CSVs. The source bundle includes those CSVs, the configuration, and the selected archived reproduction records.
+
+\section{Conclusion}
+The two likelihood directions and downstream prediction measure distinct properties of synthetic data. The historical BN epsilon convention yields finite scores while exact support violations remain observable. Modern CTGAN/TVAE results reproduce several supplement values closely but retain dataset-specific differences, and the main paper's TVAE BN average conflicts with its supplement. Supervised relabeling recovers much of the predictive performance lost by generated targets. It does not, by itself, restore target noise or the original joint distribution. The mixed construction supplies exact Bayes decisions and an explicit accuracy--agreement relationship, while the BN tasks expose violations of categorical constraints that prediction accuracy can conceal.
+
+\begin{thebibliography}{9}
+\bibitem{xu2019} L. Xu, M. Skoularidou, A. Cuesta-Infante, and K. Veeramachaneni. \emph{Modeling Tabular Data using Conditional GAN}. Advances in Neural Information Processing Systems 32, 2019. \url{https://proceedings.neurips.cc/paper/8953-modeling-tabular-data-using-conditional-gan.pdf}.
+\bibitem{xusupplement} L. Xu, M. Skoularidou, A. Cuesta-Infante, and K. Veeramachaneni. \emph{Supplementary Material: Modeling Tabular Data using Conditional GAN}, Table 3, 2019. Official supplement linked from \url{https://proceedings.neurips.cc/paper/2019/hash/254ed7d2de3b23ab10936522dd547b78-Abstract.html}.
+\bibitem{sdgymhistorical} SDGym contributors. Historical Bayesian likelihood evaluator, version 0.1.0, function \texttt{\_evaluate\_bayesian\_likelihood}. \url{https://github.com/sdv-dev/SDGym/blob/v0.1.0/sdgym/evaluate.py}.
+\bibitem{ctganimplementation} CTGAN contributors. CTGAN and TVAE implementation, version 0.10.2. \url{https://github.com/sdv-dev/CTGAN/tree/v0.10.2}.
+\bibitem{bnrepository} M. Scutari. Bayesian Network Repository: Asia, Alarm, Child, and Insurance. \url{https://www.bnlearn.com/bnrepository/}. The experiment uses the BIF tables packaged with the standalone benchmark.
+\end{thebibliography}
+
+\clearpage
+\appendix
+\section{Original paper's dataset-level likelihood results}\label{app:paper}
+The following values are transcribed from supplement Table 3~\cite{xusupplement}. Each dataset has its own original oracle. The GM datasets here are the paper's two-dimensional distributions, not the four-column mixed tasks used in the fresh standalone run. Published rounding is retained.
+@@PAPER_FULL@@
+
+\clearpage
+\section{Complete current-run method results}\label{app:results}
+All entries are means over seeds 42 and 43. Accuracy, macro F1, agreement, and support violations are percentages; likelihoods are nats per row. J denotes joint generation followed by target replacement; F denotes a separate feature-only generator followed by labeling. GNB and CNB denote Gaussian and categorical naive Bayes. Original denotes a DNN trained on original process samples. All synthetic methods also use a fresh DNN for final prediction. The figure appendix displays both seed values for each of the five principal metrics.
+@@FULL_RESULTS@@
+
+\section{Likelihood and prediction figures}\label{app:figures}
+Each plot reports all 27 methods. Open circles mark seeds 42 and 43, and filled circles mark their means. Colors distinguish original-data training, complete-table generator baselines, joint relabeling, and feature-only relabeling. Dashed and dotted vertical lines are CTGAN and TVAE baseline means within each panel. The orange reference is the expected Bayes accuracy, estimated from test feature posteriors for BN tasks and equal to 90\% for mixed tasks.
+@@FIGURES@@
+\end{document}
