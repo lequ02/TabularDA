@@ -73,6 +73,13 @@ PANELS = {
         "paper": {"CTGAN": 67.2, "TVAE": 9.8, "Real": 72.0},
         "limits": (-4, 90), "coverage": "full",
     },
+    "credit_corrected_seed43": {
+        "dataset": "credit", "scope": "corrected_v2", "seed": 43,
+        "metric": "f1_binary", "metric_label": "Binary F1",
+        "title": "Credit · corrected, seed 43",
+        "paper": {"CTGAN": 67.2, "TVAE": 9.8, "Real": 72.0},
+        "limits": (-4, 90), "coverage": "partial",
+    },
     "census_kdd_corrected": {
         "dataset": "census_kdd", "scope": "corrected_v2", "metric": "f1_binary",
         "metric_label": "Binary F1", "title": "Census KDD · corrected, seed 42",
@@ -94,11 +101,17 @@ PAPER_STYLES = {
 }
 
 
+def run_path(info, suffix):
+    dataset = info["dataset"]
+    seed = info.get("seed", 42)
+    return (ROOT / "output" / info["scope"] / dataset / "acc"
+            / f"{dataset}_seed{seed}_{suffix}.run.json")
+
+
 def read_run(info, suffix):
     dataset = info["dataset"]
     seed = info.get("seed", 42)
-    path = (ROOT / "output" / info["scope"] / dataset / "acc"
-            / f"{dataset}_seed{seed}_{suffix}.run.json")
+    path = run_path(info, suffix)
     with path.open(encoding="utf-8") as source:
         record = json.load(source)
     expected_mode = "original" if suffix == "real_original" else "synthetic"
@@ -141,6 +154,8 @@ def is_available(info, suffix):
         return not suffix.startswith("tvae_")
     if coverage == "baseline_only":
         return suffix == "real_original"
+    if coverage == "partial":
+        return run_path(info, suffix).is_file()
     raise ValueError(f"Unknown coverage: {coverage}")
 
 
@@ -173,19 +188,22 @@ def main():
         print(f"{dataset}: pilot and corrected share split IDs and prepared-file hashes")
     assert manifests["mnist28_pilot"]["splits"] == manifests["mnist12_corrected"]["splits"]
     print("MNIST12 corrected and MNIST28 pilot share split IDs; feature representations differ")
-    for dataset in ("adult", "census_kdd"):
+    for dataset in ("adult", "credit", "census_kdd"):
         first = manifests[f"{dataset}_corrected"]
         second = manifests[f"{dataset}_corrected_seed43"]
         assert first["splits"] == second["splits"]
         assert first["files"] == second["files"]
-    print("Adult and Census KDD seeds 42 and 43 share the same prepared split")
+    print("Adult, Credit, and Census KDD seeds 42 and 43 share the same prepared split")
     assert {panel: sum(values[label][panel] is not None for label, _ in ROWS)
             for panel in PANELS} == {
                 "adult_pilot": 8, "adult_corrected": 11,
                 "adult_corrected_seed43": 11,
                 "covertype_pilot": 8, "covertype_corrected": 11,
                 "mnist28_pilot": 8, "mnist12_corrected": 11,
-                "credit_corrected": 11, "census_kdd_corrected": 1,
+                "credit_corrected": 11,
+                "credit_corrected_seed43": sum(is_available(PANELS["credit_corrected_seed43"], suffix)
+                                               for _, suffix in ROWS),
+                "census_kdd_corrected": 1,
                 "census_kdd_corrected_seed43": 1,
             }
     credit_test = manifests["credit_corrected"]["files"]["test"]["raw"]
@@ -209,26 +227,38 @@ def main():
                              *("" for _ in all_columns)))
 
     target_table = DEST / "dataset_pipeline_comparison.md"
-    headings = ["Configuration", *(info["title"] for info in PANELS.values())]
     table_lines = [
         "# Synthetic-data pipeline comparison",
         "",
         "All scores are percentages. Adult, Credit, and Census KDD use binary F1; "
         "Covertype uses macro F1; MNIST uses accuracy. A dash means no evaluated run is recorded. "
-        "Seed 42 is used unless the column says seed 43. The two seeds share the same "
-        "prepared train, development, and test split.",
+        "Seed 42 is used unless the column says seed 43. Within Adult, Credit, and Census KDD, "
+        "the two seeds share the same prepared train, development, and test split; "
+        "they are model-seed repeats, not independent holdouts.",
         "",
-        "| " + " | ".join(headings) + " |",
-        "|---" + "|---:" * len(PANELS) + "|",
+        "Credit seed 43 is partially complete. Missing configurations remain marked with a dash; "
+        "completed zero scores are displayed as 0.0%.",
+        "",
     ]
-    for label, _ in ROWS:
-        cells = [label, *(f"{values[label][panel]:.1f}%" if values[label][panel] is not None
-                          else "—" for panel in PANELS)]
-        table_lines.append("| " + " | ".join(cells) + " |")
-    for name in ("CTGAN", "TVAE", "Real"):
-        cells = [f"Paper {name} (reference)",
-                 *(f"{info['paper'][name]:.1f}%" for info in PANELS.values())]
-        table_lines.append("| " + " | ".join(cells) + " |")
+    table_groups = {
+        "Pilot · seed 42": [p for p, info in PANELS.items() if info["coverage"] == "pilot"],
+        "Corrected · seed 42": [p for p, info in PANELS.items()
+                                if info["scope"] == "corrected_v2" and info.get("seed", 42) == 42],
+        "Corrected · seed 43": [p for p, info in PANELS.items() if info.get("seed", 42) == 43],
+    }
+    for title, panels in table_groups.items():
+        headings = ["Configuration", *(PANELS[p]["title"].split(" · ")[0] for p in panels)]
+        table_lines.extend([f"## {title}", "", "| " + " | ".join(headings) + " |",
+                            "|---" + "|---:" * len(panels) + "|"])
+        for label, _ in ROWS:
+            cells = [label, *(f"{values[label][panel]:.1f}%" if values[label][panel] is not None
+                              else "—" for panel in panels)]
+            table_lines.append("| " + " | ".join(cells) + " |")
+        for name in ("CTGAN", "TVAE", "Real"):
+            cells = [f"Paper {name} (reference)",
+                     *(f"{PANELS[p]['paper'][name]:.1f}%" for p in panels)]
+            table_lines.append("| " + " | ".join(cells) + " |")
+        table_lines.append("")
     table_lines.extend([
         "",
         "Paper references: [Xu et al., *Modeling Tabular Data using Conditional GAN*, "
@@ -248,7 +278,8 @@ def main():
     target_table.write_text("\n".join(table_lines) + "\n", encoding="utf-8")
 
     plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 10})
-    fig, axes = plt.subplots(5, 2, figsize=(18.5, 22.5), sharey="row")
+    nrows = (len(PANELS) + 1) // 2
+    fig, axes = plt.subplots(nrows, 2, figsize=(18.5, 4.5 * nrows), sharey="row")
     positions = list(range(len(ROWS)))
     for index, (ax, panel) in enumerate(zip(axes.flat, PANELS)):
         info = PANELS[panel]
@@ -291,6 +322,9 @@ def main():
         else:
             ax.tick_params(labelleft=False)
 
+    for ax in list(axes.flat)[len(PANELS):]:
+        ax.set_visible(False)
+
     handles = [Line2D([0], [0], color=style["color"], linestyle=style["linestyle"],
                       linewidth=1.8, label=f"Paper {name}")
                for name, style in PAPER_STYLES.items()]
@@ -304,7 +338,7 @@ def main():
              "Adult, Credit, Census KDD: binary F1 · Covertype: macro F1 · MNIST: accuracy. Paper references use different splits and averaged classifiers.",
              ha="left", color="#475569", fontsize=9)
     fig.text(0.047, 0.047,
-             "Paper Table 6 labels CTGAN 'TGAN'. Adult/Census seeds share a fixed split; Census KDD has baseline runs only.",
+             "Paper Table 6 labels CTGAN 'TGAN'. Adult/Credit/Census seeds share a fixed split; Census KDD has baseline runs only.",
              ha="left", color="#475569", fontsize=9)
     fig.text(0.047, 0.029,
              f"Credit test split: {credit_positive_count} positive cases among {credit_test_rows:,} rows; binary F1 is sensitive to individual positive predictions.",
