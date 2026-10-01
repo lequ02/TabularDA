@@ -7,8 +7,11 @@ The seed-42 method list was frozen before new test scores. Seed 43 was added on 
 - Datasets: Adult, genuine Census KDD, Credit, Covertype, Intrusion, MNIST12, MNIST28, News.
 - Split version: `corrected_v2`. Make one source-image split for MNIST; use the 60,000/10,000 MNIST28 source version and derive both 12×12 and 28×28 inputs from those IDs. Keep the historical 56,000/14,000 MNIST12 version identified as `legacy_56k_14k`; do not pool its scores.
 - Reserve real train/dev/test before any fit. All methods within a dataset and seed share the same real dev/test IDs. Group identical processed features where the claim is performance on unseen features. Record duplicate policy and both raw and model-input overlap counts.
+
 - Seeds: 42 and 43. Synthetic sample count: 100,000 for every synthetic arm. Each CTGAN and TVAE fit uses 500 epochs and batch size 500 on the configured GPU; record the effective parameters, package versions, and fit data hash. Every downstream model arm uses batch size 128, learning rate 0.001, and a budget of 100 epochs with patience 30. Mixed arms use all reserved real training rows plus the same 100,000 synthetic rows. Choose the checkpoint by minimum real-dev loss, then evaluate the restored checkpoint on real test once.
 - New artifacts go under `data/corrected_v2`, `sdv trained model/corrected_v2`, and `output/corrected_v2`; no historical CSV/checkpoint/workbook is a corrected result.
+
+October 1 repair: if a classification label is absent from the initial training partition, reserve its first source feature group for training before any fit, retaining whole groups and disjoint source IDs. This corrects Intrusion's unevaluated split, which previously put both `spy.` rows in test. Census KDD's DNN labeler uses unweighted cross-entropy to match its original majority-accuracy gate; the gate is unchanged. PCA/GMM selects numerical source columns before one-hot encoding in both feature-source pipelines. Completed results produced by the previous full-feature PCA selection are retained in an archive before rerunning that arm.
 
 ## Raw dataset sources
 

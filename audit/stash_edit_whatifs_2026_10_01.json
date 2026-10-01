@@ -1,0 +1,180 @@
+{
+  "loader_old_vs_current": {
+    "rows": 100003,
+    "feature_csv_bytes_old": 3200096,
+    "feature_csv_bytes_current": 1600048,
+    "max_train_tensor_difference": 4.76837158203125e-07,
+    "max_dev_tensor_difference": 7.62939453125e-06,
+    "max_scaler_mean_difference": 8.03867493404109e-11
+  },
+  "label_copy_removal": {
+    "old_caller_labels": [
+      "a",
+      "b"
+    ],
+    "current_caller_labels": [
+      0,
+      1
+    ]
+  },
+  "float32_precision_boundary": {
+    "original_values": [
+      100000000.0,
+      100000001.0,
+      100000002.0
+    ],
+    "float32_values": [
+      100000000.0,
+      100000000.0,
+      100000000.0
+    ],
+    "old_scaled": [
+      -1.224744871391589,
+      0.0,
+      1.224744871391589
+    ],
+    "new_scaled": [
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "rare_class_fix_removal": {
+    "old": {
+      "rows": [
+        72,
+        8,
+        20
+      ],
+      "rare_train": 0,
+      "rare_test": 4,
+      "test_encoding_error": "y contains previously unseen labels: 'rare'"
+    },
+    "current": {
+      "rows": [
+        74,
+        8,
+        18
+      ],
+      "rare_train": 2,
+      "rare_test": 2,
+      "test_encoding_error": null
+    }
+  },
+  "rare_class_shared_group_edge": {
+    "source_rows": 100,
+    "output_rows": 102,
+    "duplicated_training_source_ids": 2
+  },
+  "pca_selection_removal": {
+    "old_numerical_columns": [
+      "kind_a",
+      "kind_b",
+      "value"
+    ],
+    "current_numerical_columns": [
+      "value"
+    ]
+  },
+  "resume_removal": {
+    "with_resume_command_count": 0,
+    "without_resume_command_count": 53,
+    "artifacts": 53
+  },
+  "seed43_resume_guard": {
+    "old_rejects": true,
+    "current_rejects": false
+  },
+  "epsilon_removal": {
+    "current": {
+      "l_syn": -12.511469551154782,
+      "l_test": -6.406362804686232,
+      "support_violation_rate": 0.3333333333333333
+    },
+    "old_l_syn": "-inf",
+    "old_l_test": -9.476509604048772,
+    "tiny_probability_exact_log": -27.631021115928547,
+    "tiny_probability_adjusted_log": -18.420580748952034
+  },
+  "mixed_zero_probability": {
+    "l_syn": "-inf",
+    "l_test": -9.476509604048772,
+    "support_violation_rate": 0.3333333333333333
+  },
+  "matrix_memory_estimate": {
+    "rows": 4212394,
+    "illustrative_columns": 372,
+    "float64_gib": 11.675138533115387,
+    "float32_gib": 5.8375692665576935,
+    "note": "372 is an illustrative width; actual CTGAN expanded width differs. Excludes overhead and training allocations."
+  },
+  "transform_buffer_scenario": {
+    "shape": [
+      3,
+      4
+    ],
+    "current_bytes": 48,
+    "old_float64_bytes": 96,
+    "equal_after_float32_cast": true,
+    "note": "Column-transform double; not actual CTGAN training."
+  },
+  "census_objective_fixture": {
+    "old": {
+      "selected_epoch": 497,
+      "epochs_run": 500,
+      "dev_accuracy": 1.0,
+      "dev_macro_f1": 1.0,
+      "majority_dev_accuracy": 0.9025,
+      "quality_gate_passed": true,
+      "converged": false
+    },
+    "current": {
+      "selected_epoch": 497,
+      "epochs_run": 500,
+      "dev_accuracy": 1.0,
+      "dev_macro_f1": 1.0,
+      "majority_dev_accuracy": 0.9025,
+      "quality_gate_passed": true,
+      "converged": false
+    },
+    "note": "Synthetic fixture, not a retrain on real Census data."
+  },
+  "census_gate_boundary": {
+    "majority_accuracy": 0.9365,
+    "candidate_accuracy": 0.925,
+    "candidate_macro_f1": 0.6,
+    "majority_macro_f1": 0.4836,
+    "old_gate_passes": true,
+    "current_gate_passes": false
+  },
+  "plot_nonfinite_scenario": {
+    "old": {
+      "l_syn_text": [
+        "\u2212\u221e (10.0% impossible)",
+        "\u2212\u221e (10.0% impossible)"
+      ],
+      "warnings": []
+    },
+    "current": {
+      "l_syn_text": [
+        "-inf",
+        "-inf"
+      ],
+      "warnings": []
+    }
+  },
+  "partial_coverage_removal": {
+    "current_missing_available": false,
+    "old_partial_coverage_error": "Unknown coverage: partial",
+    "old_plot_slots": 10,
+    "current_panels": 11,
+    "omitted_panels_if_only_layout_reverted": 1
+  },
+  "rescore_saved_fixture": {
+    "records": 2,
+    "prediction_metrics_preserved": true,
+    "saved_tables_preserved": true,
+    "config_epsilon": 1e-08,
+    "note": "Controlled BN oracle and CSV writer; full pgmpy refit and plot export not exercised."
+  }
+}
