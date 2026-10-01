@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import sys
+from importlib.metadata import version
 from pathlib import Path
 
 import numpy as np
@@ -108,7 +109,20 @@ def target_name(dataset):
 
 def sample_and_save(folder, name, train, dataset, seed, rows, epochs, device):
     path = folder / f"{name}_sample.csv"
-    if path.exists():
+    meta_path = path.with_suffix(".json")
+    settings = {
+        "name": name, "dataset": dataset, "seed": seed, "rows": rows,
+        "epochs": epochs, "device": device,
+        "train_sha256": hashlib.sha256(train.to_csv(index=False).encode("utf-8")).hexdigest(),
+    }
+    if path.exists() or meta_path.exists():
+        if not path.exists() or not meta_path.exists():
+            raise ValueError(f"Saved sample provenance is incomplete: {path}. Use a new --root.")
+        metadata = json.loads(meta_path.read_text(encoding="utf-8"))
+        if any(metadata.get(key) != value for key, value in settings.items()):
+            raise ValueError(f"Saved sample settings differ: {path}. Use a new --root.")
+        if metadata.get("sample_sha256") != sha256(path):
+            raise ValueError(f"Saved sample changed: {path}")
         sample = read_table(path, dataset)
     else:
         method = name.split("_")[0]
@@ -127,6 +141,9 @@ def sample_and_save(folder, name, train, dataset, seed, rows, epochs, device):
         sample.to_csv(path, index=False)
     if list(sample.columns) != list(train.columns) or len(sample) != rows:
         raise ValueError(f"Saved sample schema or row count differs: {path}")
+    if not meta_path.exists():
+        meta_path.write_text(json.dumps({**settings, "sample_sha256": sha256(path)}, indent=2),
+                             encoding="utf-8")
     return sample, path
 
 
@@ -161,7 +178,7 @@ def predict_labels(labeler, x_train, y_train, x_dev, y_dev, x_synthetic,
 
         _, result = Ensemble(x_train, y_train, x_synthetic, "label", labeler,
                              str(report_path.with_suffix(".encoded.csv")),
-                             verbose=False).fit()
+                             verbose=False, random_state=seed).fit()
         report_path.with_suffix(".encoded.csv").unlink()
         return result["label"]
     if labeler == "pca_gmm":
@@ -188,15 +205,17 @@ def checked_score(folder, root, dataset, seed, name, sample_path, rows,
     path = folder / f"{name}_result.json"
     if path.exists():
         result = json.loads(path.read_text(encoding="utf-8"))
+        manifest = json.loads((folder / "manifest.json").read_text(encoding="utf-8"))
         if (result["synthetic_sha256"] != sha256(sample_path) or
                 result["synthetic_rows"] != rows or
-                result["dataset"] != dataset or result["seed"] != seed):
-            raise ValueError(f"Existing score uses another sample: {path}")
+                result["dataset"] != dataset or result["seed"] != seed or
+                result["method"] != name or
+                any(result.get(key) != manifest[key] for key in
+                    ("train_sha256", "test_sha256", "oracle_sha256"))):
+            raise ValueError(f"Existing score inputs differ: {path}. Use a new --root.")
         return result
     result = evaluate(dataset, seed, name, root, sample_path, rows, epochs, device)
     if name in GENERATORS:
-        from importlib.metadata import version
-
         result["model_epochs"] = epochs
         result["batch_size"] = 500
         result["device"] = device
@@ -220,7 +239,10 @@ def score_labeled(folder, root, dataset, seed, name, synthetic, test,
                 previous["train_sha256"] != manifest["train_sha256"] or
                 previous["test_sha256"] != manifest["test_sha256"] or
                 previous["synthetic_rows"] != rows or
-                previous["epochs"] != epochs or previous["device"] != device):
+                previous["epochs"] != epochs or previous["device"] != device or
+                (previous.get("dataset"), previous.get("seed"), previous.get("method")) !=
+                (dataset, seed, name) or
+                previous.get("oracle_sha256") != manifest["oracle_sha256"]):
             raise ValueError(f"Labeled result inputs differ: {sample_path}")
         return previous
     if result_path.exists():
@@ -251,6 +273,7 @@ def score_labeled(folder, root, dataset, seed, name, synthetic, test,
     classifier.fit(x_fit, synthetic[target])
     predictions = classifier.predict(x_holdout)
     result = {
+        "oracle_sha256": manifest["oracle_sha256"],
         "dataset": dataset, "seed": seed, "method": name,
         "benchmark": "labeled_extension", "target": target,
         "test_accuracy": float(accuracy_score(test[target], predictions)),
@@ -351,11 +374,11 @@ def run_one(root, dataset, seed, methods, train_rows, test_rows, rows,
             x_raw = source_sample.drop(columns=target) if full else source_sample
             x_train, x_dev, x_synthetic = encode_features(
                 train.drop(columns=target),
-                (dev if dev is not None else test).drop(columns=target),
+                (dev if labeler == "dnn" else train).drop(columns=target),
                 x_raw, dataset)
             predictions = predict_labels(
                 labeler, x_train, train[target], x_dev,
-                (dev if dev is not None else test)[target], x_synthetic,
+                (dev if labeler == "dnn" else train)[target], x_synthetic,
                 dataset, seed, folder / f"{name}_labeler.json", device)
             synthetic = x_raw.copy()
             synthetic[target] = np.asarray(predictions)
@@ -373,6 +396,9 @@ def summarize_runs(root, datasets, seeds, methods):
                 suffix = "result" if method in PAPER_METHODS else "labeled"
                 path = folder / f"{method}_{suffix}.json"
                 record = json.loads(path.read_text(encoding="utf-8"))
+                if (record.get("method"), record.get("seed"), record.get("dataset")) != (
+                        method, seed, dataset):
+                    raise ValueError(f"Result identity does not match its path: {path}")
                 record["benchmark"] = ("paper" if method in PAPER_METHODS
                                        else "labeled_extension")
                 record["family"] = "GM" if dataset in MIXTURES else "BN"

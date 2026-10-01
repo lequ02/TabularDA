@@ -39,7 +39,7 @@ def test_generator_sample_is_saved_and_reused(tmp_path, monkeypatch):
     pd.testing.assert_frame_equal(first, second)
     assert path == same_path
     assert len(calls) == 1
-    with pytest.raises(ValueError, match="row count"):
+    with pytest.raises(ValueError, match="settings differ"):
         runner.sample_and_save(tmp_path, "ctgan_xonly", train, "grid", 42,
                                5, 2, "cpu")
 
@@ -89,3 +89,87 @@ def test_run_one_skips_completed_labeler_fit(tmp_path, monkeypatch):
     runner.run_one(tmp_path, "grid", 42, ["ctgan-rf"], 1, 1, 1, 1, "cpu")
 
     assert seen == [None]
+
+
+def test_saved_generator_rejects_changed_epochs_or_training(tmp_path, monkeypatch):
+    train = pd.DataFrame({"feature_0": [0., 1.], "feature_1": [1., 2.]})
+    monkeypatch.setattr(runner, "generate", lambda *args: train.copy())
+    runner.sample_and_save(tmp_path, "ctgan_paper", train, "grid", 42, 2, 1, "cpu")
+    with pytest.raises(ValueError, match="settings differ"):
+        runner.sample_and_save(tmp_path, "ctgan_paper", train, "grid", 42, 2, 300, "cpu")
+    with pytest.raises(ValueError, match="settings differ"):
+        runner.sample_and_save(tmp_path, "ctgan_paper", train + 1, "grid", 42, 2, 1, "cpu")
+
+
+def test_saved_generator_rejects_changed_sample(tmp_path, monkeypatch):
+    train = pd.DataFrame({"feature_0": [0., 1.], "feature_1": [1., 2.]})
+    monkeypatch.setattr(runner, "generate", lambda *args: train.copy())
+    _, path = runner.sample_and_save(tmp_path, "ctgan_paper", train, "grid", 42, 2, 1, "cpu")
+    (train + 3).to_csv(path, index=False)
+    with pytest.raises(ValueError, match="sample changed"):
+        runner.sample_and_save(tmp_path, "ctgan_paper", train, "grid", 42, 2, 1, "cpu")
+
+
+def test_rare_binary_feature_survives_categorical_nb_preprocessing():
+    from synthesize_data.naive_bayes import _fit_quantile_bins
+
+    train = pd.DataFrame({"rare": [0] * 95 + [1] * 5})
+    train_codes, test_codes = _fit_quantile_bins(train, pd.DataFrame({"rare": [0, 1]}))
+    assert train_codes[:, 0].tolist() == train["rare"].tolist()
+    assert test_codes[:, 0].tolist() == [0, 1]
+
+
+def test_rf_labeler_is_independent_of_global_random_state(tmp_path):
+    rng = np.random.default_rng(18)
+    train = pd.DataFrame(rng.normal(size=(100, 2)), columns=["a", "b"])
+    labels = pd.Series(rng.integers(0, 2, size=100))
+    synthetic = pd.DataFrame(rng.normal(size=(100, 2)), columns=train.columns)
+    arguments = ("rf", train, labels, train, labels, synthetic, "grid", 7,
+                 tmp_path / "labeler.json", "cpu")
+    np.random.seed(1)
+    first = runner.predict_labels(*arguments)
+    np.random.seed(999)
+    second = runner.predict_labels(*arguments)
+    np.testing.assert_array_equal(first, second)
+
+
+def test_summary_rejects_result_identity_mismatch(tmp_path):
+    folder = tmp_path / "seed_42" / "grid"
+    folder.mkdir(parents=True)
+    (folder / "identity_result.json").write_text(json.dumps({
+        "dataset": "ring", "seed": 42, "method": "identity", "l_syn": -2., "l_test": -3.
+    }), encoding="utf-8")
+    with pytest.raises(ValueError, match="identity"):
+        runner.summarize_runs(tmp_path, ["grid"], [42], ["identity"])
+
+
+def test_cached_likelihood_rejects_changed_oracle_provenance(tmp_path):
+    folder = runner.prepare("grid", 42, 100, 100, tmp_path)
+    result = runner.checked_score(folder, tmp_path, "grid", 42, "identity",
+                                  folder / "train.csv", 100, 1, "cpu")
+    assert runner.checked_score(folder, tmp_path, "grid", 42, "identity",
+                                folder / "train.csv", 100, 1, "cpu") == result
+    path = folder / "manifest.json"
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    manifest["oracle_sha256"] = "changed-oracle"
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+    with pytest.raises(ValueError, match="inputs differ"):
+        runner.checked_score(folder, tmp_path, "grid", 42, "identity",
+                             folder / "train.csv", 100, 1, "cpu")
+
+
+def test_labeled_result_reuses_only_matching_oracle(tmp_path):
+    folder = runner.prepare("grid", 42, 100, 100, tmp_path)
+    manifest = json.loads((folder / "manifest.json").read_text(encoding="utf-8"))
+    train = runner.read_table(folder / "train.csv", "grid")
+    test = runner.labeled(runner.read_table(folder / "test.csv", "grid"), "grid")
+    args = (folder, tmp_path, "grid", 42, "ctgan-rf", runner.labeled(train, "grid"),
+            test, folder / "train.csv", manifest, 100, 1, "cpu")
+    first = runner.score_labeled(*args)
+    assert runner.score_labeled(*args) == first
+    path = folder / "ctgan-rf_labeled.json"
+    record = json.loads(path.read_text(encoding="utf-8"))
+    record["oracle_sha256"] = "different-oracle"
+    path.write_text(json.dumps(record), encoding="utf-8")
+    with pytest.raises(ValueError, match="inputs differ"):
+        runner.score_labeled(*args)

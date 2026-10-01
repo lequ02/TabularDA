@@ -16,8 +16,13 @@ def _fit_quantile_bins(xtrain, xtest, n_bins=10):
     raise ValueError("CategoricalNB inputs must be finite numeric values.")
   bins = []
   for column in range(train_values.shape[1]):
-    quantiles = np.linspace(0, 1, n_bins + 1)[1:-1]
-    edges = np.unique(np.quantile(train_values[:, column], quantiles))
+    if set(np.unique(train_values[:, column])).issubset({0.0, 1.0}):
+      # One-hot indicators are already categorical. A rare indicator has all
+      # quantiles equal to zero, making digitize(0, [0]) == digitize(1, [0]).
+      edges = np.array([0.5])
+    else:
+      quantiles = np.linspace(0, 1, n_bins + 1)[1:-1]
+      edges = np.unique(np.quantile(train_values[:, column], quantiles))
     bins.append(edges)
   train_codes = np.column_stack([
     np.digitize(train_values[:, column], bins[column])
@@ -67,7 +72,8 @@ def create_label_categoricalNB(xtrain, ytrain, xtest, target_name, filename=None
   cnb = CategoricalNB(alpha=alpha, force_alpha=force_alpha).fit(xtrain_codes, ytrain)
   if artifact_path:
     Path(artifact_path).parent.mkdir(parents=True, exist_ok=True)
-    bins = [np.unique(np.quantile(np.asarray(xtrain[column], dtype=float),
+    bins = [np.array([0.5]) if set(xtrain[column].unique()).issubset({0.0, 1.0}) else
+            np.unique(np.quantile(np.asarray(xtrain[column], dtype=float),
                                   np.linspace(0, 1, 11)[1:-1]))
             for column in xtrain.columns]
     with open(artifact_path, "wb") as artifact_file:
