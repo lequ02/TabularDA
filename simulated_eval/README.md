@@ -45,7 +45,7 @@ Every other node is an observed feature. States are encoded by their CPD order a
 
 The oracle computes P(Y=y | all observed features) by enumerating target states and normalizing their joint probabilities. h* is its argmax, with ties assigned the lowest encoded state. The accuracy reference is the mean maximum posterior probability on the independent test features, an estimate of the population Bayes accuracy. Accuracy and h* agreement can differ even with no added noise.
 
-BN CPDs may contain exact zeros. A synthetic row violating any of them has L_syn = negative infinity. We preserve that result and report the impossible-row fraction alongside it; plots do not invent a finite reference line for an infinite baseline.
+BN CPDs may contain exact zeros. For reported BN L_syn and L_test, we use the historical SDGym convention `log(p + 1e-8)`, applied once to the full joint probability, not separately to CPDs. An impossible row receives log(1e-8), approximately -18.42. The underlying oracle probabilities, posterior, and Bayes decisions remain exact. `support_violation_rate` records the fraction of rows with exact original probability zero before this adjustment.
 
 ## Methods
 
@@ -64,15 +64,15 @@ Categorical NB quantile-bins continuous features into ten bins and leaves catego
 
 Every training table, including `original`, gets the same five metrics:
 
-- **L_syn:** mean log p(z) on that table, using the fixed exact original distribution.
-- **L_test:** fit a normalized density q to that table, then calculate mean log q(z) on independent original test rows.
+- **L_syn:** mean log p(z) on that table for mixed datasets; mean log(p(z) + 1e-8) for BN datasets.
+- **L_test:** fit a normalized density q to that table, then score independent original test rows with log q(z) for mixed datasets or log(q(z) + 1e-8) for BN datasets.
 - **Accuracy:** a fresh DNN trained on that table predicts the original test targets.
 - **Macro F1:** unweighted mean F1 over all oracle target classes, for the same predictions.
 - **h* agreement:** those predictions compared with the oracle's Bayes decisions on the same test features.
 
 All downstream classifiers are fresh standardized DNNs with the architecture above. RF is only a relabeler. Preprocessing, early stopping, and density fitting use the training table only. The original test set is reused across methods within each dataset/seed.
 
-L_syn measures plausibility under P; concentration in high-density regions can improve it despite missing modes. The original baseline estimates E_P[log p(Z)], not a maximum score. L_test reverses the scoring direction and exposes missed original-test regions, subject to the chosen refit family. It is a density-refit proxy, not CTGAN/TVAE's own likelihood, and not claimed to duplicate the paper's estimator.
+L_syn measures plausibility under P; concentration in high-density regions can improve it despite missing modes. The original baseline is a reference expectation, not a maximum score. L_test reverses the scoring direction and exposes missed original-test regions, subject to the chosen refit family. It is a density-refit proxy, not CTGAN/TVAE's own likelihood. BN scoring matches the historical epsilon convention, but the refitting prior still differs from the paper's implementation. Mixed datasets use unchanged exact log densities.
 
 The L_test refits are explicit:
 
@@ -81,7 +81,7 @@ The L_test refits are explicit:
 - Mixed Y|X,C: minimize training classification error exactly over beta in (0,1), choosing the midpoint of the first best interval. Estimate noise with the Beta(1/2,1/2) posterior mean, constrained to at most 1/2.
 - BN: keep the known graph and refit every CPD using a fixed Dirichlet(1/2) prior for every child state in every parent configuration.
 
-These are fixed statistical estimators, not error-handling fallbacks. The BN prior makes refitted probabilities positive even when a training count is zero; the exact original probabilities used for L_syn remain unchanged. With unlimited original samples, a correct refit approaches P. For a normalized q, E_P[log q] = E_P[log p] - KL(P || q); finite samples and the restricted family affect the estimate.
+These are fixed statistical estimators, not error-handling fallbacks. The BN prior makes refitted probabilities positive even when a training count is zero. With unlimited original samples, a correct refit approaches P. For a normalized q, the unadjusted scores satisfy E_P[log q] = E_P[log p] - KL(P || q). This identity does not directly describe the epsilon-adjusted BN scores: p+epsilon is not normalized. Epsilon also affects small nonzero joint probabilities, not just impossible rows.
 
 ## Run
 
@@ -102,6 +102,14 @@ python -m simulated_eval --output output/simulated_all_smoke --seeds 7 --train-r
 The output directory must be new. Failures surface directly; there is no resume path, automatic device selection, or alternate generator.
 
 Outputs: `config.json`, `per_run.csv`, `summary.csv` (seed means), and a five-panel `comparison.png`/`.svg` per dataset. Tables live under `<dataset>/seed_<seed>/`. Individual seeds appear as open circles; filled circles are means. Colors distinguish original, generator baseline, joint relabeling, and features-only relabeling. CTGAN/TVAE baseline means are vertical dashed/dotted references; oracle expected accuracy is marked separately. Finite test accuracy can exceed its expected reference.
+
+Refresh a completed run's BN likelihoods from its saved tables without retraining generators or DNNs:
+
+```powershell
+python -m simulated_eval.rescore output/simulated_all_20260930
+```
+
+The sibling `simulated_all_20260930.log` must contain the completed run's metric lines. Rescoring overwrites per-run results, summaries, every dataset's plots, configuration, and the log's metric lines. It appends an explicit rescore timestamp to the log; training output is retained. Prediction metrics and generated tables are retained. No backups or alternate scoring paths are created.
 
 Four focused checks cover exact probabilities, normalized refits, and evaluation data flow:
 

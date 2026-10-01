@@ -16,6 +16,38 @@ from .plot import plot_results
 
 DATASETS = ["gaussian", "grid", "ring", *TARGETS]
 METRICS = ["l_syn", "l_test", "accuracy", "macro_f1", "h_star_agreement"]
+BN_LIKELIHOOD_EPSILON = 1e-8
+
+
+def make_oracle(dataset, args):
+    return (BNOracle(dataset) if dataset in TARGETS else
+            Oracle(kappa=args.kappa, beta=args.beta, noise=args.noise,
+                   dataset=dataset, spread=args.spread))
+
+
+def likelihood_scores(sample, test, oracle, seed):
+    log_prob = oracle.log_prob(sample)
+    oracle.validate(test)
+    test_log_prob = oracle.test_log_prob(sample, test, seed)
+    violations = float(np.isneginf(log_prob).mean())
+    if oracle.dataset in TARGETS:
+        log_prob = np.logaddexp(log_prob, np.log(BN_LIKELIHOOD_EPSILON))
+        test_log_prob = np.logaddexp(test_log_prob, np.log(BN_LIKELIHOOD_EPSILON))
+    return {"l_syn": float(log_prob.mean()), "l_test": float(test_log_prob.mean()),
+            "support_violation_rate": violations}
+
+
+def format_record(record):
+    return (f"{record['dataset']} seed={record['seed']} {record['method']}: " +
+            ", ".join(f"{m}={record[m]:.4f}" for m in METRICS))
+
+
+def write_results(results, args):
+    results.to_csv(args.output / "per_run.csv", index=False)
+    results.groupby(["dataset", "method"], sort=False)[METRICS + ["support_violation_rate", "accuracy_ceiling"]].mean().to_csv(
+        args.output / "summary.csv")
+    for dataset in args.datasets:
+        plot_results(results[results.dataset == dataset], args.noise, args.output / dataset, args.epochs)
 
 
 def generate(method, train, rows, seed, epochs, batch_size, device, oracle):
@@ -34,21 +66,17 @@ def generate(method, train, rows, seed, epochs, batch_size, device, oracle):
 
 
 def evaluate(sample, test, oracle, seed):
-    log_prob = oracle.log_prob(sample)
-    oracle.validate(test)
-    l_test = float(oracle.test_log_prob(sample, test, seed).mean())
+    scores = likelihood_scores(sample, test, oracle, seed)
     evaluator = make_dnn(seed, oracle)
     evaluator.fit(sample[oracle.features], sample["target"])
     predictions = evaluator.predict(test[oracle.features])
     posterior = oracle.posterior(test)
     return {
-        "l_syn": float(log_prob.mean()),
-        "l_test": l_test,
+        **scores,
         "accuracy": float(accuracy_score(test["target"], predictions)),
         "macro_f1": float(f1_score(test["target"], predictions, labels=oracle.classes,
                                     average="macro", zero_division=0)),
         "h_star_agreement": float(accuracy_score(posterior.argmax(axis=1), predictions)),
-        "support_violation_rate": float(np.isneginf(log_prob).mean()),
         "accuracy_ceiling": float(posterior.max(axis=1).mean()),
     }
 
@@ -64,6 +92,7 @@ def run(args):
         raise ValueError("Datasets, generators and labelers must not be repeated")
     args.output.mkdir(parents=True, exist_ok=False)
     config = {**vars(args), "output": str(args.output), "bn_refit_alpha": .5,
+              "bn_likelihood_epsilon": BN_LIKELIHOOD_EPSILON,
               "evaluation_classifier": "dnn",
               "packages": {p: version(p) for p in (
                   "numpy", "pandas", "scipy", "scikit-learn", "ctgan", "torch", "matplotlib", "pgmpy", "networkx")}}
@@ -72,16 +101,9 @@ def run(args):
     (args.output / "config.json").write_text(json.dumps(config, indent=2), encoding="utf-8")
     records = []
     for dataset in args.datasets:
-        oracle = (BNOracle(dataset) if dataset in TARGETS else
-                  Oracle(kappa=args.kappa, beta=args.beta, noise=args.noise,
-                         dataset=dataset, spread=args.spread))
+        oracle = make_oracle(dataset, args)
         run_dataset(args, oracle, records)
-    results = pd.DataFrame(records)
-    results.groupby(["dataset", "method"], sort=False)[METRICS + ["support_violation_rate", "accuracy_ceiling"]].agg(
-        lambda values: values.to_numpy().mean()).to_csv(args.output / "summary.csv")
-    for dataset in args.datasets:
-        folder = args.output / dataset
-        plot_results(results[results.dataset == dataset], args.noise, folder, args.epochs)
+    write_results(pd.DataFrame(records), args)
 
 
 def run_dataset(args, oracle, records):
@@ -101,7 +123,7 @@ def run_dataset(args, oracle, records):
             records.append({"dataset": oracle.dataset, "seed": seed, "method": method,
                             "synthetic_rows": len(sample), **scores})
             pd.DataFrame(records).to_csv(args.output / "per_run.csv", index=False)
-            print(f"{oracle.dataset} seed={seed} {method}: " + ", ".join(f"{m}={scores[m]:.4f}" for m in METRICS), flush=True)
+            print(format_record(records[-1]), flush=True)
 
         record("original", train)
         for generator in args.generators:

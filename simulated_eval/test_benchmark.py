@@ -7,7 +7,7 @@ from scipy.special import expit
 from scipy.stats import norm
 from sklearn.metrics import accuracy_score, f1_score
 
-from .benchmark import evaluate
+from .benchmark import evaluate, likelihood_scores
 from .oracle import COLUMNS, FEATURES, Oracle
 from .bn import BNOracle
 from .density import fit_boundary
@@ -87,6 +87,11 @@ def test_bn_joint_normalization_refit_and_posterior():
     sample = oracle.sample(1000, np.random.default_rng(42))
     assert np.isfinite(oracle.log_prob(sample)).all()
     assert np.exp(oracle.test_log_prob(sample, table, seed=42)).sum() == pytest.approx(1)
+    scores = likelihood_scores(table, sample, oracle, seed=42)
+    assert scores["l_syn"] == pytest.approx(np.log(probabilities + 1e-8).mean())
+    fitted = np.exp(oracle.test_log_prob(table, sample, seed=42))
+    assert scores["l_test"] == pytest.approx(np.log(fitted + 1e-8).mean())
+    assert scores["support_violation_rate"] == pytest.approx((probabilities == 0).mean())
     posterior = oracle.posterior(sample)
     np.testing.assert_allclose(posterior.sum(axis=1), 1)
     np.testing.assert_array_equal(oracle.clean_target(sample), posterior.argmax(axis=1))

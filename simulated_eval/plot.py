@@ -5,7 +5,6 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
-import numpy as np
 
 COLORS = {"original": "#8594aa", "baseline": "#263445",
           "joint": "#008696", "features": "#a565cc"}
@@ -41,8 +40,7 @@ def plot_results(results, noise, output, epochs):
         for generator, style in (("ctgan", "--"), ("tvae", ":")):
             if generator in methods:
                 reference = results.loc[results.method == generator, metric].to_numpy().mean() * (1 if j < 2 else 100)
-                if np.isfinite(reference):
-                    ax.axvline(reference, color=COLORS["baseline"], linestyle=style, linewidth=1.3, alpha=.65)
+                ax.axvline(reference, color=COLORS["baseline"], linestyle=style, linewidth=1.3, alpha=.65)
         previous = None
         for i, method in enumerate(methods):
             color = COLORS[group(method)]
@@ -51,16 +49,10 @@ def plot_results(results, noise, output, epochs):
                 ax.axhline(i-.5, color="#e3e9f0", linewidth=.8)
             previous = section
             values = results.loc[results.method == method, metric].to_numpy() * (1 if j < 2 else 100)
-            finite = values[np.isfinite(values)]
-            ax.scatter(finite, [i] * len(finite), s=45, facecolors="none", edgecolors=color, zorder=3)
-            if np.isfinite(values.mean()):
-                ax.scatter(values.mean(), i, s=22, color=color, zorder=4)
-                ax.annotate(f"{values.mean():.3f}" if j < 2 else f"{values.mean():.1f}%",
-                            (values.mean(), i), xytext=(5, 6), textcoords="offset points", fontsize=8)
-            else:
-                violations = results.loc[results.method == method, "support_violation_rate"].mean()
-                text = f"−∞ ({violations:.1%} impossible)" if j == 0 else "−∞"
-                ax.text(.02, i, text, transform=ax.get_yaxis_transform(), va="center", fontsize=8, color=color)
+            ax.scatter(values, [i] * len(values), s=45, facecolors="none", edgecolors=color, zorder=3)
+            ax.scatter(values.mean(), i, s=22, color=color, zorder=4)
+            ax.annotate(f"{values.mean():.3f}" if j < 2 else f"{values.mean():.1f}%",
+                        (values.mean(), i), xytext=(5, 6), textcoords="offset points", fontsize=8)
         ax.set_ylim(len(methods) - .5, -.5)
         ax.set_yticks(range(len(methods)), [label(m) for m in methods] if j == 0 else [""] * len(methods))
         if j == 0:
@@ -91,8 +83,11 @@ def plot_results(results, noise, output, epochs):
     fig.text(.03, .94, f"Generator epochs: {epochs} · seeds: {results.seed.nunique()} · {target_note}", fontsize=10)
     fig.text(.03, .915, "All prediction metrics use fresh DNNs. Open circles = seeds; filled circles = means. Lines = CTGAN/TVAE baseline means.", fontsize=10)
     fig.text(.03, .10, "Original: DNN trains on original process samples. Synthetic methods: DNN trains on generated labeled rows. All test on independent process samples.", fontsize=9)
-    fig.text(.03, .065, "L_syn scores rows under the exact original model; L_test fits a probability model to synthetic rows and scores independent original test rows.", fontsize=9)
-    fig.text(.03, .03, "−∞ means a zero-probability generated row; percentages show the impossible fraction. No reference line exists at −∞. Oracle accuracy is expected, not a finite-test bound.", fontsize=9)
+    fig.text(.03, .065, "L_syn scores rows under the original model; L_test fits a probability model to synthetic rows and scores independent original test rows.", fontsize=9)
+    likelihood_note = ("BN L_syn and L_test use log(p + 10⁻⁸), applied once to each joint probability. Exact impossible-row fractions are retained in result CSVs."
+                       if dataset not in ("gaussian", "grid", "ring") else
+                       "Mixed-data likelihoods use exact log densities without epsilon. Oracle accuracy is expected, not a finite-test bound.")
+    fig.text(.03, .03, likelihood_note, fontsize=9)
     for suffix in ("png", "svg"):
         fig.savefig(output / f"comparison.{suffix}", dpi=180, facecolor="white")
     plt.close(fig)
