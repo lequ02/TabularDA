@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-os.environ['CORRECTED_RUN_NAMESPACE'] = 'corrected_v2'
+os.environ.setdefault('CORRECTED_RUN_NAMESPACE', 'corrected_v2')
 sys.path.insert(0, str(ROOT / 'src'))
 from modeling import constants
 DATASETS = (
@@ -69,7 +69,7 @@ def completed_run(output, dataset, seed, mode, method):
 def run_matrix(dataset_names, seeds, stage, resume=False):
     if resume and stage != 'classifiers':
         raise ValueError('Resume requires the classifiers stage; generation has separate artifact dependencies')
-    output = ROOT / "output" / "corrected_v2"
+    output = ROOT / "output" / constants.RUN_NAMESPACE
     log_root = output / "logs"
     failures = []
     src_dir = ROOT / "src"
