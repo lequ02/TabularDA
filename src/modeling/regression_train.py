@@ -110,7 +110,7 @@ class train:
         input_size = next(iter(self.train_data))[0].shape[1]
         criterion = nn.MSELoss(reduction = 'mean')
 
-        if self.dataset_name.lower() == "news":
+        if self.dataset_name.lower() in {"news", "california_housing"}:
             model = DNN_News(input_size=input_size).to(device)
             self.model_name = "DNN_News"
         else:

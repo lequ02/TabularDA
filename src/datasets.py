@@ -4,7 +4,7 @@ import hashlib
 import tempfile
 from urllib.request import urlopen
 from ucimlrepo import fetch_ucirepo
-from sklearn.datasets import fetch_openml
+from sklearn.datasets import fetch_openml, fetch_california_housing
 
 
 def load_dataset(dataset_id, verbose=False):
@@ -49,6 +49,11 @@ def load_adult(verbose=False):
 
 def load_news(verbose=False):
     return load_dataset(332, verbose)
+
+
+def load_california_housing(verbose=False):
+    dataset = fetch_california_housing(as_frame=True)
+    return dataset.data, dataset.target.to_frame(name='MedHouseVal')
 
 # x_news, y_news = load_news()
 # print("News dataset features shape:", x_news.shape)

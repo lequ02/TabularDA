@@ -59,7 +59,7 @@ def write_run_record(path, *, dataset, seed, train_option, augment_option,
         generator_provenance_path = generator_model_path.with_suffix('.provenance.json')
         with generator_provenance_path.open(encoding="utf-8") as provenance_file:
             generator_provenance = json.load(provenance_file)
-        if augment_option not in {"ctgan", "tvae"}:
+        if augment_option not in {"ctgan", "tvae", "tabddpm"}:
             extension = ".predictor.pt" if augment_option.endswith("dnn") else ".predictor.pkl"
             predictor_model_path = Path(synthetic_path).with_suffix(extension)
             if not predictor_model_path.is_file():
