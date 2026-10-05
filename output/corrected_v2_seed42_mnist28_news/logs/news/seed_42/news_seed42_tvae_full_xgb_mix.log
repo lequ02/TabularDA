@@ -1,0 +1,206 @@
+=====Setting up data=====
+Dataset name:news
+train_option:mix
+augment_option:tvae_compare_xgb
+mix_ratio:-1
+n_sample:-1
+Dataset name:news
+Training dataset size: 128640 samples
+Validation dataset size: 3200 samples
+
+=====Setting up parameters for training=====
+num_epochs: 100
+learning_rate: 0.001
+patience: 30
+early_stop_criterion: loss
+=====Setting up metrics for evaluating and plotting=====
+metrics for evaluating: ['mae', 'mse', 'r2']
+metric for plotting: mse
+=====Setting up trainer=====
+input_size: 58
+model: DNN_News
+----------------------------------------------------------------
+        Layer (type)               Output Shape         Param #
+================================================================
+            Linear-1                  [-1, 512]          30,208
+              ReLU-2                  [-1, 512]               0
+       BatchNorm1d-3                  [-1, 512]           1,024
+           Dropout-4                  [-1, 512]               0
+            Linear-5                  [-1, 512]         262,656
+              ReLU-6                  [-1, 512]               0
+       BatchNorm1d-7                  [-1, 512]           1,024
+           Dropout-8                  [-1, 512]               0
+            Linear-9                  [-1, 256]         131,328
+             ReLU-10                  [-1, 256]               0
+      BatchNorm1d-11                  [-1, 256]             512
+          Dropout-12                  [-1, 256]               0
+           Linear-13                  [-1, 128]          32,896
+             ReLU-14                  [-1, 128]               0
+      BatchNorm1d-15                  [-1, 128]             256
+          Dropout-16                  [-1, 128]               0
+           Linear-17                    [-1, 1]             129
+================================================================
+Total params: 460,033
+Trainable params: 460,033
+Non-trainable params: 0
+----------------------------------------------------------------
+Input size (MB): 0.00
+Forward/backward pass size (MB): 0.04
+Params size (MB): 1.75
+Estimated Total Size (MB): 1.80
+----------------------------------------------------------------
+=====Setting up output files=====
+weight_dir, weight_file: /home/thuy/Research/minh_data_synth/TabularDA/output/corrected_v2_seed42_mnist28_news/news/weight/, news_seed42_tvae_full_xgb_mix.weights.pth
+acc_dir, acc_file: /home/thuy/Research/minh_data_synth/TabularDA/output/corrected_v2_seed42_mnist28_news/news/acc/, news_seed42_tvae_full_xgb_mix.epochs.csv
+report_file: news_seed42_tvae_full_xgb_mix.report.txt
+==========================================================================================
+Start training...
+-----------------------
+Epoch 1/100
+Training statistic: Loss: 114985774.3240, train_score: {'mae': 4163.308, 'mse': 114985780.0, 'r2': -0.14979680114121074}
+Validation statistic: Loss: 77796274.5372, dev_score: {'mae': 3057.3376, 'mse': 77796270.0, 'r2': -0.11641672764835342}
+Saving model...
+Model saved!
+-------------------------------------------
+-----------------------
+Epoch 2/100
+Training statistic: Loss: 107131074.9864, train_score: {'mae': 3681.6702, 'mse': 107131080.0, 'r2': -0.07125398592886345}
+Validation statistic: Loss: 73704872.3090, dev_score: {'mae': 2809.5085, 'mse': 73704870.0, 'r2': -0.05770297078192432}
+Saving model...
+Model saved!
+-------------------------------------------
+-----------------------
+Epoch 3/100
+Training statistic: Loss: 98780854.4886, train_score: {'mae': 3160.5989, 'mse': 98780856.0, 'r2': 0.012243811221271828}
+Validation statistic: Loss: 71586095.3518, dev_score: {'mae': 2764.5398, 'mse': 71586100.0, 'r2': -0.02729743454805611}
+Saving model...
+Model saved!
+-------------------------------------------
+-----------------------
+Epoch 4/100
+Training statistic: Loss: 93130634.3182, train_score: {'mae': 2834.9177, 'mse': 93130640.0, 'r2': 0.06874300833623426}
+Validation statistic: Loss: 72736076.2346, dev_score: {'mae': 3051.8633, 'mse': 72736070.0, 'r2': -0.043800218451122364}
+-----------------------
+Epoch 5/100
+Training statistic: Loss: 89248190.1091, train_score: {'mae': 2753.883, 'mse': 89248184.0, 'r2': 0.10756540720507857}
+Validation statistic: Loss: 76458023.1324, dev_score: {'mae': 3528.7478, 'mse': 76458020.0, 'r2': -0.09721208801819792}
+-----------------------
+Epoch 6/100
+Training statistic: Loss: 86594800.9349, train_score: {'mae': 2802.4966, 'mse': 86594810.0, 'r2': 0.13409791213610633}
+Validation statistic: Loss: 78127168.8247, dev_score: {'mae': 3853.6816, 'mse': 78127170.0, 'r2': -0.12116521109155731}
+-----------------------
+Epoch 7/100
+Training statistic: Loss: 133356183.7536, train_score: {'mae': 2973.0544, 'mse': 133356184.0, 'r2': -0.3334911236441147}
+Validation statistic: Loss: 102251164.1765, dev_score: {'mae': 4485.5454, 'mse': 102251160.0, 'r2': -0.4673569688646684}
+-----------------------
+Epoch 8/100
+Training statistic: Loss: 130800943.5695, train_score: {'mae': 3013.433, 'mse': 130800940.0, 'r2': -0.30794016579521766}
+Validation statistic: Loss: 98211099.5132, dev_score: {'mae': 4320.2236, 'mse': 98211096.0, 'r2': -0.40937997122070113}
+-----------------------
+Epoch 9/100
+Training statistic: Loss: 115734458.6681, train_score: {'mae': 3031.0808, 'mse': 115734450.0, 'r2': -0.15728321127989564}
+Validation statistic: Loss: 128865478.7541, dev_score: {'mae': 4650.2407, 'mse': 128865470.0, 'r2': -0.8492861359256414}
+-----------------------
+Epoch 10/100
+Training statistic: Loss: 222922926.9162, train_score: {'mae': 3084.6025, 'mse': 222922900.0, 'r2': -1.229111119099299}
+Validation statistic: Loss: 169387538.2598, dev_score: {'mae': 4969.3867, 'mse': 169387540.0, 'r2': -1.4307986976416762}
+-----------------------
+Epoch 11/100
+Training statistic: Loss: 182868973.4668, train_score: {'mae': 3080.871, 'mse': 182868960.0, 'r2': -0.8285928208777988}
+Validation statistic: Loss: 136838139.2333, dev_score: {'mae': 4766.728, 'mse': 136838140.0, 'r2': -0.9636979470701057}
+-----------------------
+Epoch 12/100
+Training statistic: Loss: 273257836.8583, train_score: {'mae': 3041.2605, 'mse': 273257900.0, 'r2': -1.7324336300724825}
+Validation statistic: Loss: 170265356.9533, dev_score: {'mae': 4707.2896, 'mse': 170265380.0, 'r2': -1.4433957702400813}
+-----------------------
+Epoch 13/100
+Training statistic: Loss: 377180175.7706, train_score: {'mae': 3134.8752, 'mse': 377180200.0, 'r2': -2.7716018196197627}
+Validation statistic: Loss: 230028924.5851, dev_score: {'mae': 4933.739, 'mse': 230028930.0, 'r2': -2.3010338889548123}
+-----------------------
+Epoch 14/100
+Training statistic: Loss: 1983731680.4180, train_score: {'mae': 3298.2563, 'mse': 1983731700.0, 'r2': -18.83626540794107}
+Validation statistic: Loss: 2510924710.6482, dev_score: {'mae': 6092.0503, 'mse': 2510924800.0, 'r2': -35.03306753419502}
+-----------------------
+Epoch 15/100
+Training statistic: Loss: 3010144219.5260, train_score: {'mae': 3934.433, 'mse': 3010144800.0, 'r2': -29.099846372323054}
+Validation statistic: Loss: 33852919411.8941, dev_score: {'mae': 11904.044, 'mse': 33852920000.0, 'r2': -484.8068447389213}
+-----------------------
+Epoch 16/100
+Training statistic: Loss: 16784115861.7659, train_score: {'mae': 4729.6177, 'mse': 16784118000.0, 'r2': -166.8322618618444}
+Validation statistic: Loss: 257867288163.0265, dev_score: {'mae': 22945.404, 'mse': 257867270000.0, 'r2': -3699.5288975512995}
+-----------------------
+Epoch 17/100
+Training statistic: Loss: 14335873890.4677, train_score: {'mae': 5559.239, 'mse': 14335873000.0, 'r2': -142.35114266451194}
+Validation statistic: Loss: 255704199992.1412, dev_score: {'mae': 22255.914, 'mse': 255704190000.0, 'r2': -3668.487095347879}
+-----------------------
+Epoch 18/100
+Training statistic: Loss: 18901777253.2088, train_score: {'mae': 5573.13, 'mse': 18901776000.0, 'r2': -188.00775397852706}
+Validation statistic: Loss: 53458782781.9823, dev_score: {'mae': 14566.407, 'mse': 53458784000.0, 'r2': -766.1611434185683}
+-----------------------
+Epoch 19/100
+Training statistic: Loss: 97862952412.4329, train_score: {'mae': 5213.9595, 'mse': 97862950000.0, 'r2': -977.5776315739025}
+Validation statistic: Loss: 20632522054.6179, dev_score: {'mae': 11104.793, 'mse': 20632523000.0, 'r2': -295.0873433008958}
+-----------------------
+Epoch 20/100
+Training statistic: Loss: 13108685471.1754, train_score: {'mae': 4855.9375, 'mse': 13108684000.0, 'r2': -130.0799017439548}
+Validation statistic: Loss: 24051025117.4981, dev_score: {'mae': 11648.489, 'mse': 24051026000.0, 'r2': -344.1446220665483}
+-----------------------
+Epoch 21/100
+Training statistic: Loss: 11307898669.9563, train_score: {'mae': 5505.0923, 'mse': 11307899000.0, 'r2': -112.0729898812553}
+Validation statistic: Loss: 83344257821.4577, dev_score: {'mae': 19251.568, 'mse': 83344260000.0, 'r2': -1195.033178119835}
+-----------------------
+Epoch 22/100
+Training statistic: Loss: 8556224893.2716, train_score: {'mae': 4502.591, 'mse': 8556225000.0, 'r2': -84.55771774630718}
+Validation statistic: Loss: 51562847985.4729, dev_score: {'mae': 14563.15, 'mse': 51562852000.0, 'r2': -738.9534691856832}
+-----------------------
+Epoch 23/100
+Training statistic: Loss: 303697086592.3680, train_score: {'mae': 9478.566, 'mse': 303697170000.0, 'r2': -3035.8101830296364}
+Validation statistic: Loss: 374581935168.7264, dev_score: {'mae': 36539.027, 'mse': 374581900000.0, 'r2': -5374.443962953733}
+-----------------------
+Epoch 24/100
+Training statistic: Loss: 98122995735.3163, train_score: {'mae': 6072.458, 'mse': 98123000000.0, 'r2': -980.1780994771256}
+Validation statistic: Loss: 217491818953.4628, dev_score: {'mae': 23896.846, 'mse': 217491830000.0, 'r2': -3120.1199788562044}
+-----------------------
+Epoch 25/100
+Training statistic: Loss: 86609131278.2152, train_score: {'mae': 8363.432, 'mse': 86609125000.0, 'r2': -865.0454305642013}
+Validation statistic: Loss: 364314948161.4527, dev_score: {'mae': 26462.318, 'mse': 364314950000.0, 'r2': -5227.107075416794}
+-----------------------
+Epoch 26/100
+Training statistic: Loss: 81742068714.0516, train_score: {'mae': 7599.274, 'mse': 81742070000.0, 'r2': -816.3773694404665}
+Validation statistic: Loss: 267601096707.0063, dev_score: {'mae': 20669.846, 'mse': 267601120000.0, 'r2': -3839.214084294044}
+-----------------------
+Epoch 27/100
+Training statistic: Loss: 28279163579.4696, train_score: {'mae': 5063.9116, 'mse': 28279159000.0, 'r2': -281.7766353141939}
+Validation statistic: Loss: 35253756934.1639, dev_score: {'mae': 11263.129, 'mse': 35253760000.0, 'r2': -504.90959983757426}
+-----------------------
+Epoch 28/100
+Training statistic: Loss: 7167413755.6328, train_score: {'mae': 4326.7275, 'mse': 7167414300.0, 'r2': -70.67034085343025}
+Validation statistic: Loss: 1566611675.1122, dev_score: {'mae': 7238.589, 'mse': 1566611700.0, 'r2': -21.481685974959298}
+-----------------------
+Epoch 29/100
+Training statistic: Loss: 360659019219.6213, train_score: {'mae': 8857.481, 'mse': 360658930000.0, 'r2': -3605.399151929864}
+Validation statistic: Loss: 156316594243.8512, dev_score: {'mae': 16297.308, 'mse': 156316600000.0, 'r2': -2242.2239514650782}
+-----------------------
+Epoch 30/100
+Training statistic: Loss: 277165675947.8864, train_score: {'mae': 7221.828, 'mse': 277165700000.0, 'r2': -2770.510097326878}
+Validation statistic: Loss: 4199666992.8222, dev_score: {'mae': 6955.5454, 'mse': 4199667000.0, 'r2': -59.267388558470614}
+-----------------------
+Epoch 31/100
+Training statistic: Loss: 55444729882.1528, train_score: {'mae': 5916.29, 'mse': 55444730000.0, 'r2': -553.417920937375}
+Validation statistic: Loss: 992095014.7339, dev_score: {'mae': 5786.2876, 'mse': 992094850.0, 'r2': -13.237075254097906}
+-----------------------
+Epoch 32/100
+Training statistic: Loss: 42051813976.1536, train_score: {'mae': 5037.509, 'mse': 42051820000.0, 'r2': -419.4958696437257}
+Validation statistic: Loss: 693968253.8966, dev_score: {'mae': 5034.3984, 'mse': 693968260.0, 'r2': -8.958802919901784}
+-----------------------
+Epoch 33/100
+Training statistic: Loss: 2590576159114.9067, train_score: {'mae': 15742.545, 'mse': 2590576700000.0, 'r2': -25903.38912291216}
+Validation statistic: Loss: 6444993814.8979, dev_score: {'mae': 7184.367, 'mse': 6444994600.0, 'r2': -91.48898638978972}
+-----------------------
+Epoch 34/100
+Training statistic: Loss: 6976033027.4456, train_score: {'mae': 4158.8184, 'mse': 6976033300.0, 'r2': -68.75663498034434}
+Validation statistic: Loss: 10027668106.4565, dev_score: {'mae': 7264.0654, 'mse': 10027668000.0, 'r2': -142.90221770234217}
+Early stopping (loss) triggered!
+Early stopping by loss
+Testing statistic: loss: 90778045.44835414, scores: {'mae': 2731.601, 'mse': 90778050.0, 'r2': -0.008927065363385278}
+Finish training!
