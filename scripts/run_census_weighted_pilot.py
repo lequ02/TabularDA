@@ -80,6 +80,8 @@ def preflight():
     assert torch.allclose(loss, expected)
     loss.backward()
     assert torch.isfinite(loss) and torch.isfinite(logits.grad).all()
+    import numpy as np
+    assert json.loads(json.dumps({"resolved": bool(np.float64(1.) > 0)}))["resolved"] is True
     return result
 
 
@@ -183,7 +185,7 @@ def run_arm(seed, arm):
         "test_loss_definition": "weighted BCE using this arm's training pos_weight",
         "selected_development": pilot.dev_diagnostics,
         "test_diagnostics": pilot.test_diagnostics,
-        "development_collapse_resolved": (
+        "development_collapse_resolved": bool(
             0 < pilot.dev_diagnostics["predicted_positive"] < pilot.dev_diagnostics["rows"]
             and pilot.dev_diagnostics["scores"]["recall_binary"] > 0)}
     record_path.write_text(json.dumps(record, indent=2))
@@ -193,6 +195,7 @@ def run_arm(seed, arm):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--check-only", action="store_true")
+    parser.add_argument("--resume", action="store_true")
     parser.add_argument("--seed", type=int, choices=(42,))
     parser.add_argument("--arm", choices=ARMS)
     args = parser.parse_args()
@@ -205,12 +208,30 @@ def main():
     else:
         checks = preflight()
         output = ROOT / "output" / NAMESPACE
-        output.mkdir(exist_ok=False)
-        (output / "preflight.json").write_text(json.dumps(checks, indent=2))
+        if args.resume:
+            previous = json.loads((output / "preflight.json").read_text())
+            assert previous["input_sha256"] == checks["input_sha256"]
+            (output / "resume_preflight.json").write_text(json.dumps(checks, indent=2))
+        else:
+            output.mkdir(exist_ok=False)
+            (output / "preflight.json").write_text(json.dumps(checks, indent=2))
         logs = output / "logs"
-        logs.mkdir()
+        logs.mkdir(exist_ok=args.resume)
         for seed in (42,):
             for arm in ARMS:
+                if args.resume:
+                    mode, method = ARMS[arm]
+                    name = (f"census_kdd_seed{seed}_real_original" if method is None
+                            else f"census_kdd_seed{seed}_ctgan_{'full' if method == 'compare_dnn' else 'xonly'}_dnn_synthetic")
+                    saved = output / "census_kdd/acc" / (name + ".run.json")
+                    if saved.exists():
+                        record = json.loads(saved.read_text())
+                        assert record["pilot_protocol"]["objective"] == "BCEWithLogitsLoss"
+                        assert record["selection_metric"] == "f1_macro"
+                        assert Path(record["downstream_weight_path"]).is_file()
+                        assert Path(record["predictions_path"]).is_file()
+                        print(f"{now()} PRESERVED seed={seed} arm={arm}", flush=True)
+                        continue
                 command = [sys.executable, "-u", str(Path(__file__).resolve()),
                            "--seed", str(seed), "--arm", arm]
                 print(f"{now()} START seed={seed} arm={arm}", flush=True)
