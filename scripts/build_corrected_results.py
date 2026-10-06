@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from run_corrected_matrix import DATASETS, SEEDS, methods_for
 
 
-def expected_runs(matrix='full'):
+def expected_runs(matrix='full', generators=('ctgan', 'tvae')):
     expected = set()
     if matrix == 'pilot':
         from run_corrected_pilot import DATASETS as pilot_datasets, METHODS, SEED
@@ -22,14 +22,14 @@ def expected_runs(matrix='full'):
     for dataset in DATASETS:
         for seed in SEEDS:
             expected.add((dataset, "original", None, seed))
-            for generator in ("ctgan", "tvae"):
+            for generator in generators:
                 for method in methods_for(dataset, generator):
                     for mode in ("synthetic", "mix"):
                         expected.add((dataset, mode, method, seed))
     return expected
 
 
-def build(run_root, output_root, matrix='full'):
+def build(run_root, output_root, matrix='full', generators=('ctgan', 'tvae')):
     records = sorted(run_root.rglob("*.run.json"))
     if not records:
         raise ValueError(f"No corrected run records found under {run_root}")
@@ -68,7 +68,7 @@ def build(run_root, output_root, matrix='full'):
         row.update(record["test_scores"])
         rows.append(row)
 
-    planned = expected_runs(matrix)
+    planned = expected_runs(matrix, generators)
     missing = planned - keys
     unexpected = keys - planned
     if missing or unexpected:
@@ -112,5 +112,7 @@ if __name__ == "__main__":
     parser.add_argument("--runs", type=Path, default=Path("output/corrected_v2"))
     parser.add_argument("--out", type=Path, default=Path("output/corrected_v2/results"))
     parser.add_argument("--matrix", choices=('full', 'pilot'), default='full')
+    parser.add_argument('--generators', nargs='+', choices=('ctgan', 'tvae', 'tabddpm'),
+                        default=('ctgan', 'tvae'))
     arguments = parser.parse_args()
-    build(arguments.runs, arguments.out, arguments.matrix)
+    build(arguments.runs, arguments.out, arguments.matrix, tuple(arguments.generators))

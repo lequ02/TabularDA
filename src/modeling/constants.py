@@ -9,10 +9,11 @@ RUN_NAMESPACE = os.environ.get('CORRECTED_RUN_NAMESPACE', 'corrected_v2')
 
 
 def method_parts(method):
-    if method in ('ctgan', 'tvae'):
+    if method in ('ctgan', 'tvae', 'tabddpm'):
         return method, 'full', 'generated'
-    generator = 'tvae' if method.startswith('tvae_') else 'ctgan'
-    label = method.removeprefix('tvae_')
+    generator = ('tabddpm' if method.startswith('tabddpm_') else
+                 'tvae' if method.startswith('tvae_') else 'ctgan')
+    label = method.removeprefix(generator + '_') if generator != 'ctgan' else method
     if label.startswith('compare_'):
         return generator, 'full', label.removeprefix('compare_')
     return generator, 'xonly', label
@@ -39,9 +40,9 @@ def run_name(dataset, seed, mode, method):
 
 def create_path_dict(dataset_name, target_name):
     root = PROJECT_ROOT / 'data' / RUN_NAMESPACE / dataset_name / 'seed_{seed}'
-    methods = {'ctgan', 'tvae'}
-    for generator in ('ctgan', 'tvae'):
-        prefix = '' if generator == 'ctgan' else 'tvae_'
+    methods = {'ctgan', 'tvae', 'tabddpm'}
+    for generator in ('ctgan', 'tvae', 'tabddpm'):
+        prefix = '' if generator == 'ctgan' else generator + '_'
         for label in ('gaussian', 'categorical', 'pca_gmm', 'rf', 'xgb', 'dnn'):
             methods.add(prefix + label)
             methods.add(prefix + 'compare_' + label)
