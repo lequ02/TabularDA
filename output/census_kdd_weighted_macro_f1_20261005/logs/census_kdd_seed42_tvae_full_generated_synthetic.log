@@ -1,0 +1,453 @@
+=====Setting up data=====
+Dataset name:census_kdd
+train_option:synthetic
+augment_option:tvae
+mix_ratio:-1
+n_sample:-1
+Training dataset size: 100096 samples
+Validation dataset size: 18176 samples
+
+=====Setting up parameters for training=====
+num_epochs: 100
+learning_rate: 0.001
+patience: 30
+early_stop_criterion: f1_macro
+=====Setting up trainer=====
+input_size: 372
+model: DNN_Census
+----------------------------------------------------------------
+        Layer (type)               Output Shape         Param #
+================================================================
+            Linear-1                  [-1, 256]          95,488
+       BatchNorm1d-2                  [-1, 256]             512
+              ReLU-3                  [-1, 256]               0
+           Dropout-4                  [-1, 256]               0
+            Linear-5                  [-1, 128]          32,896
+       BatchNorm1d-6                  [-1, 128]             256
+              ReLU-7                  [-1, 128]               0
+           Dropout-8                  [-1, 128]               0
+            Linear-9                   [-1, 64]           8,256
+      BatchNorm1d-10                   [-1, 64]             128
+             ReLU-11                   [-1, 64]               0
+          Dropout-12                   [-1, 64]               0
+           Linear-13                   [-1, 32]           2,080
+      BatchNorm1d-14                   [-1, 32]              64
+             ReLU-15                   [-1, 32]               0
+          Dropout-16                   [-1, 32]               0
+           Linear-17                    [-1, 1]              33
+          Sigmoid-18                    [-1, 1]               0
+================================================================
+Total params: 139,713
+Trainable params: 139,713
+Non-trainable params: 0
+----------------------------------------------------------------
+Input size (MB): 0.00
+Forward/backward pass size (MB): 0.01
+Params size (MB): 0.53
+Estimated Total Size (MB): 0.55
+----------------------------------------------------------------
+PILOT training_counts={'0': 98542, '1': 1458} pos_weight=67.58710562414267
+=====Setting up output files=====
+weight_dir, weight_file: /home/thuy/Research/minh_data_synth/TabularDA/output/census_kdd_weighted_macro_f1_20261005/census_kdd/weight/, census_kdd_seed42_tvae_full_generated_synthetic.weights.pth
+acc_dir, acc_file: /home/thuy/Research/minh_data_synth/TabularDA/output/census_kdd_weighted_macro_f1_20261005/census_kdd/acc/, census_kdd_seed42_tvae_full_generated_synthetic.epochs.csv
+report_file: census_kdd_seed42_tvae_full_generated_synthetic.report.txt
+==========================================================================================
+Start training...
+-----------------------
+Epoch 1/100
+PILOT development {"rows": 18076, "predicted_positive": 3803, "positive_rate": 0.21038946669617173, "probability_min": 0.0006998995668254793, "probability_max": 0.9998995065689087, "scores": {"accuracy": 0.8318211993803939, "balanced_accuracy": 0.8321873862337925, "f1_macro": 0.6442144669565989, "f1_binary": 0.38585858585858585, "pr_auc": 0.46400767698573897, "precision_binary": 0.2511175387851696, "recall_binary": 0.8326068003487358, "roc_auc": 0.888061287608543}}
+Training statistic: Loss: 0.4834, train_score: {'accuracy': 0.83321, 'balanced_accuracy': 0.9113167722012456, 'f1_macro': 0.5276644326519668, 'f1_binary': 0.1477696591896173, 'pr_auc': 0.430935424150724, 'precision_binary': 0.07983216474355435, 'recall_binary': 0.9917695473251029, 'roc_auc': 0.9786907723664526}
+Validation statistic: Loss: 2.1788, dev_score: {'accuracy': 0.8318211993803939, 'balanced_accuracy': 0.8321873862337925, 'f1_macro': 0.6442144669565989, 'f1_binary': 0.38585858585858585, 'pr_auc': 0.46400767698573897, 'precision_binary': 0.2511175387851696, 'recall_binary': 0.8326068003487358, 'roc_auc': 0.888061287608543}
+Saving model...
+Model saved!
+-------------------------------------------
+-----------------------
+Epoch 2/100
+PILOT development {"rows": 18076, "predicted_positive": 3167, "positive_rate": 0.1752046913033857, "probability_min": 0.00011967375758104026, "probability_max": 1.0, "scores": {"accuracy": 0.8623589289665855, "balanced_accuracy": 0.8314226146710584, "f1_macro": 0.6725637261398929, "f1_binary": 0.4232730644413537, "pr_auc": 0.4967269072531747, "precision_binary": 0.28828544363751185, "recall_binary": 0.7959895379250218, "roc_auc": 0.9084438917489285}}
+Training statistic: Loss: 0.3417, train_score: {'accuracy': 0.87846, 'balanced_accuracy': 0.9298843252592621, 'f1_macro': 0.5625539249285811, 'f1_binary': 0.19081225033288948, 'pr_auc': 0.4977845192387398, 'precision_binary': 0.10566288158088777, 'recall_binary': 0.9828532235939643, 'roc_auc': 0.982896234088901}
+Validation statistic: Loss: 2.9921, dev_score: {'accuracy': 0.8623589289665855, 'balanced_accuracy': 0.8314226146710584, 'f1_macro': 0.6725637261398929, 'f1_binary': 0.4232730644413537, 'pr_auc': 0.4967269072531747, 'precision_binary': 0.28828544363751185, 'recall_binary': 0.7959895379250218, 'roc_auc': 0.9084438917489285}
+Saving model...
+Model saved!
+-------------------------------------------
+-----------------------
+Epoch 3/100
+PILOT development {"rows": 18076, "predicted_positive": 3103, "positive_rate": 0.17166408497455188, "probability_min": 0.00010373969416832551, "probability_max": 1.0, "scores": {"accuracy": 0.8649037397654348, "balanced_accuracy": 0.8291237680032246, "f1_macro": 0.6744324198740997, "f1_binary": 0.4254117647058824, "pr_auc": 0.5052259635650185, "precision_binary": 0.2913309700290042, "recall_binary": 0.7881429816913688, "roc_auc": 0.9089241013406264}}
+Training statistic: Loss: 0.3129, train_score: {'accuracy': 0.88158, 'balanced_accuracy': 0.9338324374315796, 'f1_macro': 0.5658554142146364, 'f1_binary': 0.19562559434859395, 'pr_auc': 0.527300226810374, 'precision_binary': 0.10856453558504221, 'recall_binary': 0.9876543209876543, 'roc_auc': 0.9845330863635148}
+Validation statistic: Loss: 3.4483, dev_score: {'accuracy': 0.8649037397654348, 'balanced_accuracy': 0.8291237680032246, 'f1_macro': 0.6744324198740997, 'f1_binary': 0.4254117647058824, 'pr_auc': 0.5052259635650185, 'precision_binary': 0.2913309700290042, 'recall_binary': 0.7881429816913688, 'roc_auc': 0.9089241013406264}
+Saving model...
+Model saved!
+-------------------------------------------
+-----------------------
+Epoch 4/100
+PILOT development {"rows": 18076, "predicted_positive": 3046, "positive_rate": 0.16851073246293427, "probability_min": 1.722100648748892e-07, "probability_max": 1.0, "scores": {"accuracy": 0.8698273954414694, "balanced_accuracy": 0.8382545482149331, "f1_macro": 0.6826005165051421, "f1_binary": 0.43882661578821847, "pr_auc": 0.519456797289978, "precision_binary": 0.3020354563361786, "recall_binary": 0.8020924149956408, "roc_auc": 0.9134287860943209}}
+Training statistic: Loss: 0.2959, train_score: {'accuracy': 0.8835, 'balanced_accuracy': 0.9361580875223864, 'f1_macro': 0.5679178532810707, 'f1_binary': 0.19865180905213922, 'pr_auc': 0.5314186041485698, 'precision_binary': 0.11039755351681957, 'recall_binary': 0.99039780521262, 'roc_auc': 0.9851591415457397}
+Validation statistic: Loss: 3.7724, dev_score: {'accuracy': 0.8698273954414694, 'balanced_accuracy': 0.8382545482149331, 'f1_macro': 0.6826005165051421, 'f1_binary': 0.43882661578821847, 'pr_auc': 0.519456797289978, 'precision_binary': 0.3020354563361786, 'recall_binary': 0.8020924149956408, 'roc_auc': 0.9134287860943209}
+Saving model...
+Model saved!
+-------------------------------------------
+-----------------------
+Epoch 5/100
+PILOT development {"rows": 18076, "predicted_positive": 2767, "positive_rate": 0.15307590174817437, "probability_min": 3.287356609149583e-09, "probability_max": 1.0, "scores": {"accuracy": 0.8795087408718744, "balanced_accuracy": 0.8222911907122434, "f1_macro": 0.687988001096723, "f1_binary": 0.44353602452733776, "pr_auc": 0.5028734624405758, "precision_binary": 0.3136971449222985, "recall_binary": 0.7567567567567568, "roc_auc": 0.8961014314721163}}
+Training statistic: Loss: 0.2855, train_score: {'accuracy': 0.90584, 'balanced_accuracy': 0.9447904633367947, 'f1_macro': 0.5917810040558587, 'f1_binary': 0.23372395833333334, 'pr_auc': 0.5282491624459476, 'precision_binary': 0.13259464450600184, 'recall_binary': 0.9849108367626886, 'roc_auc': 0.9853459739295221}
+Validation statistic: Loss: 4.8554, dev_score: {'accuracy': 0.8795087408718744, 'balanced_accuracy': 0.8222911907122434, 'f1_macro': 0.687988001096723, 'f1_binary': 0.44353602452733776, 'pr_auc': 0.5028734624405758, 'precision_binary': 0.3136971449222985, 'recall_binary': 0.7567567567567568, 'roc_auc': 0.8961014314721163}
+Saving model...
+Model saved!
+-------------------------------------------
+-----------------------
+Epoch 6/100
+PILOT development {"rows": 18076, "predicted_positive": 2958, "positive_rate": 0.1636423987607878, "probability_min": 2.1173866241155963e-16, "probability_max": 1.0, "scores": {"accuracy": 0.8714870546581102, "balanced_accuracy": 0.827355446200947, "f1_macro": 0.680808733001662, "f1_binary": 0.4341047503045067, "pr_auc": 0.5058190145614507, "precision_binary": 0.3012170385395537, "recall_binary": 0.7768090671316478, "roc_auc": 0.9002735564705004}}
+Training statistic: Loss: 0.2886, train_score: {'accuracy': 0.89069, 'balanced_accuracy': 0.94048200124064, 'f1_macro': 0.5752517889889698, 'f1_binary': 0.20921652318599435, 'pr_auc': 0.5348224221091494, 'precision_binary': 0.11694298422968055, 'recall_binary': 0.9917695473251029, 'roc_auc': 0.9856589423590183}
+Validation statistic: Loss: 4.7557, dev_score: {'accuracy': 0.8714870546581102, 'balanced_accuracy': 0.827355446200947, 'f1_macro': 0.680808733001662, 'f1_binary': 0.4341047503045067, 'pr_auc': 0.5058190145614507, 'precision_binary': 0.3012170385395537, 'recall_binary': 0.7768090671316478, 'roc_auc': 0.9002735564705004}
+-----------------------
+Epoch 7/100
+PILOT development {"rows": 18076, "predicted_positive": 2946, "positive_rate": 0.16297853507413146, "probability_min": 5.496856293563428e-18, "probability_max": 1.0, "scores": {"accuracy": 0.873036069926975, "balanced_accuracy": 0.8314335068721034, "f1_macro": 0.6838499124739372, "f1_binary": 0.4392865868556071, "pr_auc": 0.5129239082538553, "precision_binary": 0.30515953835709436, "recall_binary": 0.7837837837837838, "roc_auc": 0.9119013287094782}}
+Training statistic: Loss: 0.2827, train_score: {'accuracy': 0.89223, 'balanced_accuracy': 0.9412633939462883, 'f1_macro': 0.5768678501000071, 'f1_binary': 0.21157363376984417, 'pr_auc': 0.5391017526858597, 'precision_binary': 0.11841781999836214, 'recall_binary': 0.9917695473251029, 'roc_auc': 0.9859341099958938}
+Validation statistic: Loss: 4.4454, dev_score: {'accuracy': 0.873036069926975, 'balanced_accuracy': 0.8314335068721034, 'f1_macro': 0.6838499124739372, 'f1_binary': 0.4392865868556071, 'pr_auc': 0.5129239082538553, 'precision_binary': 0.30515953835709436, 'recall_binary': 0.7837837837837838, 'roc_auc': 0.9119013287094782}
+-----------------------
+Epoch 8/100
+PILOT development {"rows": 18076, "predicted_positive": 2780, "positive_rate": 0.15379508740871875, "probability_min": 2.807744441327279e-18, "probability_max": 1.0, "scores": {"accuracy": 0.8786789112635539, "balanced_accuracy": 0.821441779279923, "f1_macro": 0.6867528437427584, "f1_binary": 0.44155844155844154, "pr_auc": 0.5095470464571147, "precision_binary": 0.3118705035971223, "recall_binary": 0.7558849171752398, "roc_auc": 0.9028477209009182}}
+Training statistic: Loss: 0.2826, train_score: {'accuracy': 0.9067, 'balanced_accuracy': 0.9442132408485541, 'f1_macro': 0.5926578136537105, 'f1_binary': 0.2349950803542145, 'pr_auc': 0.5306835038855724, 'precision_binary': 0.1334512944682436, 'recall_binary': 0.9828532235939643, 'roc_auc': 0.9854391047536177}
+Validation statistic: Loss: 5.0032, dev_score: {'accuracy': 0.8786789112635539, 'balanced_accuracy': 0.821441779279923, 'f1_macro': 0.6867528437427584, 'f1_binary': 0.44155844155844154, 'pr_auc': 0.5095470464571147, 'precision_binary': 0.3118705035971223, 'recall_binary': 0.7558849171752398, 'roc_auc': 0.9028477209009182}
+-----------------------
+Epoch 9/100
+PILOT development {"rows": 18076, "predicted_positive": 2826, "positive_rate": 0.15633989820756805, "probability_min": 1.255435603243885e-21, "probability_max": 1.0, "scores": {"accuracy": 0.8776831157335694, "balanced_accuracy": 0.8265995325984008, "f1_macro": 0.6873920874601782, "f1_binary": 0.44349358167631514, "pr_auc": 0.512525801380119, "precision_binary": 0.31174805378627035, "recall_binary": 0.7680906713164778, "roc_auc": 0.909172458974383}}
+Training statistic: Loss: 0.2740, train_score: {'accuracy': 0.90202, 'balanced_accuracy': 0.9448793728055739, 'f1_macro': 0.5875510767982269, 'f1_binary': 0.2274089260369027, 'pr_auc': 0.5426463411244951, 'precision_binary': 0.12847469707769066, 'recall_binary': 0.9890260631001372, 'roc_auc': 0.9862202503725163}
+Validation statistic: Loss: 4.8711, dev_score: {'accuracy': 0.8776831157335694, 'balanced_accuracy': 0.8265995325984008, 'f1_macro': 0.6873920874601782, 'f1_binary': 0.44349358167631514, 'pr_auc': 0.512525801380119, 'precision_binary': 0.31174805378627035, 'recall_binary': 0.7680906713164778, 'roc_auc': 0.909172458974383}
+-----------------------
+Epoch 10/100
+PILOT development {"rows": 18076, "predicted_positive": 2767, "positive_rate": 0.15307590174817437, "probability_min": 3.3140650599965266e-26, "probability_max": 1.0, "scores": {"accuracy": 0.8799513166629785, "balanced_accuracy": 0.824153010344295, "f1_macro": 0.6891340506794715, "f1_binary": 0.4455799693408278, "pr_auc": 0.5187002693998056, "precision_binary": 0.31514275388507407, "recall_binary": 0.7602441150828247, "roc_auc": 0.9101800519457566}}
+Training statistic: Loss: 0.2658, train_score: {'accuracy': 0.90369, 'balanced_accuracy': 0.9467403118816654, 'f1_macro': 0.5897205742746939, 'f1_binary': 0.2308122354444533, 'pr_auc': 0.5541181990457198, 'precision_binary': 0.1306155653981741, 'recall_binary': 0.9910836762688614, 'roc_auc': 0.9868193243776846}
+Validation statistic: Loss: 4.5570, dev_score: {'accuracy': 0.8799513166629785, 'balanced_accuracy': 0.824153010344295, 'f1_macro': 0.6891340506794715, 'f1_binary': 0.4455799693408278, 'pr_auc': 0.5187002693998056, 'precision_binary': 0.31514275388507407, 'recall_binary': 0.7602441150828247, 'roc_auc': 0.9101800519457566}
+Saving model...
+Model saved!
+-------------------------------------------
+-----------------------
+Epoch 11/100
+PILOT development {"rows": 18076, "predicted_positive": 2476, "positive_rate": 0.13697720734675814, "probability_min": 6.318620941055765e-17, "probability_max": 1.0, "scores": {"accuracy": 0.8917348971011285, "balanced_accuracy": 0.8145949880528263, "f1_macro": 0.6998391049046899, "f1_binary": 0.4598399116754071, "pr_auc": 0.5136977558718532, "precision_binary": 0.3364297253634895, "recall_binary": 0.7262423714036618, "roc_auc": 0.9022320411680911}}
+Training statistic: Loss: 0.2613, train_score: {'accuracy': 0.91949, 'balanced_accuracy': 0.9500271363892967, 'f1_macro': 0.6098388704270532, 'f1_binary': 0.2622560249244021, 'pr_auc': 0.5555207021631348, 'precision_binary': 0.15134849286092014, 'recall_binary': 0.9814814814814815, 'roc_auc': 0.9869762975457896}
+Validation statistic: Loss: 6.0608, dev_score: {'accuracy': 0.8917348971011285, 'balanced_accuracy': 0.8145949880528263, 'f1_macro': 0.6998391049046899, 'f1_binary': 0.4598399116754071, 'pr_auc': 0.5136977558718532, 'precision_binary': 0.3364297253634895, 'recall_binary': 0.7262423714036618, 'roc_auc': 0.9022320411680911}
+Saving model...
+Model saved!
+-------------------------------------------
+-----------------------
+Epoch 12/100
+PILOT development {"rows": 18076, "predicted_positive": 2548, "positive_rate": 0.14096038946669617, "probability_min": 1.8958012306918976e-21, "probability_max": 1.0, "scores": {"accuracy": 0.8889687984067272, "balanced_accuracy": 0.8175884635986503, "f1_macro": 0.6974989496876954, "f1_binary": 0.4568335588633288, "pr_auc": 0.5088154154389877, "precision_binary": 0.33124018838304553, "recall_binary": 0.7358326068003488, "roc_auc": 0.8968867514424959}}
+Training statistic: Loss: 0.2545, train_score: {'accuracy': 0.91809, 'balanced_accuracy': 0.95168181023075, 'f1_macro': 0.6082588486986014, 'f1_binary': 0.25987169061172855, 'pr_auc': 0.5605422794566471, 'precision_binary': 0.14965136850868976, 'recall_binary': 0.9862825788751715, 'roc_auc': 0.9871780838980763}
+Validation statistic: Loss: 6.1568, dev_score: {'accuracy': 0.8889687984067272, 'balanced_accuracy': 0.8175884635986503, 'f1_macro': 0.6974989496876954, 'f1_binary': 0.4568335588633288, 'pr_auc': 0.5088154154389877, 'precision_binary': 0.33124018838304553, 'recall_binary': 0.7358326068003488, 'roc_auc': 0.8968867514424959}
+-----------------------
+Epoch 13/100
+PILOT development {"rows": 18076, "predicted_positive": 2616, "positive_rate": 0.1447222836910821, "probability_min": 1.9947204562714254e-19, "probability_max": 1.0, "scores": {"accuracy": 0.8864239876078779, "balanced_accuracy": 0.8207000796134922, "f1_macro": 0.6955194719007063, "f1_binary": 0.45442466117459474, "pr_auc": 0.5128864087104343, "precision_binary": 0.3268348623853211, "recall_binary": 0.7454228421970357, "roc_auc": 0.9004718048294732}}
+Training statistic: Loss: 0.2613, train_score: {'accuracy': 0.90943, 'balanced_accuracy': 0.9489770525036931, 'f1_macro': 0.596743448624141, 'f1_binary': 0.24164782717910072, 'pr_auc': 0.5609860161858724, 'precision_binary': 0.13762517882689557, 'recall_binary': 0.9897119341563786, 'roc_auc': 0.9872945209188375}
+Validation statistic: Loss: 6.0832, dev_score: {'accuracy': 0.8864239876078779, 'balanced_accuracy': 0.8207000796134922, 'f1_macro': 0.6955194719007063, 'f1_binary': 0.45442466117459474, 'pr_auc': 0.5128864087104343, 'precision_binary': 0.3268348623853211, 'recall_binary': 0.7454228421970357, 'roc_auc': 0.9004718048294732}
+-----------------------
+Epoch 14/100
+PILOT development {"rows": 18076, "predicted_positive": 2436, "positive_rate": 0.134764328391237, "probability_min": 9.536268312280642e-26, "probability_max": 1.0, "scores": {"accuracy": 0.8922881168400089, "balanced_accuracy": 0.8087945691228091, "f1_macro": 0.6984099204413924, "f1_binary": 0.45660061401060564, "pr_auc": 0.5024783307499703, "precision_binary": 0.33579638752052543, "recall_binary": 0.7131647776809067, "roc_auc": 0.8963296784462602}}
+Training statistic: Loss: 0.2572, train_score: {'accuracy': 0.92332, 'balanced_accuracy': 0.9516326086466887, 'f1_macro': 0.6155930876089382, 'f1_binary': 0.2716565349544073, 'pr_auc': 0.5513151017100385, 'precision_binary': 0.15766262403528114, 'recall_binary': 0.9807956104252401, 'roc_auc': 0.9873252501582817}
+Validation statistic: Loss: 6.3435, dev_score: {'accuracy': 0.8922881168400089, 'balanced_accuracy': 0.8087945691228091, 'f1_macro': 0.6984099204413924, 'f1_binary': 0.45660061401060564, 'pr_auc': 0.5024783307499703, 'precision_binary': 0.33579638752052543, 'recall_binary': 0.7131647776809067, 'roc_auc': 0.8963296784462602}
+-----------------------
+Epoch 15/100
+PILOT development {"rows": 18076, "predicted_positive": 2368, "positive_rate": 0.13100243416685106, "probability_min": 8.522930218567495e-17, "probability_max": 1.0, "scores": {"accuracy": 0.894611639743306, "balanced_accuracy": 0.8047520432919415, "f1_macro": 0.6998338244679578, "f1_binary": 0.45803698435277385, "pr_auc": 0.49840464668067214, "precision_binary": 0.33994932432432434, "recall_binary": 0.7018308631211857, "roc_auc": 0.8897908300851142}}
+Training statistic: Loss: 0.2649, train_score: {'accuracy': 0.92874, 'balanced_accuracy': 0.9537069819532571, 'f1_macro': 0.6243066483241707, 'f1_binary': 0.2861150070126227, 'pr_auc': 0.5493566111725974, 'precision_binary': 0.16752698263725951, 'recall_binary': 0.9794238683127572, 'roc_auc': 0.9870868253651267}
+Validation statistic: Loss: 7.5216, dev_score: {'accuracy': 0.894611639743306, 'balanced_accuracy': 0.8047520432919415, 'f1_macro': 0.6998338244679578, 'f1_binary': 0.45803698435277385, 'pr_auc': 0.49840464668067214, 'precision_binary': 0.33994932432432434, 'recall_binary': 0.7018308631211857, 'roc_auc': 0.8897908300851142}
+-----------------------
+Epoch 16/100
+PILOT development {"rows": 18076, "predicted_positive": 2442, "positive_rate": 0.13509626023456517, "probability_min": 7.632795265712785e-25, "probability_max": 1.0, "scores": {"accuracy": 0.8930626244744413, "balanced_accuracy": 0.8132719074994117, "f1_macro": 0.7010240055312715, "f1_binary": 0.46140986347171914, "pr_auc": 0.5019447965689621, "precision_binary": 0.33906633906633904, "recall_binary": 0.7218831734960767, "roc_auc": 0.8980040646707314}}
+Training statistic: Loss: 0.2476, train_score: {'accuracy': 0.92493, 'balanced_accuracy': 0.954814550049182, 'f1_macro': 0.6186310132666779, 'f1_binary': 0.27685194104614197, 'pr_auc': 0.5514426706411498, 'precision_binary': 0.16104449176286004, 'recall_binary': 0.98559670781893, 'roc_auc': 0.9876197671237312}
+Validation statistic: Loss: 6.9814, dev_score: {'accuracy': 0.8930626244744413, 'balanced_accuracy': 0.8132719074994117, 'f1_macro': 0.7010240055312715, 'f1_binary': 0.46140986347171914, 'pr_auc': 0.5019447965689621, 'precision_binary': 0.33906633906633904, 'recall_binary': 0.7218831734960767, 'roc_auc': 0.8980040646707314}
+Saving model...
+Model saved!
+-------------------------------------------
+-----------------------
+Epoch 17/100
+PILOT development {"rows": 18076, "predicted_positive": 2499, "positive_rate": 0.13824961274618278, "probability_min": 3.72440858580973e-28, "probability_max": 1.0, "scores": {"accuracy": 0.8892454082761673, "balanced_accuracy": 0.8087956763678326, "f1_macro": 0.694658235844826, "f1_binary": 0.45090510148107515, "pr_auc": 0.5035591316330326, "precision_binary": 0.3289315726290516, "recall_binary": 0.7166521360069747, "roc_auc": 0.9057749934942917}}
+Training statistic: Loss: 0.2502, train_score: {'accuracy': 0.92454, 'balanced_accuracy': 0.9539409417844408, 'f1_macro': 0.6178673487259485, 'f1_binary': 0.27553763440860213, 'pr_auc': 0.547753486704376, 'precision_binary': 0.1601920071444519, 'recall_binary': 0.9842249657064472, 'roc_auc': 0.9875084145218631}
+Validation statistic: Loss: 6.7950, dev_score: {'accuracy': 0.8892454082761673, 'balanced_accuracy': 0.8087956763678326, 'f1_macro': 0.694658235844826, 'f1_binary': 0.45090510148107515, 'pr_auc': 0.5035591316330326, 'precision_binary': 0.3289315726290516, 'recall_binary': 0.7166521360069747, 'roc_auc': 0.9057749934942917}
+-----------------------
+Epoch 18/100
+PILOT development {"rows": 18076, "predicted_positive": 2478, "positive_rate": 0.13708785129453419, "probability_min": 0.0, "probability_max": 1.0, "scores": {"accuracy": 0.8907391015711441, "balanced_accuracy": 0.810812278554214, "f1_macro": 0.6972268131621158, "f1_binary": 0.45517241379310347, "pr_auc": 0.49839976083419113, "precision_binary": 0.33292978208232443, "recall_binary": 0.7192676547515258, "roc_auc": 0.9025188433790584}}
+Training statistic: Loss: 0.2382, train_score: {'accuracy': 0.92017, 'balanced_accuracy': 0.9540886439792866, 'f1_macro': 0.611591119576804, 'f1_binary': 0.2653906321891967, 'pr_auc': 0.5504775503712193, 'precision_binary': 0.15325751939632268, 'recall_binary': 0.9890260631001372, 'roc_auc': 0.987969899488451}
+Validation statistic: Loss: 6.4800, dev_score: {'accuracy': 0.8907391015711441, 'balanced_accuracy': 0.810812278554214, 'f1_macro': 0.6972268131621158, 'f1_binary': 0.45517241379310347, 'pr_auc': 0.49839976083419113, 'precision_binary': 0.33292978208232443, 'recall_binary': 0.7192676547515258, 'roc_auc': 0.9025188433790584}
+-----------------------
+Epoch 19/100
+PILOT development {"rows": 18076, "predicted_positive": 2168, "positive_rate": 0.11993803938924541, "probability_min": 0.0, "probability_max": 1.0, "scores": {"accuracy": 0.9029099358265102, "balanced_accuracy": 0.7990226940425016, "f1_macro": 0.7085712136058857, "f1_binary": 0.47058823529411764, "pr_auc": 0.49892133605379885, "precision_binary": 0.35977859778597787, "recall_binary": 0.6800348735832606, "roc_auc": 0.9039489662013714}}
+Training statistic: Loss: 0.2491, train_score: {'accuracy': 0.93601, 'balanced_accuracy': 0.9546928720052494, 'f1_macro': 0.6369239912529288, 'f1_binary': 0.30739257495399935, 'pr_auc': 0.5586412013469445, 'precision_binary': 0.182495823158977, 'recall_binary': 0.9739368998628258, 'roc_auc': 0.988160740941751}
+Validation statistic: Loss: 7.6869, dev_score: {'accuracy': 0.9029099358265102, 'balanced_accuracy': 0.7990226940425016, 'f1_macro': 0.7085712136058857, 'f1_binary': 0.47058823529411764, 'pr_auc': 0.49892133605379885, 'precision_binary': 0.35977859778597787, 'recall_binary': 0.6800348735832606, 'roc_auc': 0.9039489662013714}
+Saving model...
+Model saved!
+-------------------------------------------
+-----------------------
+Epoch 20/100
+PILOT development {"rows": 18076, "predicted_positive": 2556, "positive_rate": 0.1414029652578004, "probability_min": 0.0, "probability_max": 1.0, "scores": {"accuracy": 0.8880836468245187, "balanced_accuracy": 0.8154903630285634, "f1_macro": 0.6956711072154467, "f1_binary": 0.45368620037807184, "pr_auc": 0.4979501104026032, "precision_binary": 0.3286384976525822, "recall_binary": 0.7323452484742807, "roc_auc": 0.9012171867293542}}
+Training statistic: Loss: 0.2444, train_score: {'accuracy': 0.91513, 'balanced_accuracy': 0.9518692203103136, 'f1_macro': 0.6043826719738981, 'f1_binary': 0.2537589026642047, 'pr_auc': 0.562039534605076, 'precision_binary': 0.14553706505295008, 'recall_binary': 0.9897119341563786, 'roc_auc': 0.9880264927944353}
+Validation statistic: Loss: 6.4365, dev_score: {'accuracy': 0.8880836468245187, 'balanced_accuracy': 0.8154903630285634, 'f1_macro': 0.6956711072154467, 'f1_binary': 0.45368620037807184, 'pr_auc': 0.4979501104026032, 'precision_binary': 0.3286384976525822, 'recall_binary': 0.7323452484742807, 'roc_auc': 0.9012171867293542}
+-----------------------
+Epoch 21/100
+PILOT development {"rows": 18076, "predicted_positive": 2398, "positive_rate": 0.1326620933834919, "probability_min": 0.0, "probability_max": 1.0, "scores": {"accuracy": 0.8931732684222173, "balanced_accuracy": 0.8047968995903347, "f1_macro": 0.6980343634192439, "f1_binary": 0.4552891396332863, "pr_auc": 0.49710148330640336, "precision_binary": 0.3365304420350292, "recall_binary": 0.7035745422842197, "roc_auc": 0.8975040276681477}}
+Training statistic: Loss: 0.2402, train_score: {'accuracy': 0.92383, 'balanced_accuracy': 0.9539185508527779, 'f1_macro': 0.6168088706119403, 'f1_binary': 0.27381065878539423, 'pr_auc': 0.5630040348691546, 'precision_binary': 0.15900786180932344, 'recall_binary': 0.9849108367626886, 'roc_auc': 0.9880874745002994}
+Validation statistic: Loss: 7.5215, dev_score: {'accuracy': 0.8931732684222173, 'balanced_accuracy': 0.8047968995903347, 'f1_macro': 0.6980343634192439, 'f1_binary': 0.4552891396332863, 'pr_auc': 0.49710148330640336, 'precision_binary': 0.3365304420350292, 'recall_binary': 0.7035745422842197, 'roc_auc': 0.8975040276681477}
+-----------------------
+Epoch 22/100
+PILOT development {"rows": 18076, "predicted_positive": 2285, "positive_rate": 0.12641071033414472, "probability_min": 0.0, "probability_max": 1.0, "scores": {"accuracy": 0.8983182119938039, "balanced_accuracy": 0.8034798187599546, "f1_macro": 0.7041393101600926, "f1_binary": 0.46445221445221446, "pr_auc": 0.5003254254325434, "precision_binary": 0.3487964989059081, "recall_binary": 0.6948561464690497, "roc_auc": 0.899410729348477}}
+Training statistic: Loss: 0.2399, train_score: {'accuracy': 0.93041, 'balanced_accuracy': 0.9538786132817856, 'f1_macro': 0.6270521001983254, 'f1_binary': 0.29069411884619306, 'pr_auc': 0.5610553960253919, 'precision_binary': 0.17071710762600265, 'recall_binary': 0.9780521262002744, 'roc_auc': 0.9882694730320333}
+Validation statistic: Loss: 7.9678, dev_score: {'accuracy': 0.8983182119938039, 'balanced_accuracy': 0.8034798187599546, 'f1_macro': 0.7041393101600926, 'f1_binary': 0.46445221445221446, 'pr_auc': 0.5003254254325434, 'precision_binary': 0.3487964989059081, 'recall_binary': 0.6948561464690497, 'roc_auc': 0.899410729348477}
+-----------------------
+Epoch 23/100
+PILOT development {"rows": 18076, "predicted_positive": 2268, "positive_rate": 0.12547023677804825, "probability_min": 4.301669592024251e-38, "probability_max": 1.0, "scores": {"accuracy": 0.8992586855499004, "balanced_accuracy": 0.8039819157532797, "f1_macro": 0.705569570807694, "f1_binary": 0.46676427525622255, "pr_auc": 0.4973964115911236, "precision_binary": 0.3514109347442681, "recall_binary": 0.6948561464690497, "roc_auc": 0.8875807690182336}}
+Training statistic: Loss: 0.2376, train_score: {'accuracy': 0.93, 'balanced_accuracy': 0.9573870572034919, 'f1_macro': 0.6271248802732614, 'f1_binary': 0.2910674498683411, 'pr_auc': 0.5648420775608906, 'precision_binary': 0.17074619771863117, 'recall_binary': 0.98559670781893, 'roc_auc': 0.9885084267996385}
+Validation statistic: Loss: 9.0243, dev_score: {'accuracy': 0.8992586855499004, 'balanced_accuracy': 0.8039819157532797, 'f1_macro': 0.705569570807694, 'f1_binary': 0.46676427525622255, 'pr_auc': 0.4973964115911236, 'precision_binary': 0.3514109347442681, 'recall_binary': 0.6948561464690497, 'roc_auc': 0.8875807690182336}
+-----------------------
+Epoch 24/100
+PILOT development {"rows": 18076, "predicted_positive": 2176, "positive_rate": 0.12038061518034963, "probability_min": 0.0, "probability_max": 1.0, "scores": {"accuracy": 0.9018034963487497, "balanced_accuracy": 0.7959936836563888, "f1_macro": 0.7058880335858304, "f1_binary": 0.4658441167619621, "pr_auc": 0.49636931208928303, "precision_binary": 0.3556985294117647, "recall_binary": 0.6748038360941587, "roc_auc": 0.8931366412973656}}
+Training statistic: Loss: 0.2390, train_score: {'accuracy': 0.9369, 'balanced_accuracy': 0.9575094869479591, 'f1_macro': 0.6391855069928296, 'f1_binary': 0.3114360541248363, 'pr_auc': 0.5693061899538603, 'precision_binary': 0.1851803789255126, 'recall_binary': 0.9787379972565158, 'roc_auc': 0.9883621410034852}
+Validation statistic: Loss: 8.6038, dev_score: {'accuracy': 0.9018034963487497, 'balanced_accuracy': 0.7959936836563888, 'f1_macro': 0.7058880335858304, 'f1_binary': 0.4658441167619621, 'pr_auc': 0.49636931208928303, 'precision_binary': 0.3556985294117647, 'recall_binary': 0.6748038360941587, 'roc_auc': 0.8931366412973656}
+-----------------------
+Epoch 25/100
+PILOT development {"rows": 18076, "predicted_positive": 2245, "positive_rate": 0.12419783137862359, "probability_min": 0.0, "probability_max": 1.0, "scores": {"accuracy": 0.8992033635760124, "balanced_accuracy": 0.7990757645539761, "f1_macro": 0.70361858398415, "f1_binary": 0.46285377358490565, "pr_auc": 0.4939733712321103, "precision_binary": 0.34966592427616927, "recall_binary": 0.6843940714908456, "roc_auc": 0.8962434163339652}}
+Training statistic: Loss: 0.2413, train_score: {'accuracy': 0.93481, 'balanced_accuracy': 0.9550975792208145, 'f1_macro': 0.6348506258854358, 'f1_binary': 0.30389749065670046, 'pr_auc': 0.5697103170421234, 'precision_binary': 0.17996711774377133, 'recall_binary': 0.97599451303155, 'roc_auc': 0.9883496474621936}
+Validation statistic: Loss: 8.6768, dev_score: {'accuracy': 0.8992033635760124, 'balanced_accuracy': 0.7990757645539761, 'f1_macro': 0.70361858398415, 'f1_binary': 0.46285377358490565, 'pr_auc': 0.4939733712321103, 'precision_binary': 0.34966592427616927, 'recall_binary': 0.6843940714908456, 'roc_auc': 0.8962434163339652}
+-----------------------
+Epoch 26/100
+PILOT development {"rows": 18076, "predicted_positive": 2126, "positive_rate": 0.11761451648594821, "probability_min": 4.50107996869153e-39, "probability_max": 1.0, "scores": {"accuracy": 0.9040163753042708, "balanced_accuracy": 0.795143164979045, "f1_macro": 0.7085680204319615, "f1_binary": 0.46990528567063855, "pr_auc": 0.49935867188345473, "precision_binary": 0.3617121354656632, "recall_binary": 0.6704446381865736, "roc_auc": 0.8975640763982585}}
+Training statistic: Loss: 0.2609, train_score: {'accuracy': 0.94161, 'balanced_accuracy': 0.956520715377251, 'f1_macro': 0.6481213905824897, 'f1_binary': 0.3267612129597602, 'pr_auc': 0.5677209835837492, 'precision_binary': 0.1963963963963964, 'recall_binary': 0.9718792866941015, 'roc_auc': 0.9884497245560435}
+Validation statistic: Loss: 9.5944, dev_score: {'accuracy': 0.9040163753042708, 'balanced_accuracy': 0.795143164979045, 'f1_macro': 0.7085680204319615, 'f1_binary': 0.46990528567063855, 'pr_auc': 0.49935867188345473, 'precision_binary': 0.3617121354656632, 'recall_binary': 0.6704446381865736, 'roc_auc': 0.8975640763982585}
+-----------------------
+Epoch 27/100
+PILOT development {"rows": 18076, "predicted_positive": 2011, "positive_rate": 0.11125248948882496, "probability_min": 0.0, "probability_max": 1.0, "scores": {"accuracy": 0.908165523345873, "balanced_accuracy": 0.7892306053030445, "f1_macro": 0.7120193384998742, "f1_binary": 0.4743508549715009, "pr_auc": 0.49287774041929566, "precision_binary": 0.3724515166583789, "recall_binary": 0.6530078465562337, "roc_auc": 0.8947429705777187}}
+Training statistic: Loss: 0.2575, train_score: {'accuracy': 0.94516, 'balanced_accuracy': 0.9546055007384902, 'f1_macro': 0.6551759661944276, 'f1_binary': 0.33895853423336547, 'pr_auc': 0.5657203143689866, 'precision_binary': 0.20561567709856685, 'recall_binary': 0.9643347050754458, 'roc_auc': 0.988486620523947}
+Validation statistic: Loss: 9.5807, dev_score: {'accuracy': 0.908165523345873, 'balanced_accuracy': 0.7892306053030445, 'f1_macro': 0.7120193384998742, 'f1_binary': 0.4743508549715009, 'pr_auc': 0.49287774041929566, 'precision_binary': 0.3724515166583789, 'recall_binary': 0.6530078465562337, 'roc_auc': 0.8947429705777187}
+Saving model...
+Model saved!
+-------------------------------------------
+-----------------------
+Epoch 28/100
+PILOT development {"rows": 18076, "predicted_positive": 2195, "positive_rate": 0.12143173268422218, "probability_min": 0.0, "probability_max": 1.0, "scores": {"accuracy": 0.9014162425315335, "balanced_accuracy": 0.7982252458766323, "f1_macro": 0.7062368229679943, "f1_binary": 0.466786355475763, "pr_auc": 0.49897750353460335, "precision_binary": 0.3553530751708428, "recall_binary": 0.6800348735832606, "roc_auc": 0.8971802743732569}}
+Training statistic: Loss: 0.2304, train_score: {'accuracy': 0.93508, 'balanced_accuracy': 0.9575996074898216, 'f1_macro': 0.6358823263571947, 'f1_binary': 0.3058169375534645, 'pr_auc': 0.5686705548488168, 'precision_binary': 0.181150240689131, 'recall_binary': 0.9807956104252401, 'roc_auc': 0.9886935469766479}
+Validation statistic: Loss: 8.4052, dev_score: {'accuracy': 0.9014162425315335, 'balanced_accuracy': 0.7982252458766323, 'f1_macro': 0.7062368229679943, 'f1_binary': 0.466786355475763, 'pr_auc': 0.49897750353460335, 'precision_binary': 0.3553530751708428, 'recall_binary': 0.6800348735832606, 'roc_auc': 0.8971802743732569}
+-----------------------
+Epoch 29/100
+PILOT development {"rows": 18076, "predicted_positive": 2149, "positive_rate": 0.11888692188537286, "probability_min": 0.0, "probability_max": 1.0, "scores": {"accuracy": 0.9028546138526222, "balanced_accuracy": 0.7949293121902063, "f1_macro": 0.7068938362398084, "f1_binary": 0.4672330097087379, "pr_auc": 0.4955785951992449, "precision_binary": 0.3583061889250814, "recall_binary": 0.6713164777680907, "roc_auc": 0.8934735012833486}}
+Training statistic: Loss: 0.2349, train_score: {'accuracy': 0.93614, 'balanced_accuracy': 0.959826756969844, 'f1_macro': 0.6382948582072345, 'f1_binary': 0.3100691443388073, 'pr_auc': 0.5689473725049778, 'precision_binary': 0.18402154398563733, 'recall_binary': 0.9842249657064472, 'roc_auc': 0.9887237820425925}
+Validation statistic: Loss: 9.1449, dev_score: {'accuracy': 0.9028546138526222, 'balanced_accuracy': 0.7949293121902063, 'f1_macro': 0.7068938362398084, 'f1_binary': 0.4672330097087379, 'pr_auc': 0.4955785951992449, 'precision_binary': 0.3583061889250814, 'recall_binary': 0.6713164777680907, 'roc_auc': 0.8934735012833486}
+-----------------------
+Epoch 30/100
+PILOT development {"rows": 18076, "predicted_positive": 2190, "positive_rate": 0.12115512281478204, "probability_min": 0.0, "probability_max": 1.0, "scores": {"accuracy": 0.9018034963487497, "balanced_accuracy": 0.7988383763709175, "f1_macro": 0.7069969947578463, "f1_binary": 0.46808510638297873, "pr_auc": 0.4979996831321304, "precision_binary": 0.35662100456621004, "recall_binary": 0.6809067131647777, "roc_auc": 0.89576732672375}}
+Training statistic: Loss: 0.2401, train_score: {'accuracy': 0.93452, 'balanced_accuracy': 0.9563018800392298, 'f1_macro': 0.6345987028468236, 'f1_binary': 0.3035524356519889, 'pr_auc': 0.573839431478603, 'precision_binary': 0.17963242698892246, 'recall_binary': 0.9787379972565158, 'roc_auc': 0.9887621709712798}
+Validation statistic: Loss: 8.1051, dev_score: {'accuracy': 0.9018034963487497, 'balanced_accuracy': 0.7988383763709175, 'f1_macro': 0.7069969947578463, 'f1_binary': 0.46808510638297873, 'pr_auc': 0.4979996831321304, 'precision_binary': 0.35662100456621004, 'recall_binary': 0.6809067131647777, 'roc_auc': 0.89576732672375}
+-----------------------
+Epoch 31/100
+PILOT development {"rows": 18076, "predicted_positive": 2154, "positive_rate": 0.119163531754813, "probability_min": 0.0, "probability_max": 1.0, "scores": {"accuracy": 0.9027992918787342, "balanced_accuracy": 0.7957125464199601, "f1_macro": 0.7071265685846511, "f1_binary": 0.4677370493789761, "pr_auc": 0.5003796326507954, "precision_binary": 0.3584029712163417, "recall_binary": 0.6730601569311246, "roc_auc": 0.8941652976740697}}
+Training statistic: Loss: 0.2402, train_score: {'accuracy': 0.93779, 'balanced_accuracy': 0.9572853479450554, 'f1_macro': 0.6408026396605081, 'f1_binary': 0.31418807187741155, 'pr_auc': 0.5686778114275135, 'precision_binary': 0.18717982398528832, 'recall_binary': 0.977366255144033, 'roc_auc': 0.9887926252832137}
+Validation statistic: Loss: 9.1843, dev_score: {'accuracy': 0.9027992918787342, 'balanced_accuracy': 0.7957125464199601, 'f1_macro': 0.7071265685846511, 'f1_binary': 0.4677370493789761, 'pr_auc': 0.5003796326507954, 'precision_binary': 0.3584029712163417, 'recall_binary': 0.6730601569311246, 'roc_auc': 0.8941652976740697}
+-----------------------
+Epoch 32/100
+PILOT development {"rows": 18076, "predicted_positive": 2130, "positive_rate": 0.11783580438150033, "probability_min": 0.0, "probability_max": 1.0, "scores": {"accuracy": 0.9036844434609427, "balanced_accuracy": 0.7945595696020145, "f1_macro": 0.7078816083058441, "f1_binary": 0.46872139151663106, "pr_auc": 0.49161579852996895, "precision_binary": 0.36056338028169016, "recall_binary": 0.6695727986050567, "roc_auc": 0.891423372747651}}
+Training statistic: Loss: 0.2370, train_score: {'accuracy': 0.93883, 'balanced_accuracy': 0.9578130417202984, 'f1_macro': 0.6429057026027587, 'f1_binary': 0.31783205085312816, 'pr_auc': 0.5621417844336487, 'precision_binary': 0.18977227327207352, 'recall_binary': 0.977366255144033, 'roc_auc': 0.9887248573919682}
+Validation statistic: Loss: 9.7394, dev_score: {'accuracy': 0.9036844434609427, 'balanced_accuracy': 0.7945595696020145, 'f1_macro': 0.7078816083058441, 'f1_binary': 0.46872139151663106, 'pr_auc': 0.49161579852996895, 'precision_binary': 0.36056338028169016, 'recall_binary': 0.6695727986050567, 'roc_auc': 0.891423372747651}
+-----------------------
+Epoch 33/100
+PILOT development {"rows": 18076, "predicted_positive": 2153, "positive_rate": 0.11910820978092498, "probability_min": 0.0, "probability_max": 1.0, "scores": {"accuracy": 0.902190750165966, "balanced_accuracy": 0.7929493520891371, "f1_macro": 0.705212652520579, "f1_binary": 0.46424242424242423, "pr_auc": 0.4940497741090105, "precision_binary": 0.355782628889921, "recall_binary": 0.6678291194420227, "roc_auc": 0.8843002337625995}}
+Training statistic: Loss: 0.2276, train_score: {'accuracy': 0.93569, 'balanced_accuracy': 0.9582469817344288, 'f1_macro': 0.6371259280876094, 'f1_binary': 0.30797374367803726, 'pr_auc': 0.56915365012146, 'precision_binary': 0.1826419910657307, 'recall_binary': 0.9814814814814815, 'roc_auc': 0.988896342556504}
+Validation statistic: Loss: 9.8886, dev_score: {'accuracy': 0.902190750165966, 'balanced_accuracy': 0.7929493520891371, 'f1_macro': 0.705212652520579, 'f1_binary': 0.46424242424242423, 'pr_auc': 0.4940497741090105, 'precision_binary': 0.355782628889921, 'recall_binary': 0.6678291194420227, 'roc_auc': 0.8843002337625995}
+-----------------------
+Epoch 34/100
+PILOT development {"rows": 18076, "predicted_positive": 2129, "positive_rate": 0.1177804824076123, "probability_min": 0.0, "probability_max": 1.0, "scores": {"accuracy": 0.9025226820092941, "balanced_accuracy": 0.7894691007311267, "f1_macro": 0.7042768171250955, "f1_binary": 0.4621489621489622, "pr_auc": 0.49210720641872785, "precision_binary": 0.3555659934241428, "recall_binary": 0.6599825632083697, "roc_auc": 0.8852744548839625}}
+Training statistic: Loss: 0.2282, train_score: {'accuracy': 0.93463, 'balanced_accuracy': 0.9577091400019695, 'f1_macro': 0.6351018508687455, 'f1_binary': 0.30450047877433767, 'pr_auc': 0.5650646070777675, 'precision_binary': 0.18020400453343408, 'recall_binary': 0.9814814814814815, 'roc_auc': 0.9887477494573211}
+Validation statistic: Loss: 9.7292, dev_score: {'accuracy': 0.9025226820092941, 'balanced_accuracy': 0.7894691007311267, 'f1_macro': 0.7042768171250955, 'f1_binary': 0.4621489621489622, 'pr_auc': 0.49210720641872785, 'precision_binary': 0.3555659934241428, 'recall_binary': 0.6599825632083697, 'roc_auc': 0.8852744548839625}
+-----------------------
+Epoch 35/100
+PILOT development {"rows": 18076, "predicted_positive": 2112, "positive_rate": 0.11684000885151583, "probability_min": 0.0, "probability_max": 1.0, "scores": {"accuracy": 0.9035737995131666, "balanced_accuracy": 0.7904366526324647, "f1_macro": 0.706091684095661, "f1_binary": 0.4651733660632096, "pr_auc": 0.4904397677707838, "precision_binary": 0.35890151515151514, "recall_binary": 0.6608544027898866, "roc_auc": 0.8841370309961142}}
+Training statistic: Loss: 0.2333, train_score: {'accuracy': 0.9378, 'balanced_accuracy': 0.9593175912207391, 'f1_macro': 0.6412746971211329, 'f1_binary': 0.3151288262497247, 'pr_auc': 0.568643456083591, 'precision_binary': 0.18769674711437564, 'recall_binary': 0.9814814814814815, 'roc_auc': 0.989002109605789}
+Validation statistic: Loss: 10.7497, dev_score: {'accuracy': 0.9035737995131666, 'balanced_accuracy': 0.7904366526324647, 'f1_macro': 0.706091684095661, 'f1_binary': 0.4651733660632096, 'pr_auc': 0.4904397677707838, 'precision_binary': 0.35890151515151514, 'recall_binary': 0.6608544027898866, 'roc_auc': 0.8841370309961142}
+-----------------------
+Epoch 36/100
+PILOT development {"rows": 18076, "predicted_positive": 2113, "positive_rate": 0.11689533082540385, "probability_min": 0.0, "probability_max": 1.0, "scores": {"accuracy": 0.9027439699048462, "balanced_accuracy": 0.7871489331591199, "f1_macro": 0.7036442747374005, "f1_binary": 0.4607361963190184, "pr_auc": 0.48406297671227017, "precision_binary": 0.35541883577851396, "recall_binary": 0.6547515257192676, "roc_auc": 0.879249316713946}}
+Training statistic: Loss: 0.2353, train_score: {'accuracy': 0.93817, 'balanced_accuracy': 0.9588296053302139, 'f1_macro': 0.6418683979032129, 'f1_binary': 0.31611547395199646, 'pr_auc': 0.569961674780652, 'precision_binary': 0.18844784386126862, 'recall_binary': 0.9801097393689986, 'roc_auc': 0.9890292369468385}
+Validation statistic: Loss: 10.3811, dev_score: {'accuracy': 0.9027439699048462, 'balanced_accuracy': 0.7871489331591199, 'f1_macro': 0.7036442747374005, 'f1_binary': 0.4607361963190184, 'pr_auc': 0.48406297671227017, 'precision_binary': 0.35541883577851396, 'recall_binary': 0.6547515257192676, 'roc_auc': 0.879249316713946}
+-----------------------
+Epoch 37/100
+PILOT development {"rows": 18076, "predicted_positive": 2213, "positive_rate": 0.12242752821420669, "probability_min": 0.0, "probability_max": 1.0, "scores": {"accuracy": 0.8988714317326842, "balanced_accuracy": 0.7911772450538721, "f1_macro": 0.7001035386098816, "f1_binary": 0.45595238095238094, "pr_auc": 0.48147121999458564, "precision_binary": 0.34613646633529144, "recall_binary": 0.6678291194420227, "roc_auc": 0.8777541754338585}}
+Training statistic: Loss: 0.2357, train_score: {'accuracy': 0.92999, 'balanced_accuracy': 0.9577198447743964, 'f1_macro': 0.6271790014117732, 'f1_binary': 0.2911815328541055, 'pr_auc': 0.5751385777956629, 'precision_binary': 0.17080413350754248, 'recall_binary': 0.9862825788751715, 'roc_auc': 0.9888875970776}
+Validation statistic: Loss: 10.4698, dev_score: {'accuracy': 0.8988714317326842, 'balanced_accuracy': 0.7911772450538721, 'f1_macro': 0.7001035386098816, 'f1_binary': 0.45595238095238094, 'pr_auc': 0.48147121999458564, 'precision_binary': 0.34613646633529144, 'recall_binary': 0.6678291194420227, 'roc_auc': 0.8777541754338585}
+-----------------------
+Epoch 38/100
+PILOT development {"rows": 18076, "predicted_positive": 2152, "positive_rate": 0.11905288780703696, "probability_min": 0.0, "probability_max": 1.0, "scores": {"accuracy": 0.9010289887143174, "balanced_accuracy": 0.7878588832182494, "f1_macro": 0.7016298834067971, "f1_binary": 0.45771445892694756, "pr_auc": 0.4776591394093499, "precision_binary": 0.3508364312267658, "recall_binary": 0.6582388840453357, "roc_auc": 0.8733593139365635}}
+Training statistic: Loss: 0.2438, train_score: {'accuracy': 0.93983, 'balanced_accuracy': 0.9606854704276973, 'f1_macro': 0.6455016018858806, 'f1_binary': 0.3224862065082761, 'pr_auc': 0.5705445543357939, 'precision_binary': 0.19291391620638557, 'recall_binary': 0.9821673525377229, 'roc_auc': 0.9889025058048683}
+Validation statistic: Loss: 11.0098, dev_score: {'accuracy': 0.9010289887143174, 'balanced_accuracy': 0.7878588832182494, 'f1_macro': 0.7016298834067971, 'f1_binary': 0.45771445892694756, 'pr_auc': 0.4776591394093499, 'precision_binary': 0.3508364312267658, 'recall_binary': 0.6582388840453357, 'roc_auc': 0.8733593139365635}
+-----------------------
+Epoch 39/100
+PILOT development {"rows": 18076, "predicted_positive": 2173, "positive_rate": 0.12021464925868555, "probability_min": 0.0, "probability_max": 1.0, "scores": {"accuracy": 0.8996459393671166, "balanced_accuracy": 0.7863077359398808, "f1_macro": 0.6991817415862279, "f1_binary": 0.4536144578313253, "pr_auc": 0.48116167626043305, "precision_binary": 0.3465255407271054, "recall_binary": 0.6564952048823016, "roc_auc": 0.8795390801616042}}
+Training statistic: Loss: 0.2235, train_score: {'accuracy': 0.93622, 'balanced_accuracy': 0.9602052103482214, 'f1_macro': 0.6385250256809889, 'f1_binary': 0.31048648648648647, 'pr_auc': 0.5696674159558575, 'precision_binary': 0.18429158110882957, 'recall_binary': 0.9849108367626886, 'roc_auc': 0.9889056204899535}
+Validation statistic: Loss: 9.5803, dev_score: {'accuracy': 0.8996459393671166, 'balanced_accuracy': 0.7863077359398808, 'f1_macro': 0.6991817415862279, 'f1_binary': 0.4536144578313253, 'pr_auc': 0.48116167626043305, 'precision_binary': 0.3465255407271054, 'recall_binary': 0.6564952048823016, 'roc_auc': 0.8795390801616042}
+-----------------------
+Epoch 40/100
+PILOT development {"rows": 18076, "predicted_positive": 2213, "positive_rate": 0.12242752821420669, "probability_min": 0.0, "probability_max": 1.0, "scores": {"accuracy": 0.8992033635760124, "balanced_accuracy": 0.7925736097779108, "f1_macro": 0.7010878814809651, "f1_binary": 0.4577380952380952, "pr_auc": 0.483084683912166, "precision_binary": 0.3474920921825576, "recall_binary": 0.6704446381865736, "roc_auc": 0.8796705848205565}}
+Training statistic: Loss: 0.2301, train_score: {'accuracy': 0.93263, 'balanced_accuracy': 0.959397236676449, 'f1_macro': 0.6319688909099553, 'f1_binary': 0.2993239729589184, 'pr_auc': 0.5703592241414317, 'precision_binary': 0.1764128968983695, 'recall_binary': 0.9869684499314129, 'roc_auc': 0.9888888707923945}
+Validation statistic: Loss: 10.3268, dev_score: {'accuracy': 0.8992033635760124, 'balanced_accuracy': 0.7925736097779108, 'f1_macro': 0.7010878814809651, 'f1_binary': 0.4577380952380952, 'pr_auc': 0.483084683912166, 'precision_binary': 0.3474920921825576, 'recall_binary': 0.6704446381865736, 'roc_auc': 0.8796705848205565}
+-----------------------
+Epoch 41/100
+PILOT development {"rows": 18076, "predicted_positive": 1874, "positive_rate": 0.10367337906616508, "probability_min": 0.0, "probability_max": 1.0, "scores": {"accuracy": 0.9124253153352512, "balanced_accuracy": 0.7793132691265119, "f1_macro": 0.7141106496573226, "f1_binary": 0.47600132406487916, "pr_auc": 0.48421497967295324, "precision_binary": 0.3836712913553895, "recall_binary": 0.6268526591107236, "roc_auc": 0.8806864435047798}}
+Training statistic: Loss: 0.2687, train_score: {'accuracy': 0.95196, 'balanced_accuracy': 0.9570422215434644, 'f1_macro': 0.6718776242874489, 'f1_binary': 0.3687253613666229, 'pr_auc': 0.5729913278323795, 'precision_binary': 0.2280559167750325, 'recall_binary': 0.9622770919067215, 'roc_auc': 0.9890148641542106}
+Validation statistic: Loss: 11.7842, dev_score: {'accuracy': 0.9124253153352512, 'balanced_accuracy': 0.7793132691265119, 'f1_macro': 0.7141106496573226, 'f1_binary': 0.47600132406487916, 'pr_auc': 0.48421497967295324, 'precision_binary': 0.3836712913553895, 'recall_binary': 0.6268526591107236, 'roc_auc': 0.8806864435047798}
+Saving model...
+Model saved!
+-------------------------------------------
+-----------------------
+Epoch 42/100
+PILOT development {"rows": 18076, "predicted_positive": 2056, "positive_rate": 0.11374197831378624, "probability_min": 0.0, "probability_max": 1.0, "scores": {"accuracy": 0.9049015268864793, "balanced_accuracy": 0.7846433406705053, "f1_macro": 0.7055720518774098, "f1_binary": 0.4633156415860131, "pr_auc": 0.4831334375162814, "precision_binary": 0.36089494163424124, "recall_binary": 0.6469049694856146, "roc_auc": 0.8794890996362417}}
+Training statistic: Loss: 0.2188, train_score: {'accuracy': 0.94123, 'balanced_accuracy': 0.9603822427842943, 'f1_macro': 0.6482312329275318, 'f1_binary': 0.3271894676588437, 'pr_auc': 0.5776267044468162, 'precision_binary': 0.19637213137281848, 'recall_binary': 0.9801097393689986, 'roc_auc': 0.9893349702586898}
+Validation statistic: Loss: 11.5757, dev_score: {'accuracy': 0.9049015268864793, 'balanced_accuracy': 0.7846433406705053, 'f1_macro': 0.7055720518774098, 'f1_binary': 0.4633156415860131, 'pr_auc': 0.4831334375162814, 'precision_binary': 0.36089494163424124, 'recall_binary': 0.6469049694856146, 'roc_auc': 0.8794890996362417}
+-----------------------
+Epoch 43/100
+PILOT development {"rows": 18076, "predicted_positive": 2030, "positive_rate": 0.1123036069926975, "probability_min": 0.0, "probability_max": 0.9999998807907104, "scores": {"accuracy": 0.9057866784686878, "balanced_accuracy": 0.7830839791790556, "f1_macro": 0.706157262335928, "f1_binary": 0.46395971041863393, "pr_auc": 0.48166801281952343, "precision_binary": 0.36305418719211824, "recall_binary": 0.6425457715780296, "roc_auc": 0.8768516419902951}}
+Training statistic: Loss: 0.2247, train_score: {'accuracy': 0.93999, 'balanced_accuracy': 0.9604287925359144, 'f1_macro': 0.6457595815402623, 'f1_binary': 0.3229154913686111, 'pr_auc': 0.571026398711345, 'precision_binary': 0.19324780553679946, 'recall_binary': 0.9814814814814815, 'roc_auc': 0.9889865675012185}
+Validation statistic: Loss: 11.0125, dev_score: {'accuracy': 0.9057866784686878, 'balanced_accuracy': 0.7830839791790556, 'f1_macro': 0.706157262335928, 'f1_binary': 0.46395971041863393, 'pr_auc': 0.48166801281952343, 'precision_binary': 0.36305418719211824, 'recall_binary': 0.6425457715780296, 'roc_auc': 0.8768516419902951}
+-----------------------
+Epoch 44/100
+PILOT development {"rows": 18076, "predicted_positive": 2023, "positive_rate": 0.1119163531754813, "probability_min": 0.0, "probability_max": 1.0, "scores": {"accuracy": 0.9067271520247843, "balanced_accuracy": 0.7856179995399011, "f1_macro": 0.7085100045967143, "f1_binary": 0.46813880126182966, "pr_auc": 0.4860543955317045, "precision_binary": 0.36678200692041524, "recall_binary": 0.6469049694856146, "roc_auc": 0.8838661937133924}}
+Training statistic: Loss: 0.2356, train_score: {'accuracy': 0.94237, 'balanced_accuracy': 0.9592713685980554, 'f1_macro': 0.6503141515346568, 'f1_binary': 0.33073975148066426, 'pr_auc': 0.5692356369787681, 'precision_binary': 0.19907731021948832, 'recall_binary': 0.9766803840877915, 'roc_auc': 0.9891372938986779}
+Validation statistic: Loss: 11.6756, dev_score: {'accuracy': 0.9067271520247843, 'balanced_accuracy': 0.7856179995399011, 'f1_macro': 0.7085100045967143, 'f1_binary': 0.46813880126182966, 'pr_auc': 0.4860543955317045, 'precision_binary': 0.36678200692041524, 'recall_binary': 0.6469049694856146, 'roc_auc': 0.8838661937133924}
+-----------------------
+Epoch 45/100
+PILOT development {"rows": 18076, "predicted_positive": 2046, "positive_rate": 0.11318875857490596, "probability_min": 0.0, "probability_max": 1.0, "scores": {"accuracy": 0.9052334587298074, "balanced_accuracy": 0.7840077820270237, "f1_macro": 0.7057701362435447, "f1_binary": 0.46351393673661134, "pr_auc": 0.4805112791296194, "precision_binary": 0.3616813294232649, "recall_binary": 0.6451612903225806, "roc_auc": 0.8822209048581431}}
+Training statistic: Loss: 0.2355, train_score: {'accuracy': 0.93993, 'balanced_accuracy': 0.9600604871147531, 'f1_macro': 0.6455579440772582, 'f1_binary': 0.32254426525318597, 'pr_auc': 0.5711957347092632, 'precision_binary': 0.19300850317181806, 'recall_binary': 0.9807956104252401, 'roc_auc': 0.9891419119848321}
+Validation statistic: Loss: 11.4526, dev_score: {'accuracy': 0.9052334587298074, 'balanced_accuracy': 0.7840077820270237, 'f1_macro': 0.7057701362435447, 'f1_binary': 0.46351393673661134, 'pr_auc': 0.4805112791296194, 'precision_binary': 0.3616813294232649, 'recall_binary': 0.6451612903225806, 'roc_auc': 0.8822209048581431}
+-----------------------
+Epoch 46/100
+PILOT development {"rows": 18076, "predicted_positive": 2211, "positive_rate": 0.12231688426643063, "probability_min": 0.0, "probability_max": 0.9999992847442627, "scores": {"accuracy": 0.8988714317326842, "balanced_accuracy": 0.790770860380368, "f1_macro": 0.6999432231008135, "f1_binary": 0.45562835020845743, "pr_auc": 0.4817731353470603, "precision_binary": 0.34599728629579374, "recall_binary": 0.6669572798605057, "roc_auc": 0.8800781024889683}}
+Training statistic: Loss: 0.2215, train_score: {'accuracy': 0.93105, 'balanced_accuracy': 0.9602848558039313, 'f1_macro': 0.6294789474857643, 'f1_binary': 0.2952059695389962, 'pr_auc': 0.5752902487351026, 'precision_binary': 0.17345345345345345, 'recall_binary': 0.99039780521262, 'roc_auc': 0.9892856225106359}
+Validation statistic: Loss: 10.8575, dev_score: {'accuracy': 0.8988714317326842, 'balanced_accuracy': 0.790770860380368, 'f1_macro': 0.6999432231008135, 'f1_binary': 0.45562835020845743, 'pr_auc': 0.4817731353470603, 'precision_binary': 0.34599728629579374, 'recall_binary': 0.6669572798605057, 'roc_auc': 0.8800781024889683}
+-----------------------
+Epoch 47/100
+PILOT development {"rows": 18076, "predicted_positive": 2076, "positive_rate": 0.11484841779154681, "probability_min": 0.0, "probability_max": 0.9999973773956299, "scores": {"accuracy": 0.9032418676698385, "balanced_accuracy": 0.7817253637853525, "f1_macro": 0.7021118038945515, "f1_binary": 0.45733788395904434, "pr_auc": 0.4793855058851134, "precision_binary": 0.355009633911368, "recall_binary": 0.6425457715780296, "roc_auc": 0.8734087022145878}}
+Training statistic: Loss: 0.2384, train_score: {'accuracy': 0.93823, 'balanced_accuracy': 0.9591979107513751, 'f1_macro': 0.642065063322083, 'f1_binary': 0.31647670687174945, 'pr_auc': 0.5778013815420913, 'precision_binary': 0.18867924528301888, 'recall_binary': 0.9807956104252401, 'roc_auc': 0.9891287572254778}
+Validation statistic: Loss: 12.3918, dev_score: {'accuracy': 0.9032418676698385, 'balanced_accuracy': 0.7817253637853525, 'f1_macro': 0.7021118038945515, 'f1_binary': 0.45733788395904434, 'pr_auc': 0.4793855058851134, 'precision_binary': 0.355009633911368, 'recall_binary': 0.6425457715780296, 'roc_auc': 0.8734087022145878}
+-----------------------
+Epoch 48/100
+PILOT development {"rows": 18076, "predicted_positive": 1990, "positive_rate": 0.11009072803717637, "probability_min": 0.0, "probability_max": 0.9999996423721313, "scores": {"accuracy": 0.9077782695286568, "balanced_accuracy": 0.7833344740532064, "f1_macro": 0.7090541866408517, "f1_binary": 0.46860057379662096, "pr_auc": 0.4812249295294452, "precision_binary": 0.3693467336683417, "recall_binary": 0.6408020924149956, "roc_auc": 0.8741868894670254}}
+Training statistic: Loss: 0.2484, train_score: {'accuracy': 0.94303, 'balanced_accuracy': 0.9596062511861904, 'f1_macro': 0.6517689922781745, 'f1_binary': 0.33329432416617905, 'pr_auc': 0.5739598674232984, 'precision_binary': 0.2009312826301679, 'recall_binary': 0.9766803840877915, 'roc_auc': 0.9892776530929317}
+Validation statistic: Loss: 13.2057, dev_score: {'accuracy': 0.9077782695286568, 'balanced_accuracy': 0.7833344740532064, 'f1_macro': 0.7090541866408517, 'f1_binary': 0.46860057379662096, 'pr_auc': 0.4812249295294452, 'precision_binary': 0.3693467336683417, 'recall_binary': 0.6408020924149956, 'roc_auc': 0.8741868894670254}
+-----------------------
+Epoch 49/100
+PILOT development {"rows": 18076, "predicted_positive": 1987, "positive_rate": 0.10992476211551228, "probability_min": 0.0, "probability_max": 0.9999984502792358, "scores": {"accuracy": 0.9078335915025448, "balanced_accuracy": 0.7829576244969567, "f1_macro": 0.7089768250405698, "f1_binary": 0.46841097638800255, "pr_auc": 0.47663036727276076, "precision_binary": 0.36940110719677904, "recall_binary": 0.6399302528334786, "roc_auc": 0.8706624255577283}}
+Training statistic: Loss: 0.2285, train_score: {'accuracy': 0.94186, 'balanced_accuracy': 0.960701903436605, 'f1_macro': 0.6495894070205127, 'f1_binary': 0.32956642066420666, 'pr_auc': 0.5734736406150096, 'precision_binary': 0.19808705295259219, 'recall_binary': 0.9801097393689986, 'roc_auc': 0.9892860818831848}
+Validation statistic: Loss: 11.8747, dev_score: {'accuracy': 0.9078335915025448, 'balanced_accuracy': 0.7829576244969567, 'f1_macro': 0.7089768250405698, 'f1_binary': 0.46841097638800255, 'pr_auc': 0.47663036727276076, 'precision_binary': 0.36940110719677904, 'recall_binary': 0.6399302528334786, 'roc_auc': 0.8706624255577283}
+-----------------------
+Epoch 50/100
+PILOT development {"rows": 18076, "predicted_positive": 1865, "positive_rate": 0.10317548130117282, "probability_min": 0.0, "probability_max": 0.9999996423721313, "scores": {"accuracy": 0.9114848417791547, "balanced_accuracy": 0.7735281713776337, "f1_macro": 0.7102557382619993, "f1_binary": 0.46879150066401065, "pr_auc": 0.4800431385235382, "precision_binary": 0.37855227882037534, "recall_binary": 0.6155187445510026, "roc_auc": 0.8731169817757254}}
+Training statistic: Loss: 0.2465, train_score: {'accuracy': 0.94985, 'balanced_accuracy': 0.9607016737503306, 'f1_macro': 0.667482919076603, 'f1_binary': 0.36106510383488344, 'pr_auc': 0.5786431258106735, 'precision_binary': 0.22171804099514944, 'recall_binary': 0.9718792866941015, 'roc_auc': 0.9893939613501757}
+Validation statistic: Loss: 12.8141, dev_score: {'accuracy': 0.9114848417791547, 'balanced_accuracy': 0.7735281713776337, 'f1_macro': 0.7102557382619993, 'f1_binary': 0.46879150066401065, 'pr_auc': 0.4800431385235382, 'precision_binary': 0.37855227882037534, 'recall_binary': 0.6155187445510026, 'roc_auc': 0.8731169817757254}
+-----------------------
+Epoch 51/100
+PILOT development {"rows": 18076, "predicted_positive": 2022, "positive_rate": 0.11186103120159327, "probability_min": 0.0, "probability_max": 0.9999996423721313, "scores": {"accuracy": 0.9058973224164638, "balanced_accuracy": 0.7819238953930521, "f1_macro": 0.7058327962193477, "f1_binary": 0.4632376143893973, "pr_auc": 0.48167065303717405, "precision_binary": 0.3630069238377844, "recall_binary": 0.6399302528334786, "roc_auc": 0.8726226869973331}}
+Training statistic: Loss: 0.2446, train_score: {'accuracy': 0.94152, 'balanced_accuracy': 0.9622186959114924, 'f1_macro': 0.6492388401258368, 'f1_binary': 0.32905002294630564, 'pr_auc': 0.5803152770521537, 'precision_binary': 0.1975750895563516, 'recall_binary': 0.9835390946502057, 'roc_auc': 0.9892821284951883}
+Validation statistic: Loss: 13.7247, dev_score: {'accuracy': 0.9058973224164638, 'balanced_accuracy': 0.7819238953930521, 'f1_macro': 0.7058327962193477, 'f1_binary': 0.4632376143893973, 'pr_auc': 0.48167065303717405, 'precision_binary': 0.3630069238377844, 'recall_binary': 0.6399302528334786, 'roc_auc': 0.8726226869973331}
+-----------------------
+Epoch 52/100
+PILOT development {"rows": 18076, "predicted_positive": 2104, "positive_rate": 0.1163974330604116, "probability_min": 0.0, "probability_max": 1.0, "scores": {"accuracy": 0.9034631555653906, "balanced_accuracy": 0.7883456590304354, "f1_macro": 0.7051020888883291, "f1_binary": 0.46324207936019685, "pr_auc": 0.47272202720115974, "precision_binary": 0.3578897338403042, "recall_binary": 0.6564952048823016, "roc_auc": 0.8711075380571702}}
+Training statistic: Loss: 0.2446, train_score: {'accuracy': 0.93845, 'balanced_accuracy': 0.9620124306768543, 'f1_macro': 0.6431141402289222, 'f1_binary': 0.31845864245377037, 'pr_auc': 0.5785520973271655, 'precision_binary': 0.18988511818301862, 'recall_binary': 0.9862825788751715, 'roc_auc': 0.9893773926175602}
+Validation statistic: Loss: 13.8543, dev_score: {'accuracy': 0.9034631555653906, 'balanced_accuracy': 0.7883456590304354, 'f1_macro': 0.7051020888883291, 'f1_binary': 0.46324207936019685, 'pr_auc': 0.47272202720115974, 'precision_binary': 0.3578897338403042, 'recall_binary': 0.6564952048823016, 'roc_auc': 0.8711075380571702}
+-----------------------
+Epoch 53/100
+PILOT development {"rows": 18076, "predicted_positive": 1883, "positive_rate": 0.10417127683115733, "probability_min": 0.0, "probability_max": 0.9999996423721313, "scores": {"accuracy": 0.9111529099358265, "balanced_accuracy": 0.7757892687151318, "f1_macro": 0.7107397932595626, "f1_binary": 0.46996699669966996, "pr_auc": 0.4743856714417277, "precision_binary": 0.37812002124269783, "recall_binary": 0.6207497820401047, "roc_auc": 0.8690236514231986}}
+Training statistic: Loss: 0.2459, train_score: {'accuracy': 0.94521, 'balanced_accuracy': 0.9603745169732449, 'f1_macro': 0.6566385088623252, 'f1_binary': 0.34186186186186185, 'pr_auc': 0.5798632670347377, 'precision_binary': 0.2072229503422164, 'recall_binary': 0.97599451303155, 'roc_auc': 0.9893350120198308}
+Validation statistic: Loss: 13.3151, dev_score: {'accuracy': 0.9111529099358265, 'balanced_accuracy': 0.7757892687151318, 'f1_macro': 0.7107397932595626, 'f1_binary': 0.46996699669966996, 'pr_auc': 0.4743856714417277, 'precision_binary': 0.37812002124269783, 'recall_binary': 0.6207497820401047, 'roc_auc': 0.8690236514231986}
+-----------------------
+Epoch 54/100
+PILOT development {"rows": 18076, "predicted_positive": 1924, "positive_rate": 0.1064394777605665, "probability_min": 0.0, "probability_max": 0.9999997615814209, "scores": {"accuracy": 0.9097698605886259, "balanced_accuracy": 0.7783019681718041, "f1_macro": 0.709799706080467, "f1_binary": 0.46890263757733636, "pr_auc": 0.47776791104837213, "precision_binary": 0.37422037422037424, "recall_binary": 0.6277244986922407, "roc_auc": 0.8770893391719652}}
+Training statistic: Loss: 0.2420, train_score: {'accuracy': 0.94425, 'balanced_accuracy': 0.9598874150268668, 'f1_macro': 0.6544321727740654, 'f1_binary': 0.33796461227882674, 'pr_auc': 0.5750978158022328, 'precision_binary': 0.20436593422375413, 'recall_binary': 0.97599451303155, 'roc_auc': 0.9891420720692052}
+Validation statistic: Loss: 12.6702, dev_score: {'accuracy': 0.9097698605886259, 'balanced_accuracy': 0.7783019681718041, 'f1_macro': 0.709799706080467, 'f1_binary': 0.46890263757733636, 'pr_auc': 0.47776791104837213, 'precision_binary': 0.37422037422037424, 'recall_binary': 0.6277244986922407, 'roc_auc': 0.8770893391719652}
+-----------------------
+Epoch 55/100
+PILOT development {"rows": 18076, "predicted_positive": 1925, "positive_rate": 0.10649479973445453, "probability_min": 0.0, "probability_max": 0.9999986886978149, "scores": {"accuracy": 0.9098251825625139, "balanced_accuracy": 0.7787378879625626, "f1_macro": 0.710063277786175, "f1_binary": 0.4694010416666667, "pr_auc": 0.4738773351245159, "precision_binary": 0.37454545454545457, "recall_binary": 0.6285963382737576, "roc_auc": 0.872458505735246}}
+Training statistic: Loss: 0.2706, train_score: {'accuracy': 0.94714, 'balanced_accuracy': 0.9593266255475338, 'f1_macro': 0.6607331552663764, 'f1_binary': 0.3490147783251232, 'pr_auc': 0.578141968435155, 'precision_binary': 0.21269888922245572, 'recall_binary': 0.9718792866941015, 'roc_auc': 0.9892848708101012}
+Validation statistic: Loss: 13.5377, dev_score: {'accuracy': 0.9098251825625139, 'balanced_accuracy': 0.7787378879625626, 'f1_macro': 0.710063277786175, 'f1_binary': 0.4694010416666667, 'pr_auc': 0.4738773351245159, 'precision_binary': 0.37454545454545457, 'recall_binary': 0.6285963382737576, 'roc_auc': 0.872458505735246}
+-----------------------
+Epoch 56/100
+PILOT development {"rows": 18076, "predicted_positive": 1850, "positive_rate": 0.1023456516928524, "probability_min": 0.0, "probability_max": 0.9999932050704956, "scores": {"accuracy": 0.9123146713874751, "balanced_accuracy": 0.77397119813645, "f1_macro": 0.7116660218253743, "f1_binary": 0.4711378044711378, "pr_auc": 0.47347192578990516, "precision_binary": 0.3816216216216216, "recall_binary": 0.6155187445510026, "roc_auc": 0.8711430728974588}}
+Training statistic: Loss: 0.2378, train_score: {'accuracy': 0.94925, 'balanced_accuracy': 0.9600593734843317, 'f1_macro': 0.665872078867968, 'f1_binary': 0.3581636524598457, 'pr_auc': 0.5817162965469652, 'precision_binary': 0.219568925414793, 'recall_binary': 0.9711934156378601, 'roc_auc': 0.9894915745367179}
+Validation statistic: Loss: 13.3573, dev_score: {'accuracy': 0.9123146713874751, 'balanced_accuracy': 0.77397119813645, 'f1_macro': 0.7116660218253743, 'f1_binary': 0.4711378044711378, 'pr_auc': 0.47347192578990516, 'precision_binary': 0.3816216216216216, 'recall_binary': 0.6155187445510026, 'roc_auc': 0.8711430728974588}
+-----------------------
+Epoch 57/100
+PILOT development {"rows": 18076, "predicted_positive": 2035, "positive_rate": 0.11258021686213764, "probability_min": 0.0, "probability_max": 0.9999953508377075, "scores": {"accuracy": 0.9065058641292322, "balanced_accuracy": 0.7871253977648998, "f1_macro": 0.7088143860473886, "f1_binary": 0.4688874921433061, "pr_auc": 0.47560718016447034, "precision_binary": 0.3665847665847666, "recall_binary": 0.6503923278116827, "roc_auc": 0.8750363523991141}}
+Training statistic: Loss: 0.2222, train_score: {'accuracy': 0.94108, 'balanced_accuracy': 0.9623333024022485, 'f1_macro': 0.6483705055958755, 'f1_binary': 0.3275507874914403, 'pr_auc': 0.5825350652376504, 'precision_binary': 0.19646768893756847, 'recall_binary': 0.9842249657064472, 'roc_auc': 0.9896267101082757}
+Validation statistic: Loss: 13.3502, dev_score: {'accuracy': 0.9065058641292322, 'balanced_accuracy': 0.7871253977648998, 'f1_macro': 0.7088143860473886, 'f1_binary': 0.4688874921433061, 'pr_auc': 0.47560718016447034, 'precision_binary': 0.3665847665847666, 'recall_binary': 0.6503923278116827, 'roc_auc': 0.8750363523991141}
+-----------------------
+Epoch 58/100
+PILOT development {"rows": 18076, "predicted_positive": 1867, "positive_rate": 0.10328612524894888, "probability_min": 0.0, "probability_max": 0.9999998807907104, "scores": {"accuracy": 0.9112635538836026, "balanced_accuracy": 0.773003646235112, "f1_macro": 0.7097066046581741, "f1_binary": 0.4678168546781685, "pr_auc": 0.47061202673758923, "precision_binary": 0.3776111408677022, "recall_binary": 0.6146469049694856, "roc_auc": 0.8685014695201452}}
+Training statistic: Loss: 0.2680, train_score: {'accuracy': 0.9503, 'balanced_accuracy': 0.9599164181391575, 'f1_macro': 0.6683994399444018, 'f1_binary': 0.362657091561939, 'pr_auc': 0.5819135446106904, 'precision_binary': 0.22302839116719242, 'recall_binary': 0.9698216735253772, 'roc_auc': 0.9895640962378252}
+Validation statistic: Loss: 14.9714, dev_score: {'accuracy': 0.9112635538836026, 'balanced_accuracy': 0.773003646235112, 'f1_macro': 0.7097066046581741, 'f1_binary': 0.4678168546781685, 'pr_auc': 0.47061202673758923, 'precision_binary': 0.3776111408677022, 'recall_binary': 0.6146469049694856, 'roc_auc': 0.8685014695201452}
+-----------------------
+Epoch 59/100
+PILOT development {"rows": 18076, "predicted_positive": 1864, "positive_rate": 0.1031201593272848, "probability_min": 0.0, "probability_max": 0.9999912977218628, "scores": {"accuracy": 0.9117614516485948, "balanced_accuracy": 0.7744886163109139, "f1_macro": 0.711073979558833, "f1_binary": 0.47027565592826304, "pr_auc": 0.47387197388738045, "precision_binary": 0.3798283261802575, "recall_binary": 0.6172624237140366, "roc_auc": 0.8684732218971043}}
+Training statistic: Loss: 0.2422, train_score: {'accuracy': 0.94964, 'balanced_accuracy': 0.9602572586500477, 'f1_macro': 0.6668639234437526, 'f1_binary': 0.3599389933909507, 'pr_auc': 0.5842442059597053, 'precision_binary': 0.22090483619344775, 'recall_binary': 0.9711934156378601, 'roc_auc': 0.9896615667404698}
+Validation statistic: Loss: 13.9834, dev_score: {'accuracy': 0.9117614516485948, 'balanced_accuracy': 0.7744886163109139, 'f1_macro': 0.711073979558833, 'f1_binary': 0.47027565592826304, 'pr_auc': 0.47387197388738045, 'precision_binary': 0.3798283261802575, 'recall_binary': 0.6172624237140366, 'roc_auc': 0.8684732218971043}
+-----------------------
+Epoch 60/100
+PILOT development {"rows": 18076, "predicted_positive": 1888, "positive_rate": 0.10444788670059747, "probability_min": 0.0, "probability_max": 0.9999786615371704, "scores": {"accuracy": 0.9106550121708342, "balanced_accuracy": 0.7747106833128339, "f1_macro": 0.7095541497597828, "f1_binary": 0.46787479406919275, "pr_auc": 0.4741919431931293, "precision_binary": 0.3760593220338983, "recall_binary": 0.6190061028770706, "roc_auc": 0.8698511497040078}}
+Training statistic: Loss: 0.2267, train_score: {'accuracy': 0.94913, 'balanced_accuracy': 0.9606742088400595, 'f1_macro': 0.6657305261791642, 'f1_binary': 0.3579452227691531, 'pr_auc': 0.5851486637493649, 'precision_binary': 0.21933488012374322, 'recall_binary': 0.9725651577503429, 'roc_auc': 0.989688937688174}
+Validation statistic: Loss: 14.3125, dev_score: {'accuracy': 0.9106550121708342, 'balanced_accuracy': 0.7747106833128339, 'f1_macro': 0.7095541497597828, 'f1_binary': 0.46787479406919275, 'pr_auc': 0.4741919431931293, 'precision_binary': 0.3760593220338983, 'recall_binary': 0.6190061028770706, 'roc_auc': 0.8698511497040078}
+-----------------------
+Epoch 61/100
+PILOT development {"rows": 18076, "predicted_positive": 1955, "positive_rate": 0.10815445895109538, "probability_min": 0.0, "probability_max": 0.9999785423278809, "scores": {"accuracy": 0.9083868112414251, "balanced_accuracy": 0.7787827442609558, "f1_macro": 0.7080224851274518, "f1_binary": 0.4661508704061896, "pr_auc": 0.47055040876636367, "precision_binary": 0.3698209718670077, "recall_binary": 0.6303400174367916, "roc_auc": 0.8664745931299412}}
+Training statistic: Loss: 0.2228, train_score: {'accuracy': 0.94401, 'balanced_accuracy': 0.9604413626392974, 'f1_macro': 0.654044106165914, 'f1_binary': 0.33731802580187004, 'pr_auc': 0.5825948119083854, 'precision_binary': 0.2038335002145616, 'recall_binary': 0.977366255144033, 'roc_auc': 0.9896113698492193}
+Validation statistic: Loss: 14.2845, dev_score: {'accuracy': 0.9083868112414251, 'balanced_accuracy': 0.7787827442609558, 'f1_macro': 0.7080224851274518, 'f1_binary': 0.4661508704061896, 'pr_auc': 0.47055040876636367, 'precision_binary': 0.3698209718670077, 'recall_binary': 0.6303400174367916, 'roc_auc': 0.8664745931299412}
+-----------------------
+Epoch 62/100
+PILOT development {"rows": 18076, "predicted_positive": 1936, "positive_rate": 0.10710334144722283, "probability_min": 0.0, "probability_max": 0.9999703168869019, "scores": {"accuracy": 0.9095485726930737, "balanced_accuracy": 0.7798093663968027, "f1_macro": 0.710115160677955, "f1_binary": 0.4696723970158936, "pr_auc": 0.4699016746655539, "precision_binary": 0.3739669421487603, "recall_binary": 0.6312118570183086, "roc_auc": 0.8695837886556619}}
+Training statistic: Loss: 0.2350, train_score: {'accuracy': 0.94574, 'balanced_accuracy': 0.9592919916414242, 'f1_macro': 0.6575589515609779, 'f1_binary': 0.34341723136495644, 'pr_auc': 0.5855661904832926, 'precision_binary': 0.2084925066118131, 'recall_binary': 0.9732510288065843, 'roc_auc': 0.9895565687921946}
+Validation statistic: Loss: 13.8956, dev_score: {'accuracy': 0.9095485726930737, 'balanced_accuracy': 0.7798093663968027, 'f1_macro': 0.710115160677955, 'f1_binary': 0.4696723970158936, 'pr_auc': 0.4699016746655539, 'precision_binary': 0.3739669421487603, 'recall_binary': 0.6312118570183086, 'roc_auc': 0.8695837886556619}
+-----------------------
+Epoch 63/100
+PILOT development {"rows": 18076, "predicted_positive": 1916, "positive_rate": 0.10599690196946226, "probability_min": 0.0, "probability_max": 0.9999698400497437, "scores": {"accuracy": 0.9097698605886259, "balanced_accuracy": 0.7766764294777877, "f1_macro": 0.7091121012023026, "f1_binary": 0.4675155076722168, "pr_auc": 0.46799671758674055, "precision_binary": 0.3736951983298539, "recall_binary": 0.6242371403661726, "roc_auc": 0.8668152125990269}}
+Training statistic: Loss: 0.2428, train_score: {'accuracy': 0.94535, 'balanced_accuracy': 0.9597698295747332, 'f1_macro': 0.6568059880561539, 'f1_binary': 0.342121102684483, 'pr_auc': 0.5894320750432153, 'precision_binary': 0.20747554387501826, 'recall_binary': 0.9746227709190672, 'roc_auc': 0.9895887318308065}
+Validation statistic: Loss: 15.2895, dev_score: {'accuracy': 0.9097698605886259, 'balanced_accuracy': 0.7766764294777877, 'f1_macro': 0.7091121012023026, 'f1_binary': 0.4675155076722168, 'pr_auc': 0.46799671758674055, 'precision_binary': 0.3736951983298539, 'recall_binary': 0.6242371403661726, 'roc_auc': 0.8668152125990269}
+-----------------------
+Epoch 64/100
+PILOT development {"rows": 18076, "predicted_positive": 1831, "positive_rate": 0.10129453418897987, "probability_min": 0.0, "probability_max": 0.9999896287918091, "scores": {"accuracy": 0.9129232131002434, "balanced_accuracy": 0.7726705457322323, "f1_macro": 0.7120052791227224, "f1_binary": 0.4714573539288113, "pr_auc": 0.46501110079270225, "precision_binary": 0.383397050791917, "recall_binary": 0.6120313862249346, "roc_auc": 0.8623853055092444}}
+Training statistic: Loss: 0.2691, train_score: {'accuracy': 0.95159, 'balanced_accuracy': 0.9575302074339898, 'f1_macro': 0.6710522290176728, 'f1_binary': 0.3672722519932035, 'pr_auc': 0.5877133963335868, 'precision_binary': 0.2268690456967544, 'recall_binary': 0.9636488340192044, 'roc_auc': 0.9897340397202461}
+Validation statistic: Loss: 16.0565, dev_score: {'accuracy': 0.9129232131002434, 'balanced_accuracy': 0.7726705457322323, 'f1_macro': 0.7120052791227224, 'f1_binary': 0.4714573539288113, 'pr_auc': 0.46501110079270225, 'precision_binary': 0.383397050791917, 'recall_binary': 0.6120313862249346, 'roc_auc': 0.8623853055092444}
+-----------------------
+Epoch 65/100
+PILOT development {"rows": 18076, "predicted_positive": 1819, "positive_rate": 0.10063067050232352, "probability_min": 0.0, "probability_max": 0.9999634027481079, "scores": {"accuracy": 0.9127019252046913, "balanced_accuracy": 0.7693013278751819, "f1_macro": 0.7102100793260764, "f1_binary": 0.4679703304113284, "pr_auc": 0.46157198730414417, "precision_binary": 0.38152831225948325, "recall_binary": 0.6050566695727986, "roc_auc": 0.8635829326265092}}
+Training statistic: Loss: 0.2340, train_score: {'accuracy': 0.95025, 'balanced_accuracy': 0.96158035599368, 'f1_macro': 0.668677253191857, 'f1_binary': 0.36324075259183414, 'pr_auc': 0.5887035229209293, 'precision_binary': 0.22328874901652243, 'recall_binary': 0.9732510288065843, 'roc_auc': 0.9898041810363272}
+Validation statistic: Loss: 15.4701, dev_score: {'accuracy': 0.9127019252046913, 'balanced_accuracy': 0.7693013278751819, 'f1_macro': 0.7102100793260764, 'f1_binary': 0.4679703304113284, 'pr_auc': 0.46157198730414417, 'precision_binary': 0.38152831225948325, 'recall_binary': 0.6050566695727986, 'roc_auc': 0.8635829326265092}
+-----------------------
+Epoch 66/100
+PILOT development {"rows": 18076, "predicted_positive": 1911, "positive_rate": 0.10572029210002212, "probability_min": 0.0, "probability_max": 0.9999275207519531, "scores": {"accuracy": 0.9096038946669617, "balanced_accuracy": 0.7749622854320082, "f1_macro": 0.7081446617979354, "f1_binary": 0.4656638325703074, "pr_auc": 0.4599277684337242, "precision_binary": 0.37257980115122974, "recall_binary": 0.6207497820401047, "roc_auc": 0.8654258003437403}}
+Training statistic: Loss: 0.2410, train_score: {'accuracy': 0.94411, 'balanced_accuracy': 0.9615056870739163, 'f1_macro': 0.6545056391569177, 'f1_binary': 0.33818827708703375, 'pr_auc': 0.5862528246227157, 'precision_binary': 0.20437956204379562, 'recall_binary': 0.9794238683127572, 'roc_auc': 0.9895836300114378}
+Validation statistic: Loss: 16.0009, dev_score: {'accuracy': 0.9096038946669617, 'balanced_accuracy': 0.7749622854320082, 'f1_macro': 0.7081446617979354, 'f1_binary': 0.4656638325703074, 'pr_auc': 0.4599277684337242, 'precision_binary': 0.37257980115122974, 'recall_binary': 0.6207497820401047, 'roc_auc': 0.8654258003437403}
+-----------------------
+Epoch 67/100
+PILOT development {"rows": 18076, "predicted_positive": 1875, "positive_rate": 0.1037287010400531, "probability_min": 0.0, "probability_max": 0.9999245405197144, "scores": {"accuracy": 0.9107103341447222, "balanced_accuracy": 0.7723019103890638, "f1_macro": 0.7085997183747398, "f1_binary": 0.46591661151555264, "pr_auc": 0.45911394300275343, "precision_binary": 0.37546666666666667, "recall_binary": 0.6137750653879687, "roc_auc": 0.864736012443992}}
+Training statistic: Loss: 0.2491, train_score: {'accuracy': 0.94775, 'balanced_accuracy': 0.9592982766931157, 'f1_macro': 0.6621369854037442, 'f1_binary': 0.35149559389350876, 'pr_auc': 0.5855986434713754, 'precision_binary': 0.21457796635853918, 'recall_binary': 0.9711934156378601, 'roc_auc': 0.989565436074426}
+Validation statistic: Loss: 16.4515, dev_score: {'accuracy': 0.9107103341447222, 'balanced_accuracy': 0.7723019103890638, 'f1_macro': 0.7085997183747398, 'f1_binary': 0.46591661151555264, 'pr_auc': 0.45911394300275343, 'precision_binary': 0.37546666666666667, 'recall_binary': 0.6137750653879687, 'roc_auc': 0.864736012443992}
+-----------------------
+Epoch 68/100
+PILOT development {"rows": 18076, "predicted_positive": 1978, "positive_rate": 0.10942686435052003, "probability_min": 0.0, "probability_max": 0.999902606010437, "scores": {"accuracy": 0.9058973224164638, "balanced_accuracy": 0.7729834325759624, "f1_macro": 0.7020883422654192, "f1_binary": 0.45568, "pr_auc": 0.4599505835780636, "precision_binary": 0.35995955510616784, "recall_binary": 0.6207497820401047, "roc_auc": 0.8638089651106063}}
+Training statistic: Loss: 0.2238, train_score: {'accuracy': 0.94066, 'balanced_accuracy': 0.9614444722016827, 'f1_macro': 0.6473231266641308, 'f1_binary': 0.3256818181818182, 'pr_auc': 0.5867560979721423, 'precision_binary': 0.19517842549713973, 'recall_binary': 0.9828532235939643, 'roc_auc': 0.9894995474345171}
+Validation statistic: Loss: 15.5813, dev_score: {'accuracy': 0.9058973224164638, 'balanced_accuracy': 0.7729834325759624, 'f1_macro': 0.7020883422654192, 'f1_binary': 0.45568, 'pr_auc': 0.4599505835780636, 'precision_binary': 0.35995955510616784, 'recall_binary': 0.6207497820401047, 'roc_auc': 0.8638089651106063}
+-----------------------
+Epoch 69/100
+PILOT development {"rows": 18076, "predicted_positive": 1874, "positive_rate": 0.10367337906616508, "probability_min": 0.0, "probability_max": 0.9998966455459595, "scores": {"accuracy": 0.9104337242752821, "balanced_accuracy": 0.7709350807822795, "f1_macro": 0.7076090598832631, "f1_binary": 0.46408474015226747, "pr_auc": 0.4596937548885256, "precision_binary": 0.37406616862326575, "recall_binary": 0.6111595466434177, "roc_auc": 0.8657459229049496}}
+Training statistic: Loss: 0.2322, train_score: {'accuracy': 0.94748, 'balanced_accuracy': 0.9628777563153355, 'f1_macro': 0.6623577993063554, 'f1_binary': 0.3520848754009376, 'pr_auc': 0.5889011355900665, 'precision_binary': 0.21465102286401924, 'recall_binary': 0.9787379972565158, 'roc_auc': 0.9897838259602786}
+Validation statistic: Loss: 15.8698, dev_score: {'accuracy': 0.9104337242752821, 'balanced_accuracy': 0.7709350807822795, 'f1_macro': 0.7076090598832631, 'f1_binary': 0.46408474015226747, 'pr_auc': 0.4596937548885256, 'precision_binary': 0.37406616862326575, 'recall_binary': 0.6111595466434177, 'roc_auc': 0.8657459229049496}
+-----------------------
+Epoch 70/100
+PILOT development {"rows": 18076, "predicted_positive": 1920, "positive_rate": 0.10621818986501438, "probability_min": 0.0, "probability_max": 0.9997668862342834, "scores": {"accuracy": 0.9096592166408497, "balanced_accuracy": 0.777023743916783, "f1_macro": 0.7091000795837696, "f1_binary": 0.46755787414411476, "pr_auc": 0.4610815447073311, "precision_binary": 0.3734375, "recall_binary": 0.6251089799476897, "roc_auc": 0.8671680632631397}}
+Training statistic: Loss: 0.2371, train_score: {'accuracy': 0.9471, 'balanced_accuracy': 0.9633606682272526, 'f1_macro': 0.6615937925723325, 'f1_binary': 0.35076092292587135, 'pr_auc': 0.5902753072131078, 'precision_binary': 0.21360239162929745, 'recall_binary': 0.9801097393689986, 'roc_auc': 0.9897710470511916}
+Validation statistic: Loss: 15.0757, dev_score: {'accuracy': 0.9096592166408497, 'balanced_accuracy': 0.777023743916783, 'f1_macro': 0.7091000795837696, 'f1_binary': 0.46755787414411476, 'pr_auc': 0.4610815447073311, 'precision_binary': 0.3734375, 'recall_binary': 0.6251089799476897, 'roc_auc': 0.8671680632631397}
+-----------------------
+Epoch 71/100
+PILOT development {"rows": 18076, "predicted_positive": 1883, "positive_rate": 0.10417127683115733, "probability_min": 0.0, "probability_max": 0.999784529209137, "scores": {"accuracy": 0.9111529099358265, "balanced_accuracy": 0.7757892687151318, "f1_macro": 0.7107397932595626, "f1_binary": 0.46996699669966996, "pr_auc": 0.4637330487728407, "precision_binary": 0.37812002124269783, "recall_binary": 0.6207497820401047, "roc_auc": 0.8666834246913478}}
+Training statistic: Loss: 0.2272, train_score: {'accuracy': 0.94653, 'balanced_accuracy': 0.9617200052485402, 'f1_macro': 0.6599053083642735, 'f1_binary': 0.3476881786019275, 'pr_auc': 0.5903481472031238, 'precision_binary': 0.21145570559430182, 'recall_binary': 0.977366255144033, 'roc_auc': 0.9897438396679555}
+Validation statistic: Loss: 15.2797, dev_score: {'accuracy': 0.9111529099358265, 'balanced_accuracy': 0.7757892687151318, 'f1_macro': 0.7107397932595626, 'f1_binary': 0.46996699669966996, 'pr_auc': 0.4637330487728407, 'precision_binary': 0.37812002124269783, 'recall_binary': 0.6207497820401047, 'roc_auc': 0.8666834246913478}
+-----------------------
+Epoch 72/100
+PILOT development {"rows": 18076, "predicted_positive": 1754, "positive_rate": 0.09703474219960168, "probability_min": 0.0, "probability_max": 0.9999659061431885, "scores": {"accuracy": 0.9153020579774286, "balanced_accuracy": 0.7670320163246027, "f1_macro": 0.7131036099704015, "f1_binary": 0.4722509479489831, "pr_auc": 0.463992311618701, "precision_binary": 0.3905359179019384, "recall_binary": 0.5972101133391456, "roc_auc": 0.8672570806130512}}
+Training statistic: Loss: 0.2548, train_score: {'accuracy': 0.95186, 'balanced_accuracy': 0.9610458203515347, 'f1_macro': 0.6725992498711535, 'f1_binary': 0.37022501308215594, 'pr_auc': 0.589345560972206, 'precision_binary': 0.2287423213708374, 'recall_binary': 0.9705075445816187, 'roc_auc': 0.9898292377208117}
+Validation statistic: Loss: 16.9519, dev_score: {'accuracy': 0.9153020579774286, 'balanced_accuracy': 0.7670320163246027, 'f1_macro': 0.7131036099704015, 'f1_binary': 0.4722509479489831, 'pr_auc': 0.463992311618701, 'precision_binary': 0.3905359179019384, 'recall_binary': 0.5972101133391456, 'roc_auc': 0.8672570806130512}
+Early stopping by f1_macro triggered!
+Testing statistic: loss: 11.102410563923888, scores: {'accuracy': 0.9122125380657355, 'balanced_accuracy': 0.7844649764722966, 'f1_macro': 0.7108448420642784, 'f1_binary': 0.46954314720812185, 'pr_auc': 0.4826279605393722, 'precision_binary': 0.3711133400200602, 'recall_binary': 0.6390328151986183, 'roc_auc': 0.874809696719716}
+Finish training!
+PILOT development {"rows": 18076, "predicted_positive": 1874, "positive_rate": 0.10367337906616508, "probability_min": 0.0, "probability_max": 1.0, "scores": {"accuracy": 0.9124253153352512, "balanced_accuracy": 0.7793132691265119, "f1_macro": 0.7141106496573226, "f1_binary": 0.47600132406487916, "pr_auc": 0.48421497967295324, "precision_binary": 0.3836712913553895, "recall_binary": 0.6268526591107236, "roc_auc": 0.8806864435047798}}
+PILOT COMPLETED {"namespace": "census_kdd_weighted_macro_f1_20261005", "input_namespace": "corrected_v2", "started_at_chicago": "2026-10-05T17:53:38.267137-05:00", "completed_at_chicago": "2026-10-05T18:03:11.983250-05:00", "pilot_source_sha256": "77ebb82233c6a9942f46b800cac5b013a3ac8efa5f70b08ac7255c0d3b3e2908", "objective": "BCEWithLogitsLoss", "model_output": "logits", "pos_weight_rule": "actual_training_negatives / actual_training_positives", "pos_weight": 67.58710562414267, "training_label_counts": {"0": 98542, "1": 1458}, "shuffle": false, "threshold": 0.5, "test_loss_definition": "weighted BCE using this arm's training pos_weight", "selected_development": {"rows": 18076, "predicted_positive": 1874, "positive_rate": 0.10367337906616508, "probability_min": 0.0, "probability_max": 1.0, "scores": {"accuracy": 0.9124253153352512, "balanced_accuracy": 0.7793132691265119, "f1_macro": 0.7141106496573226, "f1_binary": 0.47600132406487916, "pr_auc": 0.48421497967295324, "precision_binary": 0.3836712913553895, "recall_binary": 0.6268526591107236, "roc_auc": 0.8806864435047798}}, "test_diagnostics": {"rows": 9523, "predicted_positive": 997, "positive_rate": 0.10469389898141342, "probability_min": 0.0, "probability_max": 1.0, "scores": {"accuracy": 0.9122125380657355, "balanced_accuracy": 0.7844649764722966, "f1_macro": 0.7108448420642784, "f1_binary": 0.46954314720812185, "pr_auc": 0.4826279605393722, "precision_binary": 0.3711133400200602, "recall_binary": 0.6390328151986183, "roc_auc": 0.874809696719716}}, "development_collapse_resolved": true}
