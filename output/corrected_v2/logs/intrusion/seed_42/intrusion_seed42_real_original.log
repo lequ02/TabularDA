@@ -1,1 +1,70 @@
 =====Setting up data=====
+Dataset name:intrusion
+train_option:original
+augment_option:None
+mix_ratio:-1
+n_sample:-1
+Training dataset size: 4212480 samples
+Validation dataset size: 155392 samples
+
+=====Setting up parameters for training=====
+num_epochs: 100
+learning_rate: 0.001
+patience: 30
+early_stop_criterion: loss
+=====Setting up trainer=====
+input_size: 125
+model: DNN_Intrusion
+----------------------------------------------------------------
+        Layer (type)               Output Shape         Param #
+================================================================
+            Linear-1                  [-1, 150]          18,900
+              ReLU-2                  [-1, 150]               0
+           Dropout-3                  [-1, 150]               0
+            Linear-4                  [-1, 250]          37,750
+              ReLU-5                  [-1, 250]               0
+           Dropout-6                  [-1, 250]               0
+            Linear-7                  [-1, 300]          75,300
+              ReLU-8                  [-1, 300]               0
+           Dropout-9                  [-1, 300]               0
+           Linear-10                  [-1, 250]          75,250
+             ReLU-11                  [-1, 250]               0
+          Dropout-12                  [-1, 250]               0
+           Linear-13                  [-1, 150]          37,650
+             ReLU-14                  [-1, 150]               0
+          Dropout-15                  [-1, 150]               0
+           Linear-16                   [-1, 23]           3,473
+================================================================
+Total params: 248,323
+Trainable params: 248,323
+Non-trainable params: 0
+----------------------------------------------------------------
+Input size (MB): 0.00
+Forward/backward pass size (MB): 0.03
+Params size (MB): 0.95
+Estimated Total Size (MB): 0.97
+----------------------------------------------------------------
+=====Setting up output files=====
+weight_dir, weight_file: /home/thuy/Research/minh_data_synth/TabularDA/output/corrected_v2/intrusion/weight/, intrusion_seed42_real_original.weights.pth
+acc_dir, acc_file: /home/thuy/Research/minh_data_synth/TabularDA/output/corrected_v2/intrusion/acc/, intrusion_seed42_real_original.epochs.csv
+report_file: intrusion_seed42_real_original.report.txt
+==========================================================================================
+Start training...
+OSError: [Errno 28] No space left on device
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/thuy/miniconda3/envs/env/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/home/thuy/miniconda3/envs/env/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "/home/thuy/Research/minh_data_synth/TabularDA/src/modeling/__main__.py", line 36, in <module>
+    main()
+  File "/home/thuy/Research/minh_data_synth/TabularDA/src/modeling/__main__.py", line 32, in main
+    entrypoint.main(entrypoint.parse_args())
+  File "/home/thuy/Research/minh_data_synth/TabularDA/src/modeling/classification_main.py", line 80, in main
+    train_model.training()
+  File "/home/thuy/Research/minh_data_synth/TabularDA/src/modeling/classification_train.py", line 230, in training
+    with open(self.acc_dir + self.acc_file_name, 'w') as acc_file:
+OSError: [Errno 28] No space left on device
