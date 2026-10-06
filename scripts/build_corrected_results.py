@@ -92,6 +92,7 @@ def build(run_root, output_root, matrix='full'):
         "adult": "f1_macro", "census_kdd": "f1_macro", "credit": "f1_macro",
         "covertype": "f1_macro", "intrusion": "f1_macro",
         "mnist12": "accuracy", "mnist28": "accuracy", "news": "r2",
+        "california_housing": "r2",
     }
     for dataset, group in summary_table.groupby("dataset"):
         metric = primary_metric[dataset]

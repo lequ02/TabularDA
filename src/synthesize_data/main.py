@@ -4,7 +4,7 @@ import sys
 import os
 import pandas as pd
 import argparse
-from create_synthetic_data import news, census, covertype, intrusion, credit, adult, mnist28, mnist12, census_kdd
+from create_synthetic_data import news, census, covertype, intrusion, credit, adult, mnist28, mnist12, census_kdd, california_housing
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -23,11 +23,13 @@ def single_run(dataset=None, seed=None, generator=None, profile='full', resume_f
       mnist12.CreateSyntheticDataMnist12,
       mnist28.CreateSyntheticDataMnist28,
       news.CreateSyntheticDataNews,
+      california_housing.CreateSyntheticDataCaliforniaHousing,
   ]
   available = {factory.__name__.removeprefix('CreateSyntheticData'): factory for factory in datasets}
   aliases = {'adult': 'Adult', 'census_kdd': 'CensusKdd', 'credit': 'Credit',
              'covertype': 'Covertype', 'intrusion': 'Intrusion', 'mnist12': 'Mnist12',
-             'mnist28': 'Mnist28', 'news': 'News'}
+             'mnist28': 'Mnist28', 'news': 'News',
+             'california_housing': 'CaliforniaHousing'}
   if dataset is not None:
     canonical = aliases.get(dataset.lower())
     if canonical is None:
@@ -99,7 +101,7 @@ def create_synthetic_simulated():
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(description='Generate corrected synthetic datasets.')
-  parser.add_argument('--dataset', choices=['adult', 'census_kdd', 'credit', 'covertype', 'intrusion', 'mnist12', 'mnist28', 'news'])
+  parser.add_argument('--dataset', choices=['adult', 'census_kdd', 'credit', 'covertype', 'intrusion', 'mnist12', 'mnist28', 'news', 'california_housing'])
   parser.add_argument('--seed', type=int, choices=[42, 43])
   parser.add_argument('--generator', choices=['CTGAN', 'TVAE'])
   parser.add_argument('--profile', choices=['full', 'pilot'], default='full')

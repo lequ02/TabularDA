@@ -63,6 +63,7 @@ IN_DATA_PATHS = {
     'census': create_path_dict('census', 'income'),
     'census_kdd': create_path_dict('census_kdd', 'income'),
     'news': create_path_dict('news', ' shares'),
+    'california_housing': create_path_dict('california_housing', 'MedHouseVal'),
     'covertype': create_path_dict('covertype', 'Cover_Type'),
     'intrusion': create_path_dict('intrusion', 'target'),
     'credit': create_path_dict('credit', 'Class'),

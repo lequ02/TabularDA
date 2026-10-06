@@ -14,7 +14,7 @@ sys.path.insert(0, str(ROOT / 'src'))
 from modeling import constants
 DATASETS = (
     "adult", "census_kdd", "credit", "covertype", "intrusion",
-    "mnist12", "mnist28", "news",
+    "mnist12", "mnist28", "news", "california_housing",
 )
 SEEDS = (42, 43)
 CLASSIFICATION_LABELERS = ("gaussian", "categorical", "pca_gmm", "rf", "xgb", "dnn")
@@ -22,7 +22,7 @@ REGRESSION_LABELERS = ("pca_gmm", "rf", "xgb", "dnn")
 
 
 def methods_for(dataset, generator):
-    labelers = REGRESSION_LABELERS if dataset == "news" else CLASSIFICATION_LABELERS
+    labelers = REGRESSION_LABELERS if dataset in {"news", "california_housing"} else CLASSIFICATION_LABELERS
     prefix = "" if generator == "ctgan" else "tvae_"
     return ((generator,)
             + tuple(f"{prefix}{labeler}" for labeler in labelers)

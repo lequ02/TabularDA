@@ -15,7 +15,7 @@ def main():
     args, _ = parser.parse_known_args()
     dataset = args.dataset_name.lower()
 
-    if dataset == "news":
+    if dataset in {"news", "california_housing"}:
         from . import regression_main
 
         entrypoint = regression_main
@@ -26,7 +26,7 @@ def main():
     else:
         parser.error(
             "unsupported dataset; choose adult, census_kdd, credit, covertype, "
-            "intrusion, mnist12, mnist28, or news"
+            "intrusion, mnist12, mnist28, news, or california_housing"
         )
 
     entrypoint.main(entrypoint.parse_args())
