@@ -55,14 +55,14 @@ Macro F1 averages the F1 scores of both classes. Paper references for binary dat
 | Configuration | Seed 42 | Seed 43 |
 |---|---:|---:|
 | Original data only | 95.3% | — |
-| CTGAN, generated target | 51.4% | — |
+| CTGAN, generated target | 51.4% | 55.8% |
 | TVAE, generated target | 92.9% | — |
-| CTGAN full features + RF | 89.5% | — |
-| CTGAN full features + XGB | 90.8% | — |
-| CTGAN full features + DNN | 91.7% | — |
-| CTGAN X-only features + RF | 88.5% | — |
-| CTGAN X-only features + XGB | 89.7% | — |
-| CTGAN X-only features + DNN | 91.2% | — |
+| CTGAN full features + RF | 89.5% | 89.6% |
+| CTGAN full features + XGB | 90.8% | 90.6% |
+| CTGAN full features + DNN | 91.7% | 91.7% |
+| CTGAN X-only features + RF | 88.5% | 88.3% |
+| CTGAN X-only features + XGB | 89.7% | 89.3% |
+| CTGAN X-only features + DNN | 91.2% | 90.3% |
 | TVAE full features + DNN | 93.9% | — |
 | TVAE X-only features + DNN | 93.7% | — |
 | Paper CTGAN (reference) | 39.4% | 39.4% |

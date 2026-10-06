@@ -2,7 +2,7 @@
 
 Mix training concatenates all real training rows and 100,000 synthetic rows; the ratio varies by dataset. The original-data row is the same real-only baseline. Development and test partitions remain real held-out data.
 
-This report contains 122 distinct completed run records from the selected comparison configurations; it does not establish completion of the full 816-run matrix.
+This report contains 128 distinct completed run records from the selected comparison configurations; it does not establish completion of the full 816-run matrix.
 
 Classification scores are percentages; News reports unscaled R² (which can be negative) and NMAEσ. Adult, Credit, and Census KDD show binary F1 / macro F1; Covertype and Intrusion use macro F1; MNIST uses accuracy. A dash means no evaluated run is recorded. Seed 42 is used unless the column says seed 43. Within Adult, Credit, and Census KDD, the two seeds share the same prepared train, development, and test split; they are model-seed repeats, not independent holdouts.
 
@@ -59,14 +59,14 @@ Macro F1 averages the F1 scores of both classes. Paper references for binary dat
 | Configuration | Seed 42 | Seed 43 |
 |---|---:|---:|
 | Original data only | 95.3% | — |
-| CTGAN, generated target | 66.5% | — |
+| CTGAN, generated target | 66.5% | 80.7% |
 | TVAE, generated target | 94.1% | — |
-| CTGAN full features + RF | 92.5% | — |
-| CTGAN full features + XGB | 93.8% | — |
+| CTGAN full features + RF | 92.5% | 92.7% |
+| CTGAN full features + XGB | 93.8% | 94.0% |
 | CTGAN full features + DNN | 93.7% | — |
-| CTGAN X-only features + RF | 92.4% | — |
-| CTGAN X-only features + XGB | 93.5% | — |
-| CTGAN X-only features + DNN | 93.9% | — |
+| CTGAN X-only features + RF | 92.4% | 92.4% |
+| CTGAN X-only features + XGB | 93.5% | 93.6% |
+| CTGAN X-only features + DNN | 93.9% | 93.8% |
 | TVAE full features + DNN | 94.6% | — |
 | TVAE X-only features + DNN | 94.6% | — |
 | Paper CTGAN (reference) | 39.4% | 39.4% |
