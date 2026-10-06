@@ -23,7 +23,9 @@ REGRESSION_LABELERS = ("pca_gmm", "rf", "xgb", "dnn")
 
 def methods_for(dataset, generator):
     labelers = REGRESSION_LABELERS if dataset in {"news", "california_housing"} else CLASSIFICATION_LABELERS
-    prefix = "" if generator == "ctgan" else "tvae_"
+    if generator not in {'ctgan', 'tvae', 'tabddpm'}:
+        raise ValueError(f'Unsupported generator: {generator}')
+    prefix = "" if generator == "ctgan" else generator + '_'
     return ((generator,)
             + tuple(f"{prefix}{labeler}" for labeler in labelers)
             + tuple(f"{prefix}compare_{labeler}" for labeler in labelers))
@@ -66,19 +68,19 @@ def completed_run(output, dataset, seed, mode, method):
     return True
 
 
-def run_matrix(dataset_names, seeds, stage, resume=False):
+def run_matrix(dataset_names, seeds, stage, resume=False, generators=('ctgan', 'tvae'), tabddpm_steps=20_000):
     if resume and stage != 'classifiers':
         raise ValueError('Resume requires the classifiers stage; generation has separate artifact dependencies')
     output = ROOT / "output" / constants.RUN_NAMESPACE
     log_root = output / "logs"
     failures = []
     src_dir = ROOT / "src"
-    if stage in {"all", "generators"}:
+    if stage in {"all", "generators"} and any(g != 'tabddpm' for g in generators):
         subprocess.run([sys.executable, "audit/sdv_api_smoke.py"], cwd=ROOT, check=True)
 
     for seed in seeds:
         for dataset in dataset_names:
-            for generator in ("ctgan", "tvae"):
+            for generator in generators:
                 generated = True
                 if stage in {"all", "generators"}:
                     log_path = log_root / dataset / f"seed_{seed}" / f"{dataset}_seed{seed}_{generator}_generate.log"
@@ -87,6 +89,8 @@ def run_matrix(dataset_names, seeds, stage, resume=False):
                         "--dataset", dataset, "--seed", str(seed),
                         "--generator", generator.upper(),
                     ]
+                    if generator == 'tabddpm':
+                        command.extend(('--tabddpm-steps', str(tabddpm_steps)))
                     generated = run_command(command, ROOT / "src", log_path)
                     if not generated:
                         failures.append({"dataset": dataset, "seed": seed,
@@ -121,7 +125,9 @@ def run_matrix(dataset_names, seeds, stage, resume=False):
     if failures:
         raise SystemExit(f"{len(failures)} corrected runs failed; see {failure_path}")
     if stage in {"all", "classifiers"} and full_matrix:
-        command = [sys.executable, "scripts/build_corrected_results.py"]
+        command = [sys.executable, "scripts/build_corrected_results.py",
+                   '--runs', str(output), '--out', str(output / 'results'),
+                   '--generators', *generators]
         subprocess.run(command, cwd=ROOT, check=True)
 
 
@@ -131,6 +137,10 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, choices=SEEDS)
     parser.add_argument("--stage", choices=("all", "generators", "classifiers"), default="all")
     parser.add_argument("--resume", action="store_true", help="Preserve completed classifier runs")
+    parser.add_argument('--generators', nargs='+', choices=('ctgan', 'tvae', 'tabddpm'),
+                        default=('ctgan', 'tvae'))
+    parser.add_argument('--tabddpm-steps', type=int, default=20_000)
     args = parser.parse_args()
     run_matrix((args.dataset,) if args.dataset else DATASETS,
-               (args.seed,) if args.seed is not None else SEEDS, args.stage, args.resume)
+               (args.seed,) if args.seed is not None else SEEDS, args.stage, args.resume,
+               tuple(args.generators), args.tabddpm_steps)

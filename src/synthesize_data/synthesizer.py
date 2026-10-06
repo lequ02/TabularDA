@@ -360,7 +360,7 @@ def synthesize_comparison_from_trained_model(x_original, y_original, categorical
                   BN_model = None, BN_filename=None,
                   csv_file_name=None, npz_file_name=None,
                   is_classification=True, seed=42, full_table_csv=None,
-                  dnn_dev_data=None, dataset_name=None):
+                  dnn_dev_data=None, dataset_name=None, synthetic_features=None):
 
   """
   Relabel the saved full-table sample's features after discarding its generated target.
@@ -374,12 +374,17 @@ def synthesize_comparison_from_trained_model(x_original, y_original, categorical
     raise ValueError("Target synthesizer must be specified for comparison function")
   _validate_labeler_task(target_synthesizer, is_classification)
 
-  if full_table_csv is None:
-    raise ValueError('Full-table relabeling requires the saved full-table sample')
-  full_table = pd.read_csv(full_table_csv)
-  if target_name not in full_table or len(full_table) != sample_size:
-    raise ValueError('Full-table sample has the wrong target or row count')
-  x_synthesized = full_table.drop(columns=[target_name])
+  if synthetic_features is None:
+    if full_table_csv is None:
+      raise ValueError('Full-table relabeling requires the saved full-table sample')
+    full_table = pd.read_csv(full_table_csv)
+    if target_name not in full_table or len(full_table) != sample_size:
+      raise ValueError('Full-table sample has the wrong target or row count')
+    x_synthesized = full_table.drop(columns=[target_name])
+  else:
+    if full_table_csv is not None or target_name in synthetic_features or len(synthetic_features) != sample_size:
+      raise ValueError('Supply exactly one valid synthetic feature source without a target')
+    x_synthesized = synthetic_features.copy()
   if numerical_columns_pca_gmm is None:
     numerical_columns_pca_gmm = x_original.columns.difference(categorical_columns)
   x_original, _ = onehot(x_original, x_original, categorical_columns, verbose=verbose)
@@ -578,7 +583,7 @@ def create_synthesizer_tvae(metadata):
   return synthesizer
 
 
-def _save_synthesis_provenance(synthesizer, data, sample_size, synthesizer_file_name, seed):
+def _save_synthesis_provenance(synthesizer, data, sample_size, synthesizer_file_name, seed, metadata=None):
   """Save the fitted SDV configuration and table metadata next to the model."""
   provenance = {
       'sdv_version': __import__('sdv').__version__,
@@ -590,7 +595,7 @@ def _save_synthesis_provenance(synthesizer, data, sample_size, synthesizer_file_
           data.to_csv(index=False, lineterminator='\n').encode('utf-8')
       ).hexdigest(),
       'parameters': synthesizer.get_parameters(),
-      'metadata': synthesizer.get_metadata().to_dict(),
+      'metadata': metadata if metadata is not None else synthesizer.get_metadata().to_dict(),
   }
   provenance_path = os.path.splitext(synthesizer_file_name)[0] + '.provenance.json'
   with open(provenance_path, 'w', encoding='utf-8') as file:
