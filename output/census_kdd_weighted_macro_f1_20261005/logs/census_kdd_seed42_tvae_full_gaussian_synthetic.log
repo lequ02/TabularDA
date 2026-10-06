@@ -1,0 +1,59 @@
+=====Setting up data=====
+Dataset name:census_kdd
+train_option:synthetic
+augment_option:tvae_compare_gaussian
+mix_ratio:-1
+n_sample:-1
+Training dataset size: 100096 samples
+Validation dataset size: 18176 samples
+
+=====Setting up parameters for training=====
+num_epochs: 100
+learning_rate: 0.001
+patience: 30
+early_stop_criterion: f1_macro
+=====Setting up trainer=====
+Traceback (most recent call last):
+  File "/home/thuy/Research/minh_data_synth/TabularDA/scripts/run_census_weighted_matrix.py", line 247, in <module>
+    main()
+  File "/home/thuy/Research/minh_data_synth/TabularDA/scripts/run_census_weighted_matrix.py", line 179, in main
+    train_configuration(args.seed, args.mode, args.method)
+  File "/home/thuy/Research/minh_data_synth/TabularDA/scripts/run_census_weighted_matrix.py", line 163, in train_configuration
+    record_path = pilot.run_arm(seed, name, namespace=NAMESPACE, configuration=(mode, method))
+  File "/home/thuy/Research/minh_data_synth/TabularDA/scripts/run_census_weighted_pilot.py", line 164, in run_arm
+    pilot = WeightedCensus(
+  File "/home/thuy/Research/minh_data_synth/TabularDA/src/modeling/classification_train.py", line 44, in __init__
+    self.setup_trainer(pre_trained_w_file = pre_trained_w_file)
+  File "/home/thuy/Research/minh_data_synth/TabularDA/scripts/run_census_weighted_pilot.py", line 108, in setup_trainer
+    super().setup_trainer(pre_trained_w_file)
+  File "/home/thuy/Research/minh_data_synth/TabularDA/src/modeling/classification_train.py", line 180, in setup_trainer
+    mtrainer = trainer(model, self.train_data, criterion, self.learning_rate, dataset_name=self.dataset_name, device=device, multi_y = self.multi_y)
+  File "/home/thuy/Research/minh_data_synth/TabularDA/src/modeling/trainer.py", line 10, in __init__
+    self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
+  File "/home/thuy/miniconda3/envs/env/lib/python3.10/site-packages/torch/optim/adam.py", line 78, in __init__
+    super().__init__(params, defaults)
+  File "/home/thuy/miniconda3/envs/env/lib/python3.10/site-packages/torch/optim/optimizer.py", line 371, in __init__
+    self.add_param_group(cast(dict, param_group))
+  File "/home/thuy/miniconda3/envs/env/lib/python3.10/site-packages/torch/_compile.py", line 27, in inner
+    import torch._dynamo
+  File "/home/thuy/miniconda3/envs/env/lib/python3.10/site-packages/torch/_dynamo/__init__.py", line 3, in <module>
+    from . import convert_frame, eval_frame, resume_execution
+  File "/home/thuy/miniconda3/envs/env/lib/python3.10/site-packages/torch/_dynamo/convert_frame.py", line 53, in <module>
+    from . import config, exc, trace_rules
+  File "/home/thuy/miniconda3/envs/env/lib/python3.10/site-packages/torch/_dynamo/trace_rules.py", line 46, in <module>
+    from .variables import (
+  File "/home/thuy/miniconda3/envs/env/lib/python3.10/site-packages/torch/_dynamo/variables/__init__.py", line 2, in <module>
+    from .builtin import BuiltinVariable
+  File "/home/thuy/miniconda3/envs/env/lib/python3.10/site-packages/torch/_dynamo/variables/builtin.py", line 47, in <module>
+    from .ctx_manager import EventVariable, StreamVariable
+  File "/home/thuy/miniconda3/envs/env/lib/python3.10/site-packages/torch/_dynamo/variables/ctx_manager.py", line 22, in <module>
+    from .functions import (
+  File "/home/thuy/miniconda3/envs/env/lib/python3.10/site-packages/torch/_dynamo/variables/functions.py", line 31, in <module>
+    from torch.distributed._composable.fsdp import _fsdp_param_group
+  File "/home/thuy/miniconda3/envs/env/lib/python3.10/site-packages/torch/distributed/_composable/__init__.py", line 3, in <module>
+    from .fully_shard import fully_shard
+  File "/home/thuy/miniconda3/envs/env/lib/python3.10/site-packages/torch/distributed/_composable/fully_shard.py", line 10, in <module>
+    from torch.distributed.fsdp._common_utils import _FSDPState
+  File "/home/thuy/miniconda3/envs/env/lib/python3.10/site-packages/torch/distributed/fsdp/__init__.py", line 1, in <module>
+    from ._flat_param import FlatParameter as FlatParameter
+  File "/home/thuy/miniconda3/envs/e
