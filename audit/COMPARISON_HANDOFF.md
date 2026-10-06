@@ -22,14 +22,18 @@ The plot builder reads the saved NMAE and checks its normalization metadata and 
 3. Run `python scripts/plot_recent_comparison.py` locally for lightweight artifact preparation.
 4. Run `python .cache/remote_intrusion/check_comparison.py`, inspect the PNG, and check the scoped diff. The checker verifies remote archive hashes, JSON equality, saved metric values, and NMAE arithmetic. Local line endings may differ without changing record content.
 
-Deliverables: `output/comparisons/dataset_pipeline_comparison.png`, `.md`, and `.csv`. Source paths preserve namespaces: MNIST28 and News seed 42 use `corrected_v2_seed42_mnist28_news`; other displayed runs use `corrected_v2`.
+Deliverables: `output/comparisons/dataset_pipeline_comparison.png`, `.md`, and `.csv`. Source paths preserve namespaces: MNIST28 and News seed 42 use `corrected_v2_seed42_mnist28_news`; Census KDD uses `census_kdd_weighted_macro_f1_20261005`; other displayed runs use `corrected_v2`. Both refresh helpers include the weighted namespace.
+
+The user requested replacing the earlier Census KDD evaluation with the weighted rerun in both reports. Use only completed records from that namespace, including its real-only baseline; do not fill missing weighted configurations with earlier unweighted scores. This protocol uses BCEWithLogitsLoss with positive weight equal to actual training negatives / positives, and checkpoint selection by real-development macro F1. Both the loss and selection changed. The plot builder verifies the saved protocol and training-derived weight. The queue was still running on October 5 at 8:43 p.m. Chicago; seed 43 had no completed weighted records. Imported, verified full-budget results in this matrix namespace are valid; the separate pilot namespace is not a report source.
 
 ## Preserve presentation and research settings
 
 - No pilot runs. Each row pairs the same dataset/metric, seed 42 left and seed 43 right, with matching scales and visible missing-result placeholders.
 - Adult/Credit/Census KDD: binary and macro F1. Covertype/Intrusion: macro F1. MNIST12/28: accuracy. News: separate R² and NMAE panels/tables.
 - Colors distinguish metric and CTGAN/TVAE. Original-data points are metric-colored triangles; generated-target benchmarks are hollow; relabeled methods are filled. No "Local" legend labels.
-- Order: original, CTGAN generated target, TVAE generated target, CTGAN full-feature RF/XGB/DNN, CTGAN X-only RF/XGB/DNN, TVAE full-feature DNN, TVAE X-only DNN.
+- Order: original, CTGAN generated target, TVAE generated target, CTGAN full-feature RF/XGB/DNN, CTGAN X-only RF/XGB/DNN, TVAE full-feature RF/XGB/DNN, TVAE X-only RF/XGB/DNN. Include all RF/XGB/DNN results in both reports; the user explicitly excludes NB and PCA/GMM. Each report has 15 configuration rows, with placeholders for missing runs.
+
+The October 5, 2026, 9:01 p.m. Chicago refresh includes the four previously omitted TVAE RF/XGB rows. Synthetic-only uses 153 distinct completed records (238 displayed metric values); mix uses 152 (236 values). All displayed values passed source-record/snapshot checks, both plots were visually checked, and available TVAE RF/XGB entries were explicitly verified. Census still uses only the weighted namespace; seed 42 has ten completed displayed configurations for synthetic-only and nine for mix, while weighted seed 43 remains empty.
 - Paper Table 6: News R² lines CTGAN -0.43, TVAE -0.20, real 0.14; Intrusion macro F1 lines 52.8%, 51.1%, 86.2%. No paper NMAE is reported: do not invent NMAE reference lines or derive MAE from R². Binary-dataset paper references belong only to binary F1. Paper splits/classifier averages differ from these experiments.
 - Preserve leakage/provenance checks and caveats. Seed repeats may share prepared splits. Comparison coverage does not establish completion of the full 816-run matrix.
 

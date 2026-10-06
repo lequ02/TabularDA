@@ -24,7 +24,11 @@ ROWS = [
     ("CTGAN X-only features + RF", "ctgan_xonly_rf_synthetic"),
     ("CTGAN X-only features + XGB", "ctgan_xonly_xgb_synthetic"),
     ("CTGAN X-only features + DNN", "ctgan_xonly_dnn_synthetic"),
+    ("TVAE full features + RF", "tvae_full_rf_synthetic"),
+    ("TVAE full features + XGB", "tvae_full_xgb_synthetic"),
     ("TVAE full features + DNN", "tvae_full_dnn_synthetic"),
+    ("TVAE X-only features + RF", "tvae_xonly_rf_synthetic"),
+    ("TVAE X-only features + XGB", "tvae_xonly_xgb_synthetic"),
     ("TVAE X-only features + DNN", "tvae_xonly_dnn_synthetic"),
 ]
 PANELS = {
@@ -73,13 +77,15 @@ PANELS = {
         "limits": (-4, 90),
     },
     "census_kdd_corrected": {
-        "dataset": "census_kdd", "scope": "corrected_v2", "metric": "f1_binary",
+        "dataset": "census_kdd", "scope": "census_kdd_weighted_macro_f1_20261005", "metric": "f1_binary",
+        "selection_metric": "f1_macro",
         "metric_label": "Binary F1", "title": "Census KDD · corrected, seed 42",
         "paper": {"CTGAN": 39.1, "TVAE": 37.7, "Real": 49.4},
         "limits": (-4, 60),
     },
     "census_kdd_corrected_seed43": {
-        "dataset": "census_kdd", "scope": "corrected_v2", "seed": 43,
+        "dataset": "census_kdd", "scope": "census_kdd_weighted_macro_f1_20261005", "seed": 43,
+        "selection_metric": "f1_macro",
         "metric": "f1_binary", "metric_label": "Binary F1",
         "title": "Census KDD · corrected, seed 43",
         "paper": {"CTGAN": 39.1, "TVAE": 37.7, "Real": 49.4},
@@ -101,7 +107,8 @@ PANELS = {
         **info, "seed": seed,
         "scope": ("corrected_v2_seed42_mnist28_news"
                   if info["dataset"] in {"mnist28", "news"} and seed == 42 else info["scope"]),
-        "title": f"{info['title'].split(' · ')[0]} · corrected, seed {seed}",
+        "title": f"{info['title'].split(' · ')[0]} · "
+                 f"{'class-weighted' if info['dataset'] == 'census_kdd' else 'corrected'}, seed {seed}",
     }
     for info in PANELS.values() if info.get("seed", 42) == 42
     for seed in (42, 43)
@@ -142,7 +149,15 @@ def read_run(info, suffix):
         record = json.load(source)
     expected_mode = "original" if suffix == "real_original" else suffix.rsplit("_", 1)[1]
     assert (record["dataset"], record["seed"], record["train_option"],
-            record["selection_metric"]) == (dataset, seed, expected_mode, "loss")
+            record["selection_metric"]) == (dataset, seed, expected_mode, info.get("selection_metric", "loss"))
+    if dataset == "census_kdd":
+        protocol = record["evaluation_protocol"]
+        assert protocol["output_namespace"] == info["scope"]
+        assert protocol["objective"] == "BCEWithLogitsLoss"
+        assert protocol["selection_metric"] == "f1_macro" and protocol["threshold"] == 0.5
+        weighted = record["pilot_protocol"]
+        counts = weighted["training_label_counts"]
+        assert abs(weighted["pos_weight"] - counts["0"] / counts["1"]) < 1e-12
     manifest = record["split_manifest"]
     if expected_mode in {"synthetic", "mix"}:
         provenance = record["generator_provenance"]
@@ -216,9 +231,10 @@ def main(train_option="synthetic"):
     for dataset in ("adult", "credit", "census_kdd"):
         first = manifests[f"{dataset}_corrected"]
         second = manifests[f"{dataset}_corrected_seed43"]
-        assert first["splits"] == second["splits"]
-        assert first["files"] == second["files"]
-    print("Adult, Credit, and Census KDD seeds 42 and 43 share the same prepared split")
+        if first is not None and second is not None:
+            assert first["splits"] == second["splits"]
+            assert first["files"] == second["files"]
+            print(f"{dataset}: seeds 42 and 43 share the same prepared split")
     credit_test = manifests["credit_corrected"]["files"]["test"]["raw"]
     credit_positive_count = credit_test["target_counts"]["1"]
     credit_test_rows = credit_test["rows"]
@@ -259,7 +275,12 @@ def main(train_option="synthetic"):
         "Only corrected runs are shown. Missing configurations remain marked with a dash; "
         "completed zero scores are displayed as 0.0%.",
         "MNIST28 and News seed 42 use the separate `corrected_v2_seed42_mnist28_news` namespace. "
-        "Source paths in the CSV preserve that namespace; all other displayed runs use `corrected_v2`.",
+        "Census KDD uses `census_kdd_weighted_macro_f1_20261005`; remaining datasets use `corrected_v2`. "
+        "Source paths in the CSV preserve each namespace.",
+        "Census KDD uses class-weighted BCEWithLogitsLoss (positive weight = actual training negatives / positives) "
+        "and development macro-F1 checkpoint selection, with threshold 0.5. Both loss and checkpoint selection "
+        "changed from the earlier evaluation; improvements cannot be attributed to weighting alone. "
+        "Pending weighted configurations remain missing rather than using earlier unweighted results.",
         "News NMAEσ = MAE / σ_y; lower is better. σ_y is the population standard deviation (ddof=0) "
         "of the same real held-out test targets used to compute MAE. Seed 42 uses σ_y = 9485.506480005333 "
         "over 7,929 rows, verified against the prepared test-table hash. "
@@ -330,7 +351,7 @@ def main(train_option="synthetic"):
 
     plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 10})
     nrows = (len(PANELS) + 1) // 2
-    fig, axes = plt.subplots(nrows, 2, figsize=(18.5, 4.5 * nrows), sharey="row")
+    fig, axes = plt.subplots(nrows, 2, figsize=(18.5, 5.5 * nrows), sharey="row")
     positions = list(range(len(rows)))
     pair_limits = {}
     for info in PANELS.values():
@@ -365,7 +386,7 @@ def main(train_option="synthetic"):
                       labelpad=8, fontsize=11)
         for name, score in info["paper"].items():
             ax.axvline(score, linewidth=1.3, alpha=0.75, zorder=0, **PAPER_STYLES[name])
-        for divider in (0.5, 2.5, 5.5, 8.5, 9.5):
+        for divider in (0.5, 2.5, 5.5, 8.5, 11.5):
             ax.axhline(divider, color="#e2e8f0", linewidth=0.8)
         offset = 0.02 * (limits[1] - limits[0])
         for y, (label, suffix) in enumerate(rows):
@@ -427,7 +448,7 @@ def main(train_option="synthetic"):
              "Adult/Credit/Census: binary and macro F1 · Covertype/Intrusion: macro F1 · MNIST: accuracy · News: R² and MAE/σ_y. Paper references match the metric.",
              ha="left", color="#475569", fontsize=9)
     fig.text(0.047, 0.047,
-             "Paper Table 6 labels CTGAN 'TGAN'. Adult/Credit/Census seeds share a fixed split. Missing runs are marked explicitly.",
+             "Census: class-weighted loss + development macro-F1 selection. Paper CTGAN is labeled 'TGAN'. Adult/Credit/Census seeds share a split.",
              ha="left", color="#475569", fontsize=9)
     fig.text(0.047, 0.029,
              f"Credit test split: {credit_positive_count} positive cases among {credit_test_rows:,} rows; binary F1 is sensitive to individual positive predictions.",
