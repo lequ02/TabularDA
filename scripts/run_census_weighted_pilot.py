@@ -85,7 +85,7 @@ def preflight():
     return result
 
 
-def run_arm(seed, arm):
+def run_arm(seed, arm, *, namespace=NAMESPACE, configuration=None):
     os.environ["CORRECTED_RUN_NAMESPACE"] = "corrected_v2"
     os.environ["MPLBACKEND"] = "Agg"
     sys.path.insert(0, str(ROOT / "src"))
@@ -152,8 +152,8 @@ def run_arm(seed, arm):
                     Path(self.acc_dir) / (self.run_id + ".predictions.csv"), index=False)
             return loss / total, scores
 
-    mode, method = ARMS[arm]
-    output = ROOT / "output" / NAMESPACE / "census_kdd"
+    mode, method = ARMS[arm] if configuration is None else configuration
+    output = ROOT / "output" / namespace / "census_kdd"
     run_id = constants.run_name("census_kdd", seed, mode, method)
     if (output / "acc" / (run_id + ".run.json")).exists():
         raise FileExistsError("Refusing to overwrite a completed pilot arm")
@@ -168,14 +168,17 @@ def run_arm(seed, arm):
         early_stop_criterion="f1_macro", seed=seed,
         eval_metrics=metrics, metric_to_plot="f1_macro",
         w_dir=str(output / "weight") + "/", acc_dir=str(output / "acc") + "/")
-    if method is not None:
+    if mode == "synthetic":
         assert len(pilot.train_data.dataset) == 100000
+    elif mode == "mix":
+        real_rows = len(json.loads(Path(pilot.data_loader.manifest_path).read_text())["splits"]["train"])
+        assert len(pilot.train_data.dataset) == real_rows + 100000
     pilot.training()
     pilot.validate(pilot.dev_data, load_weight=True)
     record_path = output / "acc" / (run_id + ".run.json")
     record = json.loads(record_path.read_text())
     record["pilot_protocol"] = {
-        "namespace": NAMESPACE, "input_namespace": "corrected_v2",
+        "namespace": namespace, "input_namespace": "corrected_v2",
         "started_at_chicago": started, "completed_at_chicago": now(),
         "pilot_source_sha256": sha256(__file__),
         "objective": "BCEWithLogitsLoss", "model_output": "logits",
@@ -190,6 +193,7 @@ def run_arm(seed, arm):
             and pilot.dev_diagnostics["scores"]["recall_binary"] > 0)}
     record_path.write_text(json.dumps(record, indent=2))
     print("PILOT COMPLETED " + json.dumps(record["pilot_protocol"]), flush=True)
+    return record_path
 
 
 def main():
