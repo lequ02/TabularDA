@@ -1,0 +1,1195 @@
+{
+  "created_at_chicago": "2026-10-05T09:59:57.486092-05:00",
+  "protocol": {
+    "dataset": "census_kdd",
+    "input_namespace": "corrected_v2",
+    "output_namespace": "census_kdd_weighted_macro_f1_20261005",
+    "seeds": [
+      42,
+      43
+    ],
+    "objective": "BCEWithLogitsLoss",
+    "model_output": "logits",
+    "pos_weight_rule": "actual_training_negatives / actual_training_positives",
+    "selection_metric": "f1_macro",
+    "threshold": 0.5,
+    "shuffle": false,
+    "architecture": "DNN_Census [256,128,64,32], BatchNorm/ReLU/dropout 0.6",
+    "batch_size": 128,
+    "learning_rate": 0.001,
+    "epoch_budget": 100,
+    "patience": 30,
+    "mix_rule": "all real training rows + all 100000 synthetic rows",
+    "test_loss_definition": "weighted BCE with each arm's training-derived weight; not comparable across arms",
+    "interpretation": "Both objective and checkpoint selection changed; pilot does not isolate their effects"
+  },
+  "planned_runs": 106,
+  "pilot_reused_runs": 3,
+  "new_training_runs": 103,
+  "jobs": [
+    {
+      "seed": 42,
+      "train_option": "original",
+      "augment_option": null,
+      "run_id": "census_kdd_seed42_real_original"
+    },
+    {
+      "seed": 42,
+      "train_option": "synthetic",
+      "augment_option": "ctgan",
+      "run_id": "census_kdd_seed42_ctgan_full_generated_synthetic"
+    },
+    {
+      "seed": 42,
+      "train_option": "mix",
+      "augment_option": "ctgan",
+      "run_id": "census_kdd_seed42_ctgan_full_generated_mix"
+    },
+    {
+      "seed": 42,
+      "train_option": "synthetic",
+      "augment_option": "gaussian",
+      "run_id": "census_kdd_seed42_ctgan_xonly_gaussian_synthetic"
+    },
+    {
+      "seed": 42,
+      "train_option": "mix",
+      "augment_option": "gaussian",
+      "run_id": "census_kdd_seed42_ctgan_xonly_gaussian_mix"
+    },
+    {
+      "seed": 42,
+      "train_option": "synthetic",
+      "augment_option": "categorical",
+      "run_id": "census_kdd_seed42_ctgan_xonly_categorical_synthetic"
+    },
+    {
+      "seed": 42,
+      "train_option": "mix",
+      "augment_option": "categorical",
+      "run_id": "census_kdd_seed42_ctgan_xonly_categorical_mix"
+    },
+    {
+      "seed": 42,
+      "train_option": "synthetic",
+      "augment_option": "pca_gmm",
+      "run_id": "census_kdd_seed42_ctgan_xonly_pca_gmm_synthetic"
+    },
+    {
+      "seed": 42,
+      "train_option": "mix",
+      "augment_option": "pca_gmm",
+      "run_id": "census_kdd_seed42_ctgan_xonly_pca_gmm_mix"
+    },
+    {
+      "seed": 42,
+      "train_option": "synthetic",
+      "augment_option": "rf",
+      "run_id": "census_kdd_seed42_ctgan_xonly_rf_synthetic"
+    },
+    {
+      "seed": 42,
+      "train_option": "mix",
+      "augment_option": "rf",
+      "run_id": "census_kdd_seed42_ctgan_xonly_rf_mix"
+    },
+    {
+      "seed": 42,
+      "train_option": "synthetic",
+      "augment_option": "xgb",
+      "run_id": "census_kdd_seed42_ctgan_xonly_xgb_synthetic"
+    },
+    {
+      "seed": 42,
+      "train_option": "mix",
+      "augment_option": "xgb",
+      "run_id": "census_kdd_seed42_ctgan_xonly_xgb_mix"
+    },
+    {
+      "seed": 42,
+      "train_option": "synthetic",
+      "augment_option": "dnn",
+      "run_id": "census_kdd_seed42_ctgan_xonly_dnn_synthetic"
+    },
+    {
+      "seed": 42,
+      "train_option": "mix",
+      "augment_option": "dnn",
+      "run_id": "census_kdd_seed42_ctgan_xonly_dnn_mix"
+    },
+    {
+      "seed": 42,
+      "train_option": "synthetic",
+      "augment_option": "compare_gaussian",
+      "run_id": "census_kdd_seed42_ctgan_full_gaussian_synthetic"
+    },
+    {
+      "seed": 42,
+      "train_option": "mix",
+      "augment_option": "compare_gaussian",
+      "run_id": "census_kdd_seed42_ctgan_full_gaussian_mix"
+    },
+    {
+      "seed": 42,
+      "train_option": "synthetic",
+      "augment_option": "compare_categorical",
+      "run_id": "census_kdd_seed42_ctgan_full_categorical_synthetic"
+    },
+    {
+      "seed": 42,
+      "train_option": "mix",
+      "augment_option": "compare_categorical",
+      "run_id": "census_kdd_seed42_ctgan_full_categorical_mix"
+    },
+    {
+      "seed": 42,
+      "train_option": "synthetic",
+      "augment_option": "compare_pca_gmm",
+      "run_id": "census_kdd_seed42_ctgan_full_pca_gmm_synthetic"
+    },
+    {
+      "seed": 42,
+      "train_option": "mix",
+      "augment_option": "compare_pca_gmm",
+      "run_id": "census_kdd_seed42_ctgan_full_pca_gmm_mix"
+    },
+    {
+      "seed": 42,
+      "train_option": "synthetic",
+      "augment_option": "compare_rf",
+      "run_id": "census_kdd_seed42_ctgan_full_rf_synthetic"
+    },
+    {
+      "seed": 42,
+      "train_option": "mix",
+      "augment_option": "compare_rf",
+      "run_id": "census_kdd_seed42_ctgan_full_rf_mix"
+    },
+    {
+      "seed": 42,
+      "train_option": "synthetic",
+      "augment_option": "compare_xgb",
+      "run_id": "census_kdd_seed42_ctgan_full_xgb_synthetic"
+    },
+    {
+      "seed": 42,
+      "train_option": "mix",
+      "augment_option": "compare_xgb",
+      "run_id": "census_kdd_seed42_ctgan_full_xgb_mix"
+    },
+    {
+      "seed": 42,
+      "train_option": "synthetic",
+      "augment_option": "compare_dnn",
+      "run_id": "census_kdd_seed42_ctgan_full_dnn_synthetic"
+    },
+    {
+      "seed": 42,
+      "train_option": "mix",
+      "augment_option": "compare_dnn",
+      "run_id": "census_kdd_seed42_ctgan_full_dnn_mix"
+    },
+    {
+      "seed": 42,
+      "train_option": "synthetic",
+      "augment_option": "tvae",
+      "run_id": "census_kdd_seed42_tvae_full_generated_synthetic"
+    },
+    {
+      "seed": 42,
+      "train_option": "mix",
+      "augment_option": "tvae",
+      "run_id": "census_kdd_seed42_tvae_full_generated_mix"
+    },
+    {
+      "seed": 42,
+      "train_option": "synthetic",
+      "augment_option": "tvae_gaussian",
+      "run_id": "census_kdd_seed42_tvae_xonly_gaussian_synthetic"
+    },
+    {
+      "seed": 42,
+      "train_option": "mix",
+      "augment_option": "tvae_gaussian",
+      "run_id": "census_kdd_seed42_tvae_xonly_gaussian_mix"
+    },
+    {
+      "seed": 42,
+      "train_option": "synthetic",
+      "augment_option": "tvae_categorical",
+      "run_id": "census_kdd_seed42_tvae_xonly_categorical_synthetic"
+    },
+    {
+      "seed": 42,
+      "train_option": "mix",
+      "augment_option": "tvae_categorical",
+      "run_id": "census_kdd_seed42_tvae_xonly_categorical_mix"
+    },
+    {
+      "seed": 42,
+      "train_option": "synthetic",
+      "augment_option": "tvae_pca_gmm",
+      "run_id": "census_kdd_seed42_tvae_xonly_pca_gmm_synthetic"
+    },
+    {
+      "seed": 42,
+      "train_option": "mix",
+      "augment_option": "tvae_pca_gmm",
+      "run_id": "census_kdd_seed42_tvae_xonly_pca_gmm_mix"
+    },
+    {
+      "seed": 42,
+      "train_option": "synthetic",
+      "augment_option": "tvae_rf",
+      "run_id": "census_kdd_seed42_tvae_xonly_rf_synthetic"
+    },
+    {
+      "seed": 42,
+      "train_option": "mix",
+      "augment_option": "tvae_rf",
+      "run_id": "census_kdd_seed42_tvae_xonly_rf_mix"
+    },
+    {
+      "seed": 42,
+      "train_option": "synthetic",
+      "augment_option": "tvae_xgb",
+      "run_id": "census_kdd_seed42_tvae_xonly_xgb_synthetic"
+    },
+    {
+      "seed": 42,
+      "train_option": "mix",
+      "augment_option": "tvae_xgb",
+      "run_id": "census_kdd_seed42_tvae_xonly_xgb_mix"
+    },
+    {
+      "seed": 42,
+      "train_option": "synthetic",
+      "augment_option": "tvae_dnn",
+      "run_id": "census_kdd_seed42_tvae_xonly_dnn_synthetic"
+    },
+    {
+      "seed": 42,
+      "train_option": "mix",
+      "augment_option": "tvae_dnn",
+      "run_id": "census_kdd_seed42_tvae_xonly_dnn_mix"
+    },
+    {
+      "seed": 42,
+      "train_option": "synthetic",
+      "augment_option": "tvae_compare_gaussian",
+      "run_id": "census_kdd_seed42_tvae_full_gaussian_synthetic"
+    },
+    {
+      "seed": 42,
+      "train_option": "mix",
+      "augment_option": "tvae_compare_gaussian",
+      "run_id": "census_kdd_seed42_tvae_full_gaussian_mix"
+    },
+    {
+      "seed": 42,
+      "train_option": "synthetic",
+      "augment_option": "tvae_compare_categorical",
+      "run_id": "census_kdd_seed42_tvae_full_categorical_synthetic"
+    },
+    {
+      "seed": 42,
+      "train_option": "mix",
+      "augment_option": "tvae_compare_categorical",
+      "run_id": "census_kdd_seed42_tvae_full_categorical_mix"
+    },
+    {
+      "seed": 42,
+      "train_option": "synthetic",
+      "augment_option": "tvae_compare_pca_gmm",
+      "run_id": "census_kdd_seed42_tvae_full_pca_gmm_synthetic"
+    },
+    {
+      "seed": 42,
+      "train_option": "mix",
+      "augment_option": "tvae_compare_pca_gmm",
+      "run_id": "census_kdd_seed42_tvae_full_pca_gmm_mix"
+    },
+    {
+      "seed": 42,
+      "train_option": "synthetic",
+      "augment_option": "tvae_compare_rf",
+      "run_id": "census_kdd_seed42_tvae_full_rf_synthetic"
+    },
+    {
+      "seed": 42,
+      "train_option": "mix",
+      "augment_option": "tvae_compare_rf",
+      "run_id": "census_kdd_seed42_tvae_full_rf_mix"
+    },
+    {
+      "seed": 42,
+      "train_option": "synthetic",
+      "augment_option": "tvae_compare_xgb",
+      "run_id": "census_kdd_seed42_tvae_full_xgb_synthetic"
+    },
+    {
+      "seed": 42,
+      "train_option": "mix",
+      "augment_option": "tvae_compare_xgb",
+      "run_id": "census_kdd_seed42_tvae_full_xgb_mix"
+    },
+    {
+      "seed": 42,
+      "train_option": "synthetic",
+      "augment_option": "tvae_compare_dnn",
+      "run_id": "census_kdd_seed42_tvae_full_dnn_synthetic"
+    },
+    {
+      "seed": 42,
+      "train_option": "mix",
+      "augment_option": "tvae_compare_dnn",
+      "run_id": "census_kdd_seed42_tvae_full_dnn_mix"
+    },
+    {
+      "seed": 43,
+      "train_option": "original",
+      "augment_option": null,
+      "run_id": "census_kdd_seed43_real_original"
+    },
+    {
+      "seed": 43,
+      "train_option": "synthetic",
+      "augment_option": "ctgan",
+      "run_id": "census_kdd_seed43_ctgan_full_generated_synthetic"
+    },
+    {
+      "seed": 43,
+      "train_option": "mix",
+      "augment_option": "ctgan",
+      "run_id": "census_kdd_seed43_ctgan_full_generated_mix"
+    },
+    {
+      "seed": 43,
+      "train_option": "synthetic",
+      "augment_option": "gaussian",
+      "run_id": "census_kdd_seed43_ctgan_xonly_gaussian_synthetic"
+    },
+    {
+      "seed": 43,
+      "train_option": "mix",
+      "augment_option": "gaussian",
+      "run_id": "census_kdd_seed43_ctgan_xonly_gaussian_mix"
+    },
+    {
+      "seed": 43,
+      "train_option": "synthetic",
+      "augment_option": "categorical",
+      "run_id": "census_kdd_seed43_ctgan_xonly_categorical_synthetic"
+    },
+    {
+      "seed": 43,
+      "train_option": "mix",
+      "augment_option": "categorical",
+      "run_id": "census_kdd_seed43_ctgan_xonly_categorical_mix"
+    },
+    {
+      "seed": 43,
+      "train_option": "synthetic",
+      "augment_option": "pca_gmm",
+      "run_id": "census_kdd_seed43_ctgan_xonly_pca_gmm_synthetic"
+    },
+    {
+      "seed": 43,
+      "train_option": "mix",
+      "augment_option": "pca_gmm",
+      "run_id": "census_kdd_seed43_ctgan_xonly_pca_gmm_mix"
+    },
+    {
+      "seed": 43,
+      "train_option": "synthetic",
+      "augment_option": "rf",
+      "run_id": "census_kdd_seed43_ctgan_xonly_rf_synthetic"
+    },
+    {
+      "seed": 43,
+      "train_option": "mix",
+      "augment_option": "rf",
+      "run_id": "census_kdd_seed43_ctgan_xonly_rf_mix"
+    },
+    {
+      "seed": 43,
+      "train_option": "synthetic",
+      "augment_option": "xgb",
+      "run_id": "census_kdd_seed43_ctgan_xonly_xgb_synthetic"
+    },
+    {
+      "seed": 43,
+      "train_option": "mix",
+      "augment_option": "xgb",
+      "run_id": "census_kdd_seed43_ctgan_xonly_xgb_mix"
+    },
+    {
+      "seed": 43,
+      "train_option": "synthetic",
+      "augment_option": "dnn",
+      "run_id": "census_kdd_seed43_ctgan_xonly_dnn_synthetic"
+    },
+    {
+      "seed": 43,
+      "train_option": "mix",
+      "augment_option": "dnn",
+      "run_id": "census_kdd_seed43_ctgan_xonly_dnn_mix"
+    },
+    {
+      "seed": 43,
+      "train_option": "synthetic",
+      "augment_option": "compare_gaussian",
+      "run_id": "census_kdd_seed43_ctgan_full_gaussian_synthetic"
+    },
+    {
+      "seed": 43,
+      "train_option": "mix",
+      "augment_option": "compare_gaussian",
+      "run_id": "census_kdd_seed43_ctgan_full_gaussian_mix"
+    },
+    {
+      "seed": 43,
+      "train_option": "synthetic",
+      "augment_option": "compare_categorical",
+      "run_id": "census_kdd_seed43_ctgan_full_categorical_synthetic"
+    },
+    {
+      "seed": 43,
+      "train_option": "mix",
+      "augment_option": "compare_categorical",
+      "run_id": "census_kdd_seed43_ctgan_full_categorical_mix"
+    },
+    {
+      "seed": 43,
+      "train_option": "synthetic",
+      "augment_option": "compare_pca_gmm",
+      "run_id": "census_kdd_seed43_ctgan_full_pca_gmm_synthetic"
+    },
+    {
+      "seed": 43,
+      "train_option": "mix",
+      "augment_option": "compare_pca_gmm",
+      "run_id": "census_kdd_seed43_ctgan_full_pca_gmm_mix"
+    },
+    {
+      "seed": 43,
+      "train_option": "synthetic",
+      "augment_option": "compare_rf",
+      "run_id": "census_kdd_seed43_ctgan_full_rf_synthetic"
+    },
+    {
+      "seed": 43,
+      "train_option": "mix",
+      "augment_option": "compare_rf",
+      "run_id": "census_kdd_seed43_ctgan_full_rf_mix"
+    },
+    {
+      "seed": 43,
+      "train_option": "synthetic",
+      "augment_option": "compare_xgb",
+      "run_id": "census_kdd_seed43_ctgan_full_xgb_synthetic"
+    },
+    {
+      "seed": 43,
+      "train_option": "mix",
+      "augment_option": "compare_xgb",
+      "run_id": "census_kdd_seed43_ctgan_full_xgb_mix"
+    },
+    {
+      "seed": 43,
+      "train_option": "synthetic",
+      "augment_option": "compare_dnn",
+      "run_id": "census_kdd_seed43_ctgan_full_dnn_synthetic"
+    },
+    {
+      "seed": 43,
+      "train_option": "mix",
+      "augment_option": "compare_dnn",
+      "run_id": "census_kdd_seed43_ctgan_full_dnn_mix"
+    },
+    {
+      "seed": 43,
+      "train_option": "synthetic",
+      "augment_option": "tvae",
+      "run_id": "census_kdd_seed43_tvae_full_generated_synthetic"
+    },
+    {
+      "seed": 43,
+      "train_option": "mix",
+      "augment_option": "tvae",
+      "run_id": "census_kdd_seed43_tvae_full_generated_mix"
+    },
+    {
+      "seed": 43,
+      "train_option": "synthetic",
+      "augment_option": "tvae_gaussian",
+      "run_id": "census_kdd_seed43_tvae_xonly_gaussian_synthetic"
+    },
+    {
+      "seed": 43,
+      "train_option": "mix",
+      "augment_option": "tvae_gaussian",
+      "run_id": "census_kdd_seed43_tvae_xonly_gaussian_mix"
+    },
+    {
+      "seed": 43,
+      "train_option": "synthetic",
+      "augment_option": "tvae_categorical",
+      "run_id": "census_kdd_seed43_tvae_xonly_categorical_synthetic"
+    },
+    {
+      "seed": 43,
+      "train_option": "mix",
+      "augment_option": "tvae_categorical",
+      "run_id": "census_kdd_seed43_tvae_xonly_categorical_mix"
+    },
+    {
+      "seed": 43,
+      "train_option": "synthetic",
+      "augment_option": "tvae_pca_gmm",
+      "run_id": "census_kdd_seed43_tvae_xonly_pca_gmm_synthetic"
+    },
+    {
+      "seed": 43,
+      "train_option": "mix",
+      "augment_option": "tvae_pca_gmm",
+      "run_id": "census_kdd_seed43_tvae_xonly_pca_gmm_mix"
+    },
+    {
+      "seed": 43,
+      "train_option": "synthetic",
+      "augment_option": "tvae_rf",
+      "run_id": "census_kdd_seed43_tvae_xonly_rf_synthetic"
+    },
+    {
+      "seed": 43,
+      "train_option": "mix",
+      "augment_option": "tvae_rf",
+      "run_id": "census_kdd_seed43_tvae_xonly_rf_mix"
+    },
+    {
+      "seed": 43,
+      "train_option": "synthetic",
+      "augment_option": "tvae_xgb",
+      "run_id": "census_kdd_seed43_tvae_xonly_xgb_synthetic"
+    },
+    {
+      "seed": 43,
+      "train_option": "mix",
+      "augment_option": "tvae_xgb",
+      "run_id": "census_kdd_seed43_tvae_xonly_xgb_mix"
+    },
+    {
+      "seed": 43,
+      "train_option": "synthetic",
+      "augment_option": "tvae_dnn",
+      "run_id": "census_kdd_seed43_tvae_xonly_dnn_synthetic"
+    },
+    {
+      "seed": 43,
+      "train_option": "mix",
+      "augment_option": "tvae_dnn",
+      "run_id": "census_kdd_seed43_tvae_xonly_dnn_mix"
+    },
+    {
+      "seed": 43,
+      "train_option": "synthetic",
+      "augment_option": "tvae_compare_gaussian",
+      "run_id": "census_kdd_seed43_tvae_full_gaussian_synthetic"
+    },
+    {
+      "seed": 43,
+      "train_option": "mix",
+      "augment_option": "tvae_compare_gaussian",
+      "run_id": "census_kdd_seed43_tvae_full_gaussian_mix"
+    },
+    {
+      "seed": 43,
+      "train_option": "synthetic",
+      "augment_option": "tvae_compare_categorical",
+      "run_id": "census_kdd_seed43_tvae_full_categorical_synthetic"
+    },
+    {
+      "seed": 43,
+      "train_option": "mix",
+      "augment_option": "tvae_compare_categorical",
+      "run_id": "census_kdd_seed43_tvae_full_categorical_mix"
+    },
+    {
+      "seed": 43,
+      "train_option": "synthetic",
+      "augment_option": "tvae_compare_pca_gmm",
+      "run_id": "census_kdd_seed43_tvae_full_pca_gmm_synthetic"
+    },
+    {
+      "seed": 43,
+      "train_option": "mix",
+      "augment_option": "tvae_compare_pca_gmm",
+      "run_id": "census_kdd_seed43_tvae_full_pca_gmm_mix"
+    },
+    {
+      "seed": 43,
+      "train_option": "synthetic",
+      "augment_option": "tvae_compare_rf",
+      "run_id": "census_kdd_seed43_tvae_full_rf_synthetic"
+    },
+    {
+      "seed": 43,
+      "train_option": "mix",
+      "augment_option": "tvae_compare_rf",
+      "run_id": "census_kdd_seed43_tvae_full_rf_mix"
+    },
+    {
+      "seed": 43,
+      "train_option": "synthetic",
+      "augment_option": "tvae_compare_xgb",
+      "run_id": "census_kdd_seed43_tvae_full_xgb_synthetic"
+    },
+    {
+      "seed": 43,
+      "train_option": "mix",
+      "augment_option": "tvae_compare_xgb",
+      "run_id": "census_kdd_seed43_tvae_full_xgb_mix"
+    },
+    {
+      "seed": 43,
+      "train_option": "synthetic",
+      "augment_option": "tvae_compare_dnn",
+      "run_id": "census_kdd_seed43_tvae_full_dnn_synthetic"
+    },
+    {
+      "seed": 43,
+      "train_option": "mix",
+      "augment_option": "tvae_compare_dnn",
+      "run_id": "census_kdd_seed43_tvae_full_dnn_mix"
+    }
+  ],
+  "preflight": {
+    "checked_at_chicago": "2026-10-05T09:58:29.485540-05:00",
+    "input_sha256": {
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_full_categorical_100k.csv": "c4df1fcf9d2a7a4f800e8bbd718571a05ab1d4d0064da326ee11bb80b88322f4",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_full_categorical_100k.predictor.pkl": "eeb9766823076c7908ca43678319b418de382acbadf18bf0cd3e54d63046dd51",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_full_categorical_100k.quality.json": "2d4d90c293f6e9d91cd7b21ce2097c3b2ff8d1293ccc6f5b44cdaeb059d52899",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_full_dnn_100k.csv": "4a0a71ea878990ba562268b651186b51e29cdf0120e6655f13ff0c2afecf8884",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_full_dnn_100k.dnn.json": "5473a405df226dd6409fc440b5b431faff47912d61c544ad16b57d92269d6ac7",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_full_dnn_100k.predictor.pt": "72311a6855822bf12a124e3332081f6ed8f94268b6eaa257d2a5ef7b216be9e9",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_full_dnn_100k.quality.json": "72c9888003dc931e34341b253fe946596a25e76125f95583f1439b8271196475",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_full_gaussian_100k.csv": "44b064e1e846d6e349ce9d03f1cba1ac9e2f1fc69face766b204c4fa62b5cdaa",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_full_gaussian_100k.predictor.pkl": "0111a65274445922c02d09eb0191bfdfe05b1f501c2fcc3b9781ea8e42727211",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_full_gaussian_100k.quality.json": "bbebd340a8abf73a5e8955f2e4c91a3003b32f45c0597182946ceca39db12605",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_full_generated_100k.csv": "fcc6308cc75c796ad7dcc5cc34c196f54a3ea9eed136fa263b9426746577626e",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_full_generated_100k.quality.json": "43dbdf26fa556e265b584e6f0ee4d85f4e0a4e42bed646fc2e73ff54c218d0bc",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_full_pca_gmm_100k.csv": "d5dde19efd23cc6d661de93b84737e2fee3468f5a3e6816fe45a0ec4076234c6",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_full_pca_gmm_100k.predictor.pkl": "01f4317f9c8922d2d3ec9aebd9252d796af87f762381a3cc78d40c34b26dcd4c",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_full_pca_gmm_100k.quality.json": "315101df9bbf5c669c69e7b995e2bba1450de6d39298800b3bab8c5a3ad4c8a7",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_full_rf_100k.csv": "2bdf4b11fd78ba83697dc375ea845eb6968e74b1eb4cef000ec17b78450c08f4",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_full_rf_100k.predictor.pkl": "9175f3e6fc3ab9165e38662610dfd83fd2f08f596e913aec5b1fd71cd2797d46",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_full_rf_100k.quality.json": "7e5842d778e533443068446c79eef08bdcbb232f42714ba6df3b426e41f89163",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_full_xgb_100k.csv": "fe2c7ec933e8db194c80a9e36f9e73038ed116294938848e304fd97d39eb4e27",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_full_xgb_100k.predictor.pkl": "724951dcc7da3ee62bf60cb06a1df1ab5a211554c4810038ecf063d520230a46",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_full_xgb_100k.quality.json": "64237c93d1c4b1fa3e2e1e0962194872caccdd4f66920fe0d1023c987e3896b0",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_xonly_categorical_100k.csv": "9bd2e786e2acffc05838f870980437d8165a671723b421c2134c9b3bd5e3eaa6",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_xonly_categorical_100k.predictor.pkl": "cb4721c0539b8869704040092b1f0a5cf6f6323c2bb7e5abca89669306de5fe7",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_xonly_categorical_100k.quality.json": "942b2b9d6fe87fc88ca84548387726d2f0082691c4b92e34f2551f4b72389aad",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_xonly_dnn_100k.csv": "8bf0b72d115fd772f0d100377b9c9cd0c93c54cc5757cc330194607d91ca4cae",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_xonly_dnn_100k.dnn.json": "306e36a3e18684392586ea8ed9b0d6c8cc6fecd47c18139fbf71b7f0563ab3ae",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_xonly_dnn_100k.predictor.pt": "a3a618af1f34b6e0603a1ca6526ca838c300cd2dc7659ab893ecb2648b208e84",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_xonly_dnn_100k.quality.json": "5a4b0afbf04fe5edcd72be0ae755be03a276ab3890c6d58686fbad11fb696986",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_xonly_gaussian_100k.csv": "42861d447c883199d5b16f2012c031ce6392d72608b52e3d2c219005d499a98d",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_xonly_gaussian_100k.predictor.pkl": "0111a65274445922c02d09eb0191bfdfe05b1f501c2fcc3b9781ea8e42727211",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_xonly_gaussian_100k.quality.json": "238b2c4616cd333f64d64b7ebc844bf44679d2980cadea04693fd1b48e175e66",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_xonly_pca_gmm_100k.csv": "ceaa3da73cdc40a7427785899f04d2ae19c4b1e50d2a208292e6c116f9ff3af6",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_xonly_pca_gmm_100k.predictor.pkl": "89342d08fc628319210ea5ce961888801f8e3b9d91dc6035807ceaca2678343e",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_xonly_pca_gmm_100k.quality.json": "065adc03f1926defe9df2f986ac13a89e3c07625ed5b9ad5cd089a3c3137a9b1",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_xonly_rf_100k.csv": "6134cef0cd5924a14c525cfa6b4df21e11423b933cd07214827c5648802048ae",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_xonly_rf_100k.predictor.pkl": "1c607ae5b61f86c252ecbb5d4ef81a3d5b712ebc0ebdc8516c5aa827387b8e87",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_xonly_rf_100k.quality.json": "aaa60df2fd2e5e64225947fd5634f48734dce37c34a827eae2fb1ed5e3ad19ac",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_xonly_xgb_100k.csv": "6de818ff58faa9a43dff3b780a4f65fc6814d7f42d9066284ec4e2b7a2193d6f",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_xonly_xgb_100k.predictor.pkl": "878a42ae6ecf25337227c706153e7b853d0b73b077418318d16661e191b2bc15",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_xonly_xgb_100k.quality.json": "808122e06b6380648218e629c400a2731eb734ffa50335f1fba4d1da0b46c78b",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_real_dev_onehot.csv": "0806d14dde33f7efeb45d0fbc8b87e17a150211697ff7dd41f93d91e339eb946",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_real_dev_raw.csv": "6d06405e37ec83e4a55d15ae364cfcca38bbe16ce87aee9fd4572311c67bb2f9",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_real_test_onehot.csv": "bad0c9fac6f413a8382976e54c80fe25afb7c58683000326867bf93670cf8199",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_real_test_raw.csv": "e3ede67ee41f75430217d42cf4d37d9a04210ca5230785fd897597975c5804ae",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_real_train_onehot.csv": "d49c778738d2be8c84567d5ee3da9f54094154fe5775296ecf3a52aff28e73c9",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_real_train_raw.csv": "ccda48ca9670b94d58b51357da95950902cfd01cfed1cfd4d0e2f143a848ed1e",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_full_categorical_100k.csv": "711d13aedb1c5b97972ab270f60706629e999af152810a899b60c9e0650ab913",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_full_categorical_100k.predictor.pkl": "eeb9766823076c7908ca43678319b418de382acbadf18bf0cd3e54d63046dd51",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_full_categorical_100k.quality.json": "64a3d7f6f12b8ec8f0a1a7e2e8154024f8c271ec91e08d49257909580f0539c9",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_full_dnn_100k.csv": "79c9c516b4a5184599d25a46f557fd2a5afd1acf0b814d6c226058ebf7f991b4",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_full_dnn_100k.dnn.json": "5473a405df226dd6409fc440b5b431faff47912d61c544ad16b57d92269d6ac7",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_full_dnn_100k.predictor.pt": "8b8d38039decde69f653526f21d532c756f03aceef1be4085b0f9faf40789ea5",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_full_dnn_100k.quality.json": "7a728669a8ee2504583559a0f88e27c7728bcc81a9744430678bb8994f3880cb",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_full_gaussian_100k.csv": "b6e05bdc21eeb2c777892578f095bef138683a0ac238b75fa5fa49e62a860390",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_full_gaussian_100k.predictor.pkl": "0111a65274445922c02d09eb0191bfdfe05b1f501c2fcc3b9781ea8e42727211",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_full_gaussian_100k.quality.json": "c0704b739be209a771f526051b00c3b57b3591e28f8dc61bdcdc1bd3c1428197",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_full_generated_100k.csv": "79677a1fdbacbbf6ca43a658ec4110e3d284f7f3d3b7c838874f113ae9d56d72",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_full_generated_100k.quality.json": "c19c2d1950a364687988b8ecfd147152146b9b11afbef559a559788f99a4afe1",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_full_pca_gmm_100k.csv": "28470c753f9b9d4882f90979ada3225c6051d18da4d2e6466621bec7ed7fc1b0",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_full_pca_gmm_100k.predictor.pkl": "01f4317f9c8922d2d3ec9aebd9252d796af87f762381a3cc78d40c34b26dcd4c",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_full_pca_gmm_100k.quality.json": "e961b2e32693d5081a84d395a0da0749ab3b92844c259757a1b9edb75a5d576a",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_full_rf_100k.csv": "a63429db6e24922a55a168e1e7164897d3d43b59d03635ea631339a35aeb8625",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_full_rf_100k.predictor.pkl": "9175f3e6fc3ab9165e38662610dfd83fd2f08f596e913aec5b1fd71cd2797d46",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_full_rf_100k.quality.json": "ebbb9ff6274205a8dd5a52a2670520353736ac4d537e0b38cb40813f1afbc1cb",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_full_xgb_100k.csv": "be96617b22e73314074724e98a28a2c43073b6f0097fb7690dbde9b1118f19db",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_full_xgb_100k.predictor.pkl": "724951dcc7da3ee62bf60cb06a1df1ab5a211554c4810038ecf063d520230a46",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_full_xgb_100k.quality.json": "a4e3272d6a8feb77d2d051e304426384cceb88753b60f0d4475d95ae9ba136fd",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly_categorical_100k.csv": "b2497951cfc0c593a86fe1701ff706162baf0c471b8a0ff84dbf3dc4c8cdae4b",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly_categorical_100k.predictor.pkl": "cb4721c0539b8869704040092b1f0a5cf6f6323c2bb7e5abca89669306de5fe7",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly_categorical_100k.quality.json": "56029781c349dd6f21fc4ed7201e739eca80c06aa610eb83808a89ed7480db20",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly_dnn_100k.csv": "2abc68f4226ec20b091ef2dc4a3daa90b98c843abe444e7356725baf9a483c3d",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly_dnn_100k.dnn.json": "306e36a3e18684392586ea8ed9b0d6c8cc6fecd47c18139fbf71b7f0563ab3ae",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly_dnn_100k.predictor.pt": "4195c493b2b05e848a11227fbfa60d5401104b12bd6fbcd7a92ab730f6820b22",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly_dnn_100k.quality.json": "e10cc9b19867f203abdcc4dee41baef8bb24c4f4fda554587eb9e7fc5cf476ab",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly_gaussian_100k.csv": "6b7e9c4be0f4f438406cae0a31f0254069bfc05f997a4e12bee910e048414b81",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly_gaussian_100k.predictor.pkl": "0111a65274445922c02d09eb0191bfdfe05b1f501c2fcc3b9781ea8e42727211",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly_gaussian_100k.quality.json": "b0af04543648d207bd9b85d96ea1a7cd7abfc79faaf6802b5b12cf483e110961",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly_pca_gmm_100k.csv": "0c02ce93b24fd11f7d290e6f274554cd3b88225c027f3be7b3a2a6e50b95872b",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly_pca_gmm_100k.predictor.pkl": "89342d08fc628319210ea5ce961888801f8e3b9d91dc6035807ceaca2678343e",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly_pca_gmm_100k.quality.json": "ce47d2c369499fcd05892df00bd84e23f01de64cc150fc1e7097740aaf9ae7b4",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly_rf_100k.csv": "ff4f57a5ecc4fb3a8b06bde5551cb113f1b49976ab2adeadf60f3aaa5e9e295a",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly_rf_100k.predictor.pkl": "1c607ae5b61f86c252ecbb5d4ef81a3d5b712ebc0ebdc8516c5aa827387b8e87",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly_rf_100k.quality.json": "afd02dd0d3e9af334e56dd35398bb4ce4100d8895a37d2a9a6f34756435d072c",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly_xgb_100k.csv": "30983b773f65630463c116c890393422895d7769bc900bdaabcbd54ab5c9f83b",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly_xgb_100k.predictor.pkl": "878a42ae6ecf25337227c706153e7b853d0b73b077418318d16661e191b2bc15",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly_xgb_100k.quality.json": "7cd6c8179f9d019d3696f8a6f8dadf6844f1dd99c07bb01bebe34ff6f45f9c87",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/split_manifest.json": "acbd23885739a6b7c75d1ce70eb266314e28651ee50a573c8592010d8cfcdd7f",
+      "/home/thuy/Research/minh_data_synth/TabularDA/sdv trained model/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_full.pkl": "e28fee3fd98f1b8c6bb39402456e0198fcecc69a1d788a22c37f1a2683d2de6b",
+      "/home/thuy/Research/minh_data_synth/TabularDA/sdv trained model/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_full.provenance.json": "f684cf61903263205684cdcbf25205052a1c309760cc27b0f3899b49aad14737",
+      "/home/thuy/Research/minh_data_synth/TabularDA/sdv trained model/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_xonly.pkl": "1a97df17c87dd05883b5f302738ac8b2e09a6212b36c6ea6329ef21cfac17ce4",
+      "/home/thuy/Research/minh_data_synth/TabularDA/sdv trained model/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_xonly.provenance.json": "ae33b83c231d9f9a147cd4c23f959acf23432e40cb6840753c33c81a5f29e478",
+      "/home/thuy/Research/minh_data_synth/TabularDA/sdv trained model/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_full.pkl": "0678f78d25c7b898e7beed7b03dd10f4c8f009faf1909c19fd2dde25fa020782",
+      "/home/thuy/Research/minh_data_synth/TabularDA/sdv trained model/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_full.provenance.json": "2ba4da259dae931d5225b21b4a26cc743bb48c29903caf01d767ba9dca0da43f",
+      "/home/thuy/Research/minh_data_synth/TabularDA/sdv trained model/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly.pkl": "28638e5e1219b1fe43ecf50398df4e5cf37b8ca6305d941971f8c7f693bf8449",
+      "/home/thuy/Research/minh_data_synth/TabularDA/sdv trained model/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly.provenance.json": "bd28b5f520baa804b25f37d2c23d64422f312f3ba6de0255decf4d9d6af60cc9",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_full_categorical_100k.csv": "4b1454e2c18af78f4e6d8b61aadca80bd60702c514083f7feabcae18429a89b7",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_full_categorical_100k.predictor.pkl": "eeb9766823076c7908ca43678319b418de382acbadf18bf0cd3e54d63046dd51",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_full_categorical_100k.quality.json": "427933816dc315330701c4381fa6a95d3080b70e19a073f341335b2452b6e358",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_full_dnn_100k.csv": "bc3d85ea2be9c7775d960748b373f3d0d386dfd47a3c396b072e3ea33edf0dea",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_full_dnn_100k.dnn.json": "7adedcad74e483296d3413245582ab7ffa8f2b2a0a3384ea68e6dd18d121ee27",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_full_dnn_100k.predictor.pt": "e33ee409becdaa8b313f5825065b050abcb221a16a4b210db28088f22a7f8b4f",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_full_dnn_100k.quality.json": "958aee9c0dcc7c48c2c9312f7bf851e637f7233f140408e805c685c4673ca718",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_full_gaussian_100k.csv": "3bbc606a681106cbd792531e3cb391335b225cf6de0cb1af1ff2406d9fc70284",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_full_gaussian_100k.predictor.pkl": "0111a65274445922c02d09eb0191bfdfe05b1f501c2fcc3b9781ea8e42727211",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_full_gaussian_100k.quality.json": "d82278762133ea391b5e0eb8420ef3bbc73c6b7e66233a1672cd71681c78c029",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_full_generated_100k.csv": "ae9274f9f8bd8b36e0d6d711cfd9e2c348dab2acf3c00ccf40a81f285c02f85a",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_full_generated_100k.quality.json": "4e36956750755dcbf3744f65c0ab3715cc21a113428808ca279c44b89d19b6de",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_full_pca_gmm_100k.csv": "6093a7836e38946024372ef2c175bdecb45b52f490ecf0bce9a11261b0d30d20",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_full_pca_gmm_100k.predictor.pkl": "01f4317f9c8922d2d3ec9aebd9252d796af87f762381a3cc78d40c34b26dcd4c",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_full_pca_gmm_100k.quality.json": "6f0b1c8748484fdaaabe8c7d450d2b0cee58d56bc4ffa620fe5005e19f5a1aa7",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_full_rf_100k.csv": "bf88ad99b423f37cf1dd5a2c3e8b0a604848c068f67a3bc9f040f8d220a06ce7",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_full_rf_100k.predictor.pkl": "bbcefe40dfe4b44f8de8912b2456d0551d1654c1d02395c2aedde7d8678e7d19",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_full_rf_100k.quality.json": "b54dc06ae716b14b1dab7a086066d2992164d3a05fcd676e9a69120e5daa242f",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_full_xgb_100k.csv": "13354e79a092c54103c32ce229a12ec3420f0f11e95feced3e7a6b4792fa9285",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_full_xgb_100k.predictor.pkl": "724951dcc7da3ee62bf60cb06a1df1ab5a211554c4810038ecf063d520230a46",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_full_xgb_100k.quality.json": "340a9beb670a7260b936b5858e501fa55370bf182ad7f2e960d0ea6c31df3d41",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_xonly_categorical_100k.csv": "29e5f211efbc67cd5bbd8cf4aa533cfa9bed7951ee2c07a806b2deca28820263",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_xonly_categorical_100k.predictor.pkl": "cb4721c0539b8869704040092b1f0a5cf6f6323c2bb7e5abca89669306de5fe7",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_xonly_categorical_100k.quality.json": "b2254a546d58f062efbe67f8512ba0b602d534bb4de8d7ab37377f39626cc50f",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_xonly_dnn_100k.csv": "c8f1b37dfc42258bb780b2fcdab15a94a71bbf99996894943c4f3d60c628836b",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_xonly_dnn_100k.dnn.json": "397e850361a86feed790732f60020870456a57f4a5e3740a9d96dac10d39473d",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_xonly_dnn_100k.predictor.pt": "3aa37f9d96b60b8166d57731286eb7b3a68e61c0eb80a1642bf52d7b56bcd67e",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_xonly_dnn_100k.quality.json": "0da1b22d9171f345221ecb4feabb06fdfca03ea4c29b44d54e55765db6bf7237",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_xonly_gaussian_100k.csv": "77013aad36043c02a23bc4d4f823260f81ea88a83a4dcc3cccdc55c242cffe4a",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_xonly_gaussian_100k.predictor.pkl": "0111a65274445922c02d09eb0191bfdfe05b1f501c2fcc3b9781ea8e42727211",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_xonly_gaussian_100k.quality.json": "aeffe91fbd03297305ee6f533977d7e21a82199e7c6e0293688c5260cf4eb032",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_xonly_pca_gmm_100k.csv": "3f217c89a868f83d4e784e455fd9d63f9dceb7a16c1bf709976d92345ac695da",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_xonly_pca_gmm_100k.predictor.pkl": "89342d08fc628319210ea5ce961888801f8e3b9d91dc6035807ceaca2678343e",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_xonly_pca_gmm_100k.quality.json": "b4fbd767df5913122a5159b8e0745039a93340fd7f856c77ef095979cd1be9ff",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_xonly_rf_100k.csv": "f826e489d60f5307db92211abcd3198e14fd88b235ea73def84f2550d1d8d6fe",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_xonly_rf_100k.predictor.pkl": "623e74988d960527fafa6df5806aaf91f04bea0cecc34b97a2e52a38ac870167",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_xonly_rf_100k.quality.json": "3d8bd2b1b9eb7523403bfc9fac77128b4f1ec187150e8bf9fcd5ecf52e5f7f0f",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_xonly_xgb_100k.csv": "a484d501e7789569e8c78c9bb2b6f51a5a7737526d094b4d12a10670734f838c",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_xonly_xgb_100k.predictor.pkl": "878a42ae6ecf25337227c706153e7b853d0b73b077418318d16661e191b2bc15",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_xonly_xgb_100k.quality.json": "6b68ea06f1696794fa009195e4317eb0169ff8e00a4020b3f714ee335dc9aef1",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_real_dev_onehot.csv": "0806d14dde33f7efeb45d0fbc8b87e17a150211697ff7dd41f93d91e339eb946",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_real_dev_raw.csv": "6d06405e37ec83e4a55d15ae364cfcca38bbe16ce87aee9fd4572311c67bb2f9",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_real_test_onehot.csv": "bad0c9fac6f413a8382976e54c80fe25afb7c58683000326867bf93670cf8199",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_real_test_raw.csv": "e3ede67ee41f75430217d42cf4d37d9a04210ca5230785fd897597975c5804ae",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_real_train_onehot.csv": "d49c778738d2be8c84567d5ee3da9f54094154fe5775296ecf3a52aff28e73c9",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_real_train_raw.csv": "ccda48ca9670b94d58b51357da95950902cfd01cfed1cfd4d0e2f143a848ed1e",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_full_categorical_100k.csv": "17cb9761fc58c9213d02be100c4f2e55eb40d762d690e965571714c055ff844b",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_full_categorical_100k.predictor.pkl": "eeb9766823076c7908ca43678319b418de382acbadf18bf0cd3e54d63046dd51",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_full_categorical_100k.quality.json": "bb80874d33d9477071bb3a31e61640dea2c33c820dc6fc511d02e2ce68f8c532",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_full_dnn_100k.csv": "e0b95a8e3660add6f7aec435b19f12babd696cebb78c600a1524dc3ef741ad6b",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_full_dnn_100k.dnn.json": "7adedcad74e483296d3413245582ab7ffa8f2b2a0a3384ea68e6dd18d121ee27",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_full_dnn_100k.predictor.pt": "01ee19284797a661e9c438ca5b07a2bc481d3a86e55baaecdb1e10655e54a194",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_full_dnn_100k.quality.json": "98a3e517e5e6ac68885d1df0e99e12033e5901286ae94de3ecaf1786245fe4cb",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_full_gaussian_100k.csv": "7fb953f6879407da605dc0be893be35d960d507a30f76ebe2b2c5eecf688abad",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_full_gaussian_100k.predictor.pkl": "0111a65274445922c02d09eb0191bfdfe05b1f501c2fcc3b9781ea8e42727211",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_full_gaussian_100k.quality.json": "99f1ff5e36156f551ad0e41a55399609073d96b56e76c881d9bc050dd2991c7a",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_full_generated_100k.csv": "2e08cff52e23a32171adb8279f230c632bd3c9c997b483a68e2389ac0778890c",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_full_generated_100k.quality.json": "f40cbaa50593becc657ca9ca84bcff1476eaff87ae7eca7a5454ff3f39d1ef5b",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_full_pca_gmm_100k.csv": "1d695d036f874ef4e2be146964fb1a1e40d75baa1b0fb9b965349b777f07d026",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_full_pca_gmm_100k.predictor.pkl": "01f4317f9c8922d2d3ec9aebd9252d796af87f762381a3cc78d40c34b26dcd4c",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_full_pca_gmm_100k.quality.json": "cfb4e9dc9755cd6c568dd3d75215d41f5abda63d0ccdf47279a356b680068200",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_full_rf_100k.csv": "2def5f39b98c579af2780acf6702c8ee5dfe807094a719abe66d13478e7af5ff",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_full_rf_100k.predictor.pkl": "bbcefe40dfe4b44f8de8912b2456d0551d1654c1d02395c2aedde7d8678e7d19",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_full_rf_100k.quality.json": "a6c89f12fa3cc47532a18b90ef299b98b3f2ff923e31277aa4efcce6eb1e5677",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_full_xgb_100k.csv": "8474740018b2591283bd6c4b355042707267a88104a09236bcd712d2c63c7e76",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_full_xgb_100k.predictor.pkl": "724951dcc7da3ee62bf60cb06a1df1ab5a211554c4810038ecf063d520230a46",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_full_xgb_100k.quality.json": "3f647f8e5033d580279a609ef156118246072febc62a04b39c916254e6a82038",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_xonly_categorical_100k.csv": "9f63b4845a6ac7eca42fc0f597c204c90fcf547d1ba05b769ab0d7099565c19a",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_xonly_categorical_100k.predictor.pkl": "cb4721c0539b8869704040092b1f0a5cf6f6323c2bb7e5abca89669306de5fe7",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_xonly_categorical_100k.quality.json": "81f309435df6cadbe62977f628baad37270d9a16886466f90b6aac134dcf558f",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_xonly_dnn_100k.csv": "a2b1324425f810d2f6be5195b473d704b22947beb868d9c6db752c6118b0d06d",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_xonly_dnn_100k.dnn.json": "397e850361a86feed790732f60020870456a57f4a5e3740a9d96dac10d39473d",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_xonly_dnn_100k.predictor.pt": "6f261135b870c1d267e59333416fc720c3be0b2deaab274217b11a7ba1d7f102",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_xonly_dnn_100k.quality.json": "8ba1a70593b2456ed31ff262d6d16a1c40a293c0380c8a14c872aa7df3bdc7ce",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_xonly_gaussian_100k.csv": "01e9eb9406ad297448b76b067ea58d091bab16649255884f7df111408c439f06",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_xonly_gaussian_100k.predictor.pkl": "0111a65274445922c02d09eb0191bfdfe05b1f501c2fcc3b9781ea8e42727211",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_xonly_gaussian_100k.quality.json": "0543a795c9c5ad7cbd16343d9b02011f3c4242569d247ba7ee168e8abf0ad88b",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_xonly_pca_gmm_100k.csv": "8d88976329e0c1e2a244385974819458958073e912fe9e6f8a9611e839f3ea52",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_xonly_pca_gmm_100k.predictor.pkl": "89342d08fc628319210ea5ce961888801f8e3b9d91dc6035807ceaca2678343e",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_xonly_pca_gmm_100k.quality.json": "593c64ed322930f591e47973014f4745b4bbb98820e52fe7550e0353cf081c3c",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_xonly_rf_100k.csv": "f28d3cf6cbef724579d1d975db2c55daa800d3ef7ea59c396940e12b727aa8a5",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_xonly_rf_100k.predictor.pkl": "623e74988d960527fafa6df5806aaf91f04bea0cecc34b97a2e52a38ac870167",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_xonly_rf_100k.quality.json": "533dd7cab87d420a5f7d5a4eb5e00b49f85982eb09d0f20dc04b18b180af42fe",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_xonly_xgb_100k.csv": "58592a7083b8711760c149b514c7cf8b0f115cb176b760f9d7b9b56152b77a35",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_xonly_xgb_100k.predictor.pkl": "878a42ae6ecf25337227c706153e7b853d0b73b077418318d16661e191b2bc15",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_xonly_xgb_100k.quality.json": "329b97a70d1a149fcefa28aa4b331d7c9fd35ba7789d96f458ed4df6281cda18",
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/split_manifest.json": "15ee6e3a942e3368cdc7181226430e0dba3a3b192576f05f30f986dd12279e9b",
+      "/home/thuy/Research/minh_data_synth/TabularDA/sdv trained model/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_full.pkl": "869b32fe5a845966babf424c6e2d3a5db2bd49a0d9edb72e3a25f4606055cdf1",
+      "/home/thuy/Research/minh_data_synth/TabularDA/sdv trained model/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_full.provenance.json": "b842d3ae9e3b9c32177a1f0c144c8b97e6c9431af3eeb92942e1fbad677f9b83",
+      "/home/thuy/Research/minh_data_synth/TabularDA/sdv trained model/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_xonly.pkl": "31676d67216fb092877ea2966d5509602c08ef4a3ed6f29368d4a65e6ad596e5",
+      "/home/thuy/Research/minh_data_synth/TabularDA/sdv trained model/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_xonly.provenance.json": "1d9ffb79a96082a40f6f5daaa8fb728b8ef6cc68f393dfb1f564bb8c6dfa7b7a",
+      "/home/thuy/Research/minh_data_synth/TabularDA/sdv trained model/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_full.pkl": "ead9feb199871ed72502892300d15f3a14d56cb27f802f4c43d5ddc0f9363bfb",
+      "/home/thuy/Research/minh_data_synth/TabularDA/sdv trained model/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_full.provenance.json": "9ae96d1c273f11ea7524ea6586b40ad63bf68774c004525ec14195e43bbd9fa6",
+      "/home/thuy/Research/minh_data_synth/TabularDA/sdv trained model/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_xonly.pkl": "d8c7b5b62fb4f3a6c7fe02fd69a13494b624da116e0e1436ac8c102b624d7883",
+      "/home/thuy/Research/minh_data_synth/TabularDA/sdv trained model/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_xonly.provenance.json": "8ab6ac9b5a8335a2c2f433b5b31234711ce45bd56593e87b4380b43dbb8fbd10"
+    },
+    "label_counts": {
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_full_generated_100k.csv": {
+        "0": 87677,
+        "1": 12323
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_xonly_gaussian_100k.csv": {
+        "0": 64908,
+        "1": 35092
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_xonly_categorical_100k.csv": {
+        "0": 65903,
+        "1": 34097
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_xonly_pca_gmm_100k.csv": {
+        "0": 73366,
+        "1": 26634
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_xonly_rf_100k.csv": {
+        "0": 97471,
+        "1": 2529
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_xonly_xgb_100k.csv": {
+        "0": 96530,
+        "1": 3470
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_xonly_dnn_100k.csv": {
+        "0": 95855,
+        "1": 4145
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_full_gaussian_100k.csv": {
+        "0": 65622,
+        "1": 34378
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_full_categorical_100k.csv": {
+        "0": 70203,
+        "1": 29797
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_full_pca_gmm_100k.csv": {
+        "0": 75470,
+        "1": 24530
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_full_rf_100k.csv": {
+        "0": 97772,
+        "1": 2228
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_full_xgb_100k.csv": {
+        "0": 96810,
+        "1": 3190
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_ctgan_full_dnn_100k.csv": {
+        "0": 96529,
+        "1": 3471
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_full_generated_100k.csv": {
+        "0": 98542,
+        "1": 1458
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly_gaussian_100k.csv": {
+        "0": 67894,
+        "1": 32106
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly_categorical_100k.csv": {
+        "0": 69232,
+        "1": 30768
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly_pca_gmm_100k.csv": {
+        "0": 77860,
+        "1": 22140
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly_rf_100k.csv": {
+        "0": 99452,
+        "1": 548
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly_xgb_100k.csv": {
+        "0": 99008,
+        "1": 992
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_xonly_dnn_100k.csv": {
+        "0": 98504,
+        "1": 1496
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_full_gaussian_100k.csv": {
+        "0": 67256,
+        "1": 32744
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_full_categorical_100k.csv": {
+        "0": 70750,
+        "1": 29250
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_full_pca_gmm_100k.csv": {
+        "0": 77255,
+        "1": 22745
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_full_rf_100k.csv": {
+        "0": 99257,
+        "1": 743
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_full_xgb_100k.csv": {
+        "0": 98600,
+        "1": 1400
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_42/census_kdd_seed42_tvae_full_dnn_100k.csv": {
+        "0": 98364,
+        "1": 1636
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_full_generated_100k.csv": {
+        "0": 95786,
+        "1": 4214
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_xonly_gaussian_100k.csv": {
+        "0": 66360,
+        "1": 33640
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_xonly_categorical_100k.csv": {
+        "0": 63937,
+        "1": 36063
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_xonly_pca_gmm_100k.csv": {
+        "0": 75261,
+        "1": 24739
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_xonly_rf_100k.csv": {
+        "0": 98176,
+        "1": 1824
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_xonly_xgb_100k.csv": {
+        "0": 96856,
+        "1": 3144
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_xonly_dnn_100k.csv": {
+        "0": 96833,
+        "1": 3167
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_full_gaussian_100k.csv": {
+        "0": 65560,
+        "1": 34440
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_full_categorical_100k.csv": {
+        "0": 69890,
+        "1": 30110
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_full_pca_gmm_100k.csv": {
+        "0": 78611,
+        "1": 21389
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_full_rf_100k.csv": {
+        "0": 97773,
+        "1": 2227
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_full_xgb_100k.csv": {
+        "0": 96639,
+        "1": 3361
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_ctgan_full_dnn_100k.csv": {
+        "0": 96405,
+        "1": 3595
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_full_generated_100k.csv": {
+        "0": 97442,
+        "1": 2558
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_xonly_gaussian_100k.csv": {
+        "0": 72120,
+        "1": 27880
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_xonly_categorical_100k.csv": {
+        "0": 73408,
+        "1": 26592
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_xonly_pca_gmm_100k.csv": {
+        "0": 82366,
+        "1": 17634
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_xonly_rf_100k.csv": {
+        "0": 99534,
+        "1": 466
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_xonly_xgb_100k.csv": {
+        "0": 99243,
+        "1": 757
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_xonly_dnn_100k.csv": {
+        "0": 99116,
+        "1": 884
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_full_gaussian_100k.csv": {
+        "0": 71416,
+        "1": 28584
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_full_categorical_100k.csv": {
+        "0": 75512,
+        "1": 24488
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_full_pca_gmm_100k.csv": {
+        "0": 80914,
+        "1": 19086
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_full_rf_100k.csv": {
+        "0": 99294,
+        "1": 706
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_full_xgb_100k.csv": {
+        "0": 98823,
+        "1": 1177
+      },
+      "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/census_kdd/seed_43/census_kdd_seed43_tvae_full_dnn_100k.csv": {
+        "0": 98465,
+        "1": 1535
+      }
+    },
+    "packages": {
+      "torch": "2.5.1",
+      "sdv": "1.18.0",
+      "ctgan": "0.10.2",
+      "pandas": "2.2.3",
+      "numpy": "1.26.4",
+      "scikit-learn": "1.5.2"
+    },
+    "runner_sha256": "b2d057f8b54c972067508a4690ac7e7f4f115df07af6734f1d318eecc29a2fec",
+    "weighted_trainer_sha256": "77ebb82233c6a9942f46b800cac5b013a3ac8efa5f70b08ac7255c0d3b3e2908"
+  },
+  "pilot_imports": [
+    {
+      "run_id": "census_kdd_seed42_ctgan_full_dnn_synthetic",
+      "source_record": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_weighted_pilot_20261004/census_kdd/acc/census_kdd_seed42_ctgan_full_dnn_synthetic.run.json",
+      "source_record_sha256": "48b0b75a1e85cddc80c1ec4952af10b09e0bc2153e0275f42fc71e7b4efb2532",
+      "artifacts": [
+        {
+          "source": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_weighted_pilot_20261004/census_kdd/acc/census_kdd_seed42_ctgan_full_dnn_synthetic.f1_macro_curve.png",
+          "destination": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_kdd_weighted_macro_f1_20261005/census_kdd/acc/census_kdd_seed42_ctgan_full_dnn_synthetic.f1_macro_curve.png",
+          "sha256": "f473f74a41d81b8444f6d72f713fd0c92438d94ed470362ab68678e47fe29a20"
+        },
+        {
+          "source": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_weighted_pilot_20261004/census_kdd/acc/census_kdd_seed42_ctgan_full_dnn_synthetic.report.txt",
+          "destination": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_kdd_weighted_macro_f1_20261005/census_kdd/acc/census_kdd_seed42_ctgan_full_dnn_synthetic.report.txt",
+          "sha256": "688b7c9956822eccd2703067a25130d6e46bde8794a6a925f3a496fc65bfa978"
+        },
+        {
+          "source": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_weighted_pilot_20261004/census_kdd/acc/census_kdd_seed42_ctgan_full_dnn_synthetic.loss_curve.png",
+          "destination": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_kdd_weighted_macro_f1_20261005/census_kdd/acc/census_kdd_seed42_ctgan_full_dnn_synthetic.loss_curve.png",
+          "sha256": "768acb5e5975e30d870b170dce001205736705b1e51f064af06e70406a1fa05f"
+        },
+        {
+          "source": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_weighted_pilot_20261004/census_kdd/acc/census_kdd_seed42_ctgan_full_dnn_synthetic.epochs.csv",
+          "destination": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_kdd_weighted_macro_f1_20261005/census_kdd/acc/census_kdd_seed42_ctgan_full_dnn_synthetic.epochs.csv",
+          "sha256": "8c46dd6e00addc0356fb0fb1a25fa098390bf4b6911927b0e473ca53e34dbf54"
+        },
+        {
+          "source": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_weighted_pilot_20261004/census_kdd/acc/census_kdd_seed42_ctgan_full_dnn_synthetic.predictions.csv",
+          "destination": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_kdd_weighted_macro_f1_20261005/census_kdd/acc/census_kdd_seed42_ctgan_full_dnn_synthetic.predictions.csv",
+          "sha256": "346e4f9dedd951f0c70ee55144c37966e282dff5a5b245fe81c24ea1c46495a0"
+        },
+        {
+          "source": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_weighted_pilot_20261004/census_kdd/weight/census_kdd_seed42_ctgan_full_dnn_synthetic.weights.pth",
+          "destination": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_kdd_weighted_macro_f1_20261005/census_kdd/weight/census_kdd_seed42_ctgan_full_dnn_synthetic.weights.pth",
+          "sha256": "a1c8bac749b5818791266c117cd31d44093ff3dec243b763bfa533019950d7c8"
+        }
+      ]
+    },
+    {
+      "run_id": "census_kdd_seed42_ctgan_xonly_dnn_synthetic",
+      "source_record": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_weighted_pilot_20261004/census_kdd/acc/census_kdd_seed42_ctgan_xonly_dnn_synthetic.run.json",
+      "source_record_sha256": "1e7fda2ba4a993a0649e46cb619c74e9f812ce59f33cb6e84fb489ceae962e82",
+      "artifacts": [
+        {
+          "source": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_weighted_pilot_20261004/census_kdd/acc/census_kdd_seed42_ctgan_xonly_dnn_synthetic.predictions.csv",
+          "destination": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_kdd_weighted_macro_f1_20261005/census_kdd/acc/census_kdd_seed42_ctgan_xonly_dnn_synthetic.predictions.csv",
+          "sha256": "55aa1fe05f56786f94aa119b948b0f0f09a5ac389d2be8e93f45b88d46b272ec"
+        },
+        {
+          "source": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_weighted_pilot_20261004/census_kdd/acc/census_kdd_seed42_ctgan_xonly_dnn_synthetic.loss_curve.png",
+          "destination": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_kdd_weighted_macro_f1_20261005/census_kdd/acc/census_kdd_seed42_ctgan_xonly_dnn_synthetic.loss_curve.png",
+          "sha256": "13d71715ee36c9906858597430aaf95bd1b4a7496d7125363b9002c0a5156229"
+        },
+        {
+          "source": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_weighted_pilot_20261004/census_kdd/acc/census_kdd_seed42_ctgan_xonly_dnn_synthetic.report.txt",
+          "destination": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_kdd_weighted_macro_f1_20261005/census_kdd/acc/census_kdd_seed42_ctgan_xonly_dnn_synthetic.report.txt",
+          "sha256": "d96f0c7129ae42d15b37f9ce0624549ce716584feeb0fa67ea5dc4230a4b620c"
+        },
+        {
+          "source": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_weighted_pilot_20261004/census_kdd/acc/census_kdd_seed42_ctgan_xonly_dnn_synthetic.f1_macro_curve.png",
+          "destination": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_kdd_weighted_macro_f1_20261005/census_kdd/acc/census_kdd_seed42_ctgan_xonly_dnn_synthetic.f1_macro_curve.png",
+          "sha256": "2f55a3cbfc050798275119ca6a58999797b40832466b357d9c485d76da329f98"
+        },
+        {
+          "source": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_weighted_pilot_20261004/census_kdd/acc/census_kdd_seed42_ctgan_xonly_dnn_synthetic.epochs.csv",
+          "destination": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_kdd_weighted_macro_f1_20261005/census_kdd/acc/census_kdd_seed42_ctgan_xonly_dnn_synthetic.epochs.csv",
+          "sha256": "0dfa2bc6e4214bc56b533465d28429937f7b0037e77dac50202e944c1f6f6f21"
+        },
+        {
+          "source": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_weighted_pilot_20261004/census_kdd/weight/census_kdd_seed42_ctgan_xonly_dnn_synthetic.weights.pth",
+          "destination": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_kdd_weighted_macro_f1_20261005/census_kdd/weight/census_kdd_seed42_ctgan_xonly_dnn_synthetic.weights.pth",
+          "sha256": "6e8bc4fcd0170282964cc1e9eadd9499a2b4b43f25185900b855cbbbd5a31866"
+        }
+      ]
+    },
+    {
+      "run_id": "census_kdd_seed42_real_original",
+      "source_record": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_weighted_pilot_20261004/census_kdd/acc/census_kdd_seed42_real_original.run.json",
+      "source_record_sha256": "f15d94d847ee1ad307509327662a6d48ea1d361b1fcf1ec1554ef3e6144ed2f6",
+      "artifacts": [
+        {
+          "source": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_weighted_pilot_20261004/census_kdd/acc/census_kdd_seed42_real_original.predictions.csv",
+          "destination": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_kdd_weighted_macro_f1_20261005/census_kdd/acc/census_kdd_seed42_real_original.predictions.csv",
+          "sha256": "3b476c6d89b6421270eb45856a95148d635affdac540ce1796b998692ece08a8"
+        },
+        {
+          "source": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_weighted_pilot_20261004/census_kdd/acc/census_kdd_seed42_real_original.report.txt",
+          "destination": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_kdd_weighted_macro_f1_20261005/census_kdd/acc/census_kdd_seed42_real_original.report.txt",
+          "sha256": "8d5f9e91e84c27f40c6a2410ddc3b488d56796b4c4dc5f8efeddf0f9b5524275"
+        },
+        {
+          "source": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_weighted_pilot_20261004/census_kdd/acc/census_kdd_seed42_real_original.f1_macro_curve.png",
+          "destination": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_kdd_weighted_macro_f1_20261005/census_kdd/acc/census_kdd_seed42_real_original.f1_macro_curve.png",
+          "sha256": "725942b23fb8a4bfe9414c35593dd2cb9ac71fcdd435f0a63551e8ad133da4ca"
+        },
+        {
+          "source": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_weighted_pilot_20261004/census_kdd/acc/census_kdd_seed42_real_original.loss_curve.png",
+          "destination": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_kdd_weighted_macro_f1_20261005/census_kdd/acc/census_kdd_seed42_real_original.loss_curve.png",
+          "sha256": "b4e624ed10089223c5d8fc3df14ae1cbefb3e05d28f9bce1f65da8aeb6d9d3bd"
+        },
+        {
+          "source": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_weighted_pilot_20261004/census_kdd/acc/census_kdd_seed42_real_original.epochs.csv",
+          "destination": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_kdd_weighted_macro_f1_20261005/census_kdd/acc/census_kdd_seed42_real_original.epochs.csv",
+          "sha256": "150af80b0a89b2f2d7f1212673f54c0e48af1e00e793f9ff83485dfdf3caaeb8"
+        },
+        {
+          "source": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_weighted_pilot_20261004/census_kdd/weight/census_kdd_seed42_real_original.weights.pth",
+          "destination": "/home/thuy/Research/minh_data_synth/TabularDA/output/census_kdd_weighted_macro_f1_20261005/census_kdd/weight/census_kdd_seed42_real_original.weights.pth",
+          "sha256": "e90312af64e217e00236cbd4b6002f953d2d3a98fc1d679d680474ba7aba698d"
+        }
+      ]
+    }
+  ]
+}
