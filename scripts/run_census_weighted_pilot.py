@@ -85,7 +85,8 @@ def preflight():
     return result
 
 
-def run_arm(seed, arm, *, namespace=NAMESPACE, configuration=None):
+def run_arm(seed, arm, *, namespace=NAMESPACE, configuration=None, dataset="census_kdd"):
+    assert dataset in {"census_kdd", "credit"}
     os.environ["CORRECTED_RUN_NAMESPACE"] = "corrected_v2"
     os.environ["MPLBACKEND"] = "Agg"
     sys.path.insert(0, str(ROOT / "src"))
@@ -153,8 +154,8 @@ def run_arm(seed, arm, *, namespace=NAMESPACE, configuration=None):
             return loss / total, scores
 
     mode, method = ARMS[arm] if configuration is None else configuration
-    output = ROOT / "output" / namespace / "census_kdd"
-    run_id = constants.run_name("census_kdd", seed, mode, method)
+    output = ROOT / "output" / namespace / dataset
+    run_id = constants.run_name(dataset, seed, mode, method)
     if (output / "acc" / (run_id + ".run.json")).exists():
         raise FileExistsError("Refusing to overwrite a completed pilot arm")
     metrics = {"accuracy": None, "balanced_accuracy": None, "pr_auc": None,
@@ -162,7 +163,7 @@ def run_arm(seed, arm, *, namespace=NAMESPACE, configuration=None):
                "precision": ["binary"], "recall": ["binary"]}
     started = now()
     pilot = WeightedCensus(
-        dataset_name="census_kdd", train_option=mode, augment_option=method,
+        dataset_name=dataset, train_option=mode, augment_option=method,
         test_option="original", validation=.2, batch_size=128,
         learning_rate=.001, num_epochs=100, patience=30,
         early_stop_criterion="f1_macro", seed=seed,
