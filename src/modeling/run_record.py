@@ -18,7 +18,7 @@ def news_target_normalization(predictions_path, split_manifest):
     targets = [float(row["y_true"]) for row in predictions]
     sigma_y = statistics.pstdev(targets)
     if not math.isfinite(sigma_y) or sigma_y <= 0:
-        raise ValueError("News NMAE requires a positive finite test-target standard deviation")
+        raise ValueError("NMAE requires a positive finite test-target standard deviation")
     return {"sigma_y": sigma_y, "split": "test", "ddof": 0, "rows": len(targets),
             "target_table_sha256": split_manifest["files"]["test"]["raw"]["sha256"],
             "definition": "nmae_sigma = mae / sigma_y; lower is better"}
@@ -39,7 +39,7 @@ def write_run_record(path, *, dataset, seed, train_option, augment_option,
         code_hash.update(source.read_bytes())
     with open(split_manifest_path, encoding="utf-8") as split_file:
         split_manifest = json.load(split_file)
-    if dataset == "news":
+    if dataset in {"news", "california_housing"}:
         target_normalization = news_target_normalization(predictions_path, split_manifest)
         test_scores = {**test_scores, "nmae_sigma": test_scores["mae"] / target_normalization["sigma_y"]}
     generator_provenance_path = None
@@ -122,7 +122,7 @@ def write_run_record(path, *, dataset, seed, train_option, augment_option,
         "downstream_weight_path": str(weight_path),
         "predictions_path": predictions_path,
     }
-    if dataset == "news":
+    if dataset in {"news", "california_housing"}:
         record["target_normalization"] = target_normalization
     with open(path, "w", encoding="utf-8") as record_file:
         json.dump(record, record_file, indent=2)

@@ -1,0 +1,20 @@
+START {"seed": 43, "table": "real", "mode": "original", "transform": "log", "command": ["/home/thuy/miniconda3/envs/env/bin/python", "/home/thuy/Research/minh_data_synth/TabularDA/scripts/run_news_target_transform_pilot.py", "run", "--output", "/home/thuy/Research/minh_data_synth/TabularDA/output/news_log_pilot_20261008_0048", "--seed", "43", "--mode", "original", "--table", "real", "--transform", "log"], "log_path": "/home/thuy/Research/minh_data_synth/TabularDA/output/news_log_pilot_20261008_0048/logs/seed43_real_original_log.log", "status": "running", "started_at_chicago": "2026-10-08T00:45:26.927505-05:00"}
+COMPLETE /home/thuy/Research/minh_data_synth/TabularDA/output/news_log_pilot_20261008_0048/logs/seed43_real_original_log.log
+START {"seed": 43, "table": "ctgan", "mode": "synthetic", "transform": "log", "command": ["/home/thuy/miniconda3/envs/env/bin/python", "/home/thuy/Research/minh_data_synth/TabularDA/scripts/run_news_target_transform_pilot.py", "run", "--output", "/home/thuy/Research/minh_data_synth/TabularDA/output/news_log_pilot_20261008_0048", "--seed", "43", "--mode", "synthetic", "--table", "ctgan", "--transform", "log"], "log_path": "/home/thuy/Research/minh_data_synth/TabularDA/output/news_log_pilot_20261008_0048/logs/seed43_ctgan_synthetic_log.log", "status": "running", "started_at_chicago": "2026-10-08T00:49:04.524506-05:00"}
+COMPLETE /home/thuy/Research/minh_data_synth/TabularDA/output/news_log_pilot_20261008_0048/logs/seed43_ctgan_synthetic_log.log
+START {"seed": 43, "table": "tvae", "mode": "synthetic", "transform": "log", "command": ["/home/thuy/miniconda3/envs/env/bin/python", "/home/thuy/Research/minh_data_synth/TabularDA/scripts/run_news_target_transform_pilot.py", "run", "--output", "/home/thuy/Research/minh_data_synth/TabularDA/output/news_log_pilot_20261008_0048", "--seed", "43", "--mode", "synthetic", "--table", "tvae", "--transform", "log"], "log_path": "/home/thuy/Research/minh_data_synth/TabularDA/output/news_log_pilot_20261008_0048/logs/seed43_tvae_synthetic_log.log", "status": "running", "started_at_chicago": "2026-10-08T01:06:03.014688-05:00"}
+COMPLETE /home/thuy/Research/minh_data_synth/TabularDA/output/news_log_pilot_20261008_0048/logs/seed43_tvae_synthetic_log.log
+Traceback (most recent call last):
+  File "/home/thuy/Research/minh_data_synth/TabularDA/scripts/build_corrected_results.py", line 118, in <module>
+    build(arguments.runs, arguments.out, arguments.matrix, tuple(arguments.generators))
+  File "/home/thuy/Research/minh_data_synth/TabularDA/scripts/build_corrected_results.py", line 75, in build
+    raise ValueError(f"Corrected matrix incomplete: {len(missing)} missing, {len(unexpected)} unexpected runs")
+ValueError: Corrected matrix incomplete: 887 missing, 0 unexpected runs
+Traceback (most recent call last):
+  File "/home/thuy/Research/minh_data_synth/TabularDA/scripts/run_news_target_transform_pilot.py", line 333, in <module>
+    worker(args.output, args.transform)
+  File "/home/thuy/Research/minh_data_synth/TabularDA/scripts/run_news_target_transform_pilot.py", line 291, in worker
+    subprocess.run([sys.executable, str(ROOT / 'scripts/build_corrected_results.py'),
+  File "/home/thuy/miniconda3/envs/env/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['/home/thuy/miniconda3/envs/env/bin/python', '/home/thuy/Research/minh_data_synth/TabularDA/scripts/build_corrected_results.py', '--runs', '/home/thuy/Research/minh_data_synth/TabularDA/output/news_log_pilot_20261008_0048/log', '--out', '/home/thuy/Research/minh_data_synth/TabularDA/output/news_log_pilot_20261008_0048/log/results', '--generators', 'ctgan', 'tvae']' returned non-zero exit status 1.
