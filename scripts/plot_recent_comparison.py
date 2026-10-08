@@ -3,7 +3,9 @@
 import argparse
 import csv
 import json
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import matplotlib
 
@@ -101,6 +103,11 @@ PANELS = {
         "metric_label": "R²", "title": "News · corrected, seed 42",
         "paper": {"CTGAN": -0.43, "TVAE": -0.20, "Real": 0.14}, "limits": (-0.5, 0.3),
     },
+    "california_housing_corrected": {
+        "dataset": "california_housing", "scope": "corrected_v2", "metric": "r2",
+        "metric_label": "R²", "title": "Housing R² · corrected, seed 42",
+        "paper": {}, "limits": (-0.1, 1.0),
+    },
 }
 PANELS = {
     f"{info['dataset']}_corrected" + ("_seed43" if seed == 43 else ""): {
@@ -118,12 +125,13 @@ PAPER_STYLES = {
     "TVAE": {"color": "#a46dbe", "linestyle": ":"},
     "Real": {"color": "#4b5563", "linestyle": "-."},
 }
-for seed in (42, 43):
-    source = PANELS["news_corrected" + ("_seed43" if seed == 43 else "")]
-    PANELS[f"news_nmae_seed{seed}"] = {
-        **source, "metric": "nmae_sigma", "metric_label": "NMAEσ (lower is better)",
-        "title": f"News NMAEσ · corrected, seed {seed}", "paper": {}, "limits": (0, 0.5),
-    }
+for dataset, title in (("news", "News"), ("california_housing", "Housing")):
+    for seed in (42, 43):
+        source = PANELS[f"{dataset}_corrected" + ("_seed43" if seed == 43 else "")]
+        PANELS[f"{dataset}_nmae_seed{seed}"] = {
+            **source, "metric": "nmae_sigma", "metric_label": "NMAEσ (lower is better)",
+            "title": f"{title} NMAEσ · corrected, seed {seed}", "paper": {}, "limits": (0, 0.5),
+        }
 UNSCALED_METRICS = {"r2", "nmae_sigma"}
 METRIC_COLORS = {
     "f1_binary": {"ctgan": "#087f8c", "tvae": "#6d28d9"},
@@ -148,6 +156,7 @@ def read_run(info, suffix):
     with path.open(encoding="utf-8") as source:
         record = json.load(source)
     expected_mode = "original" if suffix == "real_original" else suffix.rsplit("_", 1)[1]
+    assert record["selected_dev_epoch"] is not None, path
     assert (record["dataset"], record["seed"], record["train_option"],
             record["selection_metric"]) == (dataset, seed, expected_mode, info.get("selection_metric", "loss"))
     if dataset == "census_kdd":
@@ -262,10 +271,19 @@ def main(train_option="synthetic"):
                              *("" for _ in all_columns)))
 
     target_table = DEST / f"{basename}.md"
+    completed = len({path for paths in record_paths.values() for path in paths.values()})
+    snapshot_path = ROOT / "audit" / ("latest_comparison_mix_snapshot.json" if train_option == "mix"
+                                      else "latest_comparison_snapshot.json")
+    snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
+    checked_at = datetime.fromisoformat(snapshot["checked_at"]).astimezone(ZoneInfo("America/Chicago"))
     table_lines = [
         "# Mix pipeline comparison" if train_option == "mix" else "# Synthetic-data pipeline comparison",
         "",
-        "Classification scores are percentages; News reports unscaled R² (which can be negative) and NMAEσ. "
+        f"Verified source snapshot: {checked_at.strftime('%B %d, %Y, %I:%M %p')} Chicago. "
+        f"This report contains {completed} distinct completed run records from the selected configurations; "
+        "it does not establish completion of the original 816-run matrix or the added Housing study.",
+        "",
+        "Classification scores are percentages; News and Housing report unscaled R² (which can be negative) and NMAEσ. "
         "Adult, Credit, and Census KDD show binary F1 / macro F1; "
         "Covertype and Intrusion use macro F1; MNIST uses accuracy. A dash means no evaluated run is recorded. "
         "Seed 42 is used unless the column says seed 43. Within Adult, Credit, and Census KDD, "
@@ -281,11 +299,15 @@ def main(train_option="synthetic"):
         "and development macro-F1 checkpoint selection, with threshold 0.5. Both loss and checkpoint selection "
         "changed from the earlier evaluation; improvements cannot be attributed to weighting alone. "
         "Pending weighted configurations remain missing rather than using earlier unweighted results.",
-        "News NMAEσ = MAE / σ_y; lower is better. σ_y is the population standard deviation (ddof=0) "
-        "of the same real held-out test targets used to compute MAE. Seed 42 uses σ_y = 9485.506480005333 "
+        "News and Housing NMAEσ = MAE / σ_y; lower is better. σ_y is the population standard deviation (ddof=0) "
+        "of the same real held-out test targets used to compute MAE. News seed 42 uses σ_y = 9485.506480005333 "
         "over 7,929 rows, verified against the prepared test-table hash. "
-        "The paper reports News R², not NMAEσ, so its reference lines appear only in the R² panels.",
-        "News run records save `test_scores.nmae_sigma` alongside `r2` and `mae`, with "
+        "The paper reports News R², not NMAEσ, so its reference lines appear only in the News R² panels. "
+        "No paper reference is supplied for California Housing.",
+        "When a large negative R² expands a paired plot beyond −1, that pair uses a symmetric-log axis "
+        "with a linear region from −0.1 to 0.1. Tick labels and reported R² values remain unscaled; "
+        "the axis keeps the extreme result visible while separating the other scores and paper references.",
+        "News and Housing run records save `test_scores.nmae_sigma` alongside `r2` and `mae`, with "
         "`target_normalization` recording σ_y, split, ddof, row count, and target-table hash. "
         "These saved results supply the report; normalization is not recomputed during plotting.",
         "", r"$$\mathrm{NMAE}_\sigma = \frac{\mathrm{MAE}}{\sigma_y}.$$", "",
@@ -339,13 +361,10 @@ def main(train_option="synthetic"):
         "The CSV alongside this table includes the source run-record path for each score.",
     ])
     if train_option == "mix":
-        completed = len({path for paths in record_paths.values() for path in paths.values()})
         table_lines[2:2] = [
             "Mix training concatenates all real training rows and 100,000 synthetic rows; "
             "the ratio varies by dataset. The original-data row is the same real-only baseline. "
             "Development and test partitions remain real held-out data.", "",
-            f"This report contains {completed} distinct completed run records from the selected "
-            "comparison configurations; it does not establish completion of the full 816-run matrix.", "",
         ]
     target_table.write_text("\n".join(table_lines) + "\n", encoding="utf-8")
 
@@ -373,6 +392,13 @@ def main(train_option="synthetic"):
                     ha="center", va="center", color="#94a3b8", fontsize=13)
             continue
         ax.set_xlim(*limits)
+        compressed_r2 = info["metric"] == "r2" and limits[0] < -1
+        if compressed_r2:
+            ax.set_xscale("symlog", linthresh=0.1)
+            scale = ax.xaxis.get_transform()
+            lower, upper = scale.transform(limits)
+            margin = 0.04 * (upper - lower)
+            ax.set_xlim(scale.inverted().transform((lower - margin, upper + margin)))
         ax.set_ylim(-1.3, len(rows) - 0.5)
         ax.invert_yaxis()
         ax.set_axisbelow(True)
@@ -382,6 +408,7 @@ def main(train_option="synthetic"):
         ax.tick_params(axis="x", colors="#475569")
         binary = info["metric"] == "f1_binary"
         ax.set_xlabel("Binary and macro F1 (%)" if binary else info["metric_label"]
+                      + (" (linear within ±0.1; log beyond)" if compressed_r2 else "")
                       + ("" if info["metric"] in UNSCALED_METRICS else " (%)"),
                       labelpad=8, fontsize=11)
         for name, score in info["paper"].items():
@@ -392,7 +419,7 @@ def main(train_option="synthetic"):
         for y, (label, suffix) in enumerate(rows):
             value = values[label][panel]
             if value is None:
-                ax.text(limits[0] + offset, y, "Not completed", ha="left", va="center",
+                ax.text(0.02, y, "Not completed", transform=ax.get_yaxis_transform(), ha="left", va="center",
                         color="#94a3b8", style="italic", fontsize=9.5)
                 continue
             generator = "tvae" if suffix.startswith("tvae_") else "ctgan"
@@ -406,12 +433,20 @@ def main(train_option="synthetic"):
                 ax.scatter(score, position, s=75 if y == 0 else 50,
                            facecolors="none" if benchmark else color,
                            marker="^" if y == 0 else marker, edgecolor=color, linewidth=1.2, zorder=3)
-                place_left = score > limits[1] - 4 * offset
-                ax.text(score - offset if place_left else score + offset, position,
-                        f"{score:.3f}" if info["metric"] in UNSCALED_METRICS else f"{score:.1f}%", va="center",
-                        ha="right" if place_left else "left", color=color,
-                        fontsize=8 if binary else 9.5,
-                        fontweight="bold" if y == 0 else "normal")
+                if compressed_r2:
+                    fraction = ax.transAxes.inverted().transform(ax.transData.transform((score, position)))[0]
+                    place_left = fraction > 0.90
+                    ax.annotate(f"{score:.3f}", (score, position),
+                                xytext=(-5 if place_left else 5, 0), textcoords="offset points",
+                                va="center", ha="right" if place_left else "left", color=color,
+                                fontsize=9.5, fontweight="bold" if y == 0 else "normal")
+                else:
+                    place_left = score > limits[1] - 4 * offset
+                    ax.text(score - offset if place_left else score + offset, position,
+                            f"{score:.3f}" if info["metric"] in UNSCALED_METRICS else f"{score:.1f}%", va="center",
+                            ha="right" if place_left else "left", color=color,
+                            fontsize=8 if binary else 9.5,
+                            fontweight="bold" if y == 0 else "normal")
         if index % 2 == 0 or all(values[label][list(PANELS)[index - 1]] is None
                                 for label, _ in rows):
             ax.set_yticks(positions, [row[0] for row in rows])
@@ -445,7 +480,7 @@ def main(train_option="synthetic"):
     fig.text(0.047, 0.965, "Each row pairs one dataset: seed 42 left, seed 43 right · empty panels have no completed results",
              ha="left", color="#64748b", fontsize=10)
     fig.text(0.047, 0.065,
-             "Adult/Credit/Census: binary and macro F1 · Covertype/Intrusion: macro F1 · MNIST: accuracy · News: R² and MAE/σ_y. Paper references match the metric.",
+             "Adult/Credit/Census: binary and macro F1 · Covertype/Intrusion: macro F1 · MNIST: accuracy · News/Housing: R² and MAE/σ_y. Paper references match the metric.",
              ha="left", color="#475569", fontsize=9)
     fig.text(0.047, 0.047,
              "Census: class-weighted loss + development macro-F1 selection. Paper CTGAN is labeled 'TGAN'. Adult/Credit/Census seeds share a split.",

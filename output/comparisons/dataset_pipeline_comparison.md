@@ -1,12 +1,15 @@
 # Synthetic-data pipeline comparison
 
-Classification scores are percentages; News reports unscaled R² (which can be negative) and NMAEσ. Adult, Credit, and Census KDD show binary F1 / macro F1; Covertype and Intrusion use macro F1; MNIST uses accuracy. A dash means no evaluated run is recorded. Seed 42 is used unless the column says seed 43. Within Adult, Credit, and Census KDD, the two seeds share the same prepared train, development, and test split; they are model-seed repeats, not independent holdouts.
+Verified source snapshot: October 07, 2026, 11:41 PM Chicago. This report contains 193 distinct completed run records from the selected configurations; it does not establish completion of the original 816-run matrix or the added Housing study.
+
+Classification scores are percentages; News and Housing report unscaled R² (which can be negative) and NMAEσ. Adult, Credit, and Census KDD show binary F1 / macro F1; Covertype and Intrusion use macro F1; MNIST uses accuracy. A dash means no evaluated run is recorded. Seed 42 is used unless the column says seed 43. Within Adult, Credit, and Census KDD, the two seeds share the same prepared train, development, and test split; they are model-seed repeats, not independent holdouts.
 
 Only corrected runs are shown. Missing configurations remain marked with a dash; completed zero scores are displayed as 0.0%.
 MNIST28 and News seed 42 use the separate `corrected_v2_seed42_mnist28_news` namespace. Census KDD uses `census_kdd_weighted_macro_f1_20261005`; remaining datasets use `corrected_v2`. Source paths in the CSV preserve each namespace.
 Census KDD uses class-weighted BCEWithLogitsLoss (positive weight = actual training negatives / positives) and development macro-F1 checkpoint selection, with threshold 0.5. Both loss and checkpoint selection changed from the earlier evaluation; improvements cannot be attributed to weighting alone. Pending weighted configurations remain missing rather than using earlier unweighted results.
-News NMAEσ = MAE / σ_y; lower is better. σ_y is the population standard deviation (ddof=0) of the same real held-out test targets used to compute MAE. Seed 42 uses σ_y = 9485.506480005333 over 7,929 rows, verified against the prepared test-table hash. The paper reports News R², not NMAEσ, so its reference lines appear only in the R² panels.
-News run records save `test_scores.nmae_sigma` alongside `r2` and `mae`, with `target_normalization` recording σ_y, split, ddof, row count, and target-table hash. These saved results supply the report; normalization is not recomputed during plotting.
+News and Housing NMAEσ = MAE / σ_y; lower is better. σ_y is the population standard deviation (ddof=0) of the same real held-out test targets used to compute MAE. News seed 42 uses σ_y = 9485.506480005333 over 7,929 rows, verified against the prepared test-table hash. The paper reports News R², not NMAEσ, so its reference lines appear only in the News R² panels. No paper reference is supplied for California Housing.
+When a large negative R² expands a paired plot beyond −1, that pair uses a symmetric-log axis with a linear region from −0.1 to 0.1. Tick labels and reported R² values remain unscaled; the axis keeps the extreme result visible while separating the other scores and paper references.
+News and Housing run records save `test_scores.nmae_sigma` alongside `r2` and `mae`, with `target_normalization` recording σ_y, split, ddof, row count, and target-table hash. These saved results supply the report; normalization is not recomputed during plotting.
 
 $$\mathrm{NMAE}_\sigma = \frac{\mathrm{MAE}}{\sigma_y}.$$
 
@@ -63,21 +66,21 @@ Macro F1 averages the F1 scores of both classes. Paper references for binary dat
 
 | Configuration | Seed 42 | Seed 43 |
 |---|---:|---:|
-| Original data only | 95.3% | — |
+| Original data only | 95.3% | 95.5% |
 | CTGAN, generated target | 51.4% | 55.8% |
-| TVAE, generated target | 92.9% | — |
+| TVAE, generated target | 92.9% | 92.6% |
 | CTGAN full features + RF | 89.5% | 89.6% |
 | CTGAN full features + XGB | 90.8% | 90.6% |
 | CTGAN full features + DNN | 91.7% | 91.7% |
 | CTGAN X-only features + RF | 88.5% | 88.3% |
 | CTGAN X-only features + XGB | 89.7% | 89.3% |
 | CTGAN X-only features + DNN | 91.2% | 90.3% |
-| TVAE full features + RF | 92.8% | — |
-| TVAE full features + XGB | 93.9% | — |
-| TVAE full features + DNN | 93.9% | — |
-| TVAE X-only features + RF | 92.7% | — |
-| TVAE X-only features + XGB | 93.8% | — |
-| TVAE X-only features + DNN | 93.7% | — |
+| TVAE full features + RF | 92.8% | 92.5% |
+| TVAE full features + XGB | 93.9% | 93.8% |
+| TVAE full features + DNN | 93.9% | 93.7% |
+| TVAE X-only features + RF | 92.7% | 92.4% |
+| TVAE X-only features + XGB | 93.8% | 93.7% |
+| TVAE X-only features + DNN | 93.7% | 93.3% |
 | Paper CTGAN (reference) | 39.4% | 39.4% |
 | Paper TVAE (reference) | 79.3% | 79.3% |
 | Paper Real (reference) | 88.6% | 88.6% |
@@ -86,7 +89,7 @@ Macro F1 averages the F1 scores of both classes. Paper references for binary dat
 
 | Configuration | Seed 42 | Seed 43 |
 |---|---:|---:|
-| Original data only | 97.9% | — |
+| Original data only | 97.9% | 97.9% |
 | CTGAN, generated target | 51.5% | — |
 | TVAE, generated target | 94.3% | — |
 | CTGAN full features + RF | 85.9% | — |
@@ -132,21 +135,21 @@ Macro F1 averages the F1 scores of both classes. Paper references for binary dat
 
 | Configuration | Seed 42 (binary / macro F1) | Seed 43 (binary / macro F1) |
 |---|---:|---:|
-| Original data only | 55.6% / 75.9% | — |
-| CTGAN, generated target | 43.5% / 68.2% | — |
-| TVAE, generated target | 47.0% / 71.1% | — |
-| CTGAN full features + RF | 52.1% / 74.3% | — |
-| CTGAN full features + XGB | 55.0% / 75.9% | — |
-| CTGAN full features + DNN | 54.2% / 75.6% | — |
-| CTGAN X-only features + RF | 53.0% / 74.8% | — |
-| CTGAN X-only features + XGB | 53.6% / 75.1% | — |
-| CTGAN X-only features + DNN | 54.2% / 75.7% | — |
-| TVAE full features + RF | — | — |
-| TVAE full features + XGB | — | — |
-| TVAE full features + DNN | — | — |
-| TVAE X-only features + RF | 48.4% / 72.0% | — |
-| TVAE X-only features + XGB | — | — |
-| TVAE X-only features + DNN | — | — |
+| Original data only | 55.6% / 75.9% | 54.9% / 75.4% |
+| CTGAN, generated target | 43.5% / 68.2% | 51.4% / 73.9% |
+| TVAE, generated target | 47.0% / 71.1% | 47.0% / 71.3% |
+| CTGAN full features + RF | 52.1% / 74.3% | 49.7% / 73.2% |
+| CTGAN full features + XGB | 55.0% / 75.9% | 54.1% / 75.2% |
+| CTGAN full features + DNN | 54.2% / 75.6% | 53.9% / 75.4% |
+| CTGAN X-only features + RF | 53.0% / 74.8% | 52.5% / 74.5% |
+| CTGAN X-only features + XGB | 53.6% / 75.1% | 54.9% / 75.8% |
+| CTGAN X-only features + DNN | 54.2% / 75.7% | 54.6% / 75.7% |
+| TVAE full features + RF | 49.1% / 72.4% | 50.2% / 73.2% |
+| TVAE full features + XGB | 50.9% / 73.7% | 53.2% / 74.9% |
+| TVAE full features + DNN | 53.3% / 75.1% | 52.7% / 74.8% |
+| TVAE X-only features + RF | 48.4% / 72.0% | 48.7% / 72.4% |
+| TVAE X-only features + XGB | 49.7% / 73.0% | 50.2% / 73.2% |
+| TVAE X-only features + DNN | 52.6% / 74.6% | 53.1% / 74.9% |
 | Paper CTGAN (reference) | 39.1% / — | 39.1% / — |
 | Paper TVAE (reference) | 37.7% / — | 37.7% / — |
 | Paper Real (reference) | 49.4% / — | 49.4% / — |
@@ -178,18 +181,18 @@ Macro F1 averages the F1 scores of both classes. Paper references for binary dat
 
 | Configuration | Seed 42 | Seed 43 |
 |---|---:|---:|
-| Original data only | -0.246 | — |
-| CTGAN, generated target | 0.017 | — |
-| TVAE, generated target | -0.076 | — |
-| CTGAN full features + RF | -0.010 | — |
-| CTGAN full features + XGB | -0.008 | — |
-| CTGAN full features + DNN | 0.028 | — |
+| Original data only | -0.246 | -0.002 |
+| CTGAN, generated target | 0.017 | -93.089 |
+| TVAE, generated target | -0.076 | -0.028 |
+| CTGAN full features + RF | -0.010 | -0.008 |
+| CTGAN full features + XGB | -0.008 | -0.045 |
+| CTGAN full features + DNN | 0.028 | 0.027 |
 | CTGAN X-only features + RF | -0.024 | — |
 | CTGAN X-only features + XGB | -0.025 | — |
 | CTGAN X-only features + DNN | 0.029 | — |
-| TVAE full features + RF | 0.002 | — |
-| TVAE full features + XGB | -0.019 | — |
-| TVAE full features + DNN | 0.031 | — |
+| TVAE full features + RF | 0.002 | -0.005 |
+| TVAE full features + XGB | -0.019 | -0.025 |
+| TVAE full features + DNN | 0.031 | 0.030 |
 | TVAE X-only features + RF | 0.006 | — |
 | TVAE X-only features + XGB | -0.049 | — |
 | TVAE X-only features + DNN | 0.024 | — |
@@ -197,25 +200,71 @@ Macro F1 averages the F1 scores of both classes. Paper references for binary dat
 | Paper TVAE (reference) | -0.200 | -0.200 |
 | Paper Real (reference) | 0.140 | 0.140 |
 
+## Housing R²
+
+| Configuration | Seed 42 | Seed 43 |
+|---|---:|---:|
+| Original data only | 0.525 | 0.500 |
+| CTGAN, generated target | — | — |
+| TVAE, generated target | — | — |
+| CTGAN full features + RF | — | — |
+| CTGAN full features + XGB | — | — |
+| CTGAN full features + DNN | — | — |
+| CTGAN X-only features + RF | — | — |
+| CTGAN X-only features + XGB | — | — |
+| CTGAN X-only features + DNN | — | — |
+| TVAE full features + RF | — | — |
+| TVAE full features + XGB | — | — |
+| TVAE full features + DNN | — | — |
+| TVAE X-only features + RF | — | — |
+| TVAE X-only features + XGB | — | — |
+| TVAE X-only features + DNN | — | — |
+| Paper CTGAN (reference) | — | — |
+| Paper TVAE (reference) | — | — |
+| Paper Real (reference) | — | — |
+
 ## News NMAEσ
 
 | Configuration | Seed 42 | Seed 43 |
 |---|---:|---:|
-| Original data only | 0.320 | — |
-| CTGAN, generated target | 0.275 | — |
-| TVAE, generated target | 0.309 | — |
-| CTGAN full features + RF | 0.294 | — |
-| CTGAN full features + XGB | 0.282 | — |
-| CTGAN full features + DNN | 0.324 | — |
+| Original data only | 0.320 | 0.317 |
+| CTGAN, generated target | 0.275 | 0.407 |
+| TVAE, generated target | 0.309 | 0.261 |
+| CTGAN full features + RF | 0.294 | 0.304 |
+| CTGAN full features + XGB | 0.282 | 0.288 |
+| CTGAN full features + DNN | 0.324 | 0.298 |
 | CTGAN X-only features + RF | 0.306 | — |
 | CTGAN X-only features + XGB | 0.320 | — |
 | CTGAN X-only features + DNN | 0.332 | — |
-| TVAE full features + RF | 0.298 | — |
-| TVAE full features + XGB | 0.306 | — |
-| TVAE full features + DNN | 0.323 | — |
+| TVAE full features + RF | 0.298 | 0.299 |
+| TVAE full features + XGB | 0.306 | 0.337 |
+| TVAE full features + DNN | 0.323 | 0.308 |
 | TVAE X-only features + RF | 0.308 | — |
 | TVAE X-only features + XGB | 0.308 | — |
 | TVAE X-only features + DNN | 0.343 | — |
+| Paper CTGAN (reference) | — | — |
+| Paper TVAE (reference) | — | — |
+| Paper Real (reference) | — | — |
+
+## Housing NMAEσ
+
+| Configuration | Seed 42 | Seed 43 |
+|---|---:|---:|
+| Original data only | 0.540 | 0.561 |
+| CTGAN, generated target | — | — |
+| TVAE, generated target | — | — |
+| CTGAN full features + RF | — | — |
+| CTGAN full features + XGB | — | — |
+| CTGAN full features + DNN | — | — |
+| CTGAN X-only features + RF | — | — |
+| CTGAN X-only features + XGB | — | — |
+| CTGAN X-only features + DNN | — | — |
+| TVAE full features + RF | — | — |
+| TVAE full features + XGB | — | — |
+| TVAE full features + DNN | — | — |
+| TVAE X-only features + RF | — | — |
+| TVAE X-only features + XGB | — | — |
+| TVAE X-only features + DNN | — | — |
 | Paper CTGAN (reference) | — | — |
 | Paper TVAE (reference) | — | — |
 | Paper Real (reference) | — | — |

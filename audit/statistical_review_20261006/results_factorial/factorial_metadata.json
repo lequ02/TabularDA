@@ -1,0 +1,244 @@
+{
+  "snapshot_sha256": "387162270373aeb557892c2fcfcb351d6067dd1cc67aa373c2f8b27d1fb5beae",
+  "snapshot_chicago": "2026-10-06T12:14:41.412972-05:00",
+  "analysis": "Type III mixed between/within ANOVA using orthogonal nested construction contrasts",
+  "between_factor": "dataset",
+  "repeat_unit": "dataset/experiment_seed",
+  "within_factors": [
+    "generator",
+    "approach",
+    "labeler within hybrid",
+    "x_inclusion within hybrid",
+    "training_mode (real only)"
+  ],
+  "x_inclusion_definition": "Full (X,Y) versus X-only generator fitting; X is present in both. User-confirmed target-inclusion question.",
+  "approaches": "One generated-target baseline versus twelve hybrids per generator/mode; six labelers times two sources.",
+  "assumptions": "Independent experiment RNG repeats conditional on fixed datasets/holdouts; normal errors and common repeat covariance across dataset groups. GG adjusts sphericity. Real residual seed df is only 2. No test-row sampling uncertainty is estimated.",
+  "scope": "Conditional on the tested datasets. Dataset-mean paired tests separately assess heterogeneity across tasks; seeds do not create additional datasets.",
+  "models": [
+    {
+      "domain": "real",
+      "metric": "f1_macro",
+      "datasets": [
+        "adult",
+        "covertype",
+        "mnist28"
+      ],
+      "units": [
+        {
+          "dataset": "adult",
+          "seed": 42,
+          "rows": 52
+        },
+        {
+          "dataset": "adult",
+          "seed": 43,
+          "rows": 52
+        },
+        {
+          "dataset": "covertype",
+          "seed": 42,
+          "rows": 52
+        },
+        {
+          "dataset": "covertype",
+          "seed": 43,
+          "rows": 52
+        },
+        {
+          "dataset": "mnist28",
+          "seed": 42,
+          "rows": 52
+        }
+      ],
+      "rows": 260,
+      "methods_per_generator": 13,
+      "generator_levels": [
+        "ctgan",
+        "tvae"
+      ],
+      "training_modes": [
+        "synthetic",
+        "mix"
+      ],
+      "residual_seed_df": 2,
+      "anova_rows": 39
+    },
+    {
+      "domain": "simulated",
+      "metric": "accuracy",
+      "datasets": [
+        "alarm",
+        "asia",
+        "child",
+        "gaussian",
+        "grid",
+        "insurance",
+        "ring"
+      ],
+      "units": [
+        {
+          "dataset": "alarm",
+          "seed": 42,
+          "rows": 26
+        },
+        {
+          "dataset": "alarm",
+          "seed": 43,
+          "rows": 26
+        },
+        {
+          "dataset": "asia",
+          "seed": 42,
+          "rows": 26
+        },
+        {
+          "dataset": "asia",
+          "seed": 43,
+          "rows": 26
+        },
+        {
+          "dataset": "child",
+          "seed": 42,
+          "rows": 26
+        },
+        {
+          "dataset": "child",
+          "seed": 43,
+          "rows": 26
+        },
+        {
+          "dataset": "gaussian",
+          "seed": 42,
+          "rows": 26
+        },
+        {
+          "dataset": "gaussian",
+          "seed": 43,
+          "rows": 26
+        },
+        {
+          "dataset": "grid",
+          "seed": 42,
+          "rows": 26
+        },
+        {
+          "dataset": "grid",
+          "seed": 43,
+          "rows": 26
+        },
+        {
+          "dataset": "insurance",
+          "seed": 42,
+          "rows": 26
+        },
+        {
+          "dataset": "insurance",
+          "seed": 43,
+          "rows": 26
+        },
+        {
+          "dataset": "ring",
+          "seed": 42,
+          "rows": 26
+        },
+        {
+          "dataset": "ring",
+          "seed": 43,
+          "rows": 26
+        }
+      ],
+      "rows": 364,
+      "methods_per_generator": 13,
+      "generator_levels": [
+        "ctgan",
+        "tvae"
+      ],
+      "training_modes": [
+        "synthetic"
+      ],
+      "residual_seed_df": 7,
+      "anova_rows": 19
+    },
+    {
+      "domain": "real_with_credit",
+      "metric": "f1_macro",
+      "datasets": [
+        "adult",
+        "covertype",
+        "credit",
+        "mnist28"
+      ],
+      "units": [
+        {
+          "dataset": "adult",
+          "seed": 42,
+          "rows": 52
+        },
+        {
+          "dataset": "adult",
+          "seed": 43,
+          "rows": 52
+        },
+        {
+          "dataset": "covertype",
+          "seed": 42,
+          "rows": 52
+        },
+        {
+          "dataset": "covertype",
+          "seed": 43,
+          "rows": 52
+        },
+        {
+          "dataset": "credit",
+          "seed": 42,
+          "rows": 52
+        },
+        {
+          "dataset": "credit",
+          "seed": 43,
+          "rows": 52
+        },
+        {
+          "dataset": "mnist28",
+          "seed": 42,
+          "rows": 52
+        }
+      ],
+      "rows": 364,
+      "methods_per_generator": 13,
+      "generator_levels": [
+        "ctgan",
+        "tvae"
+      ],
+      "training_modes": [
+        "synthetic",
+        "mix"
+      ],
+      "residual_seed_df": 3,
+      "anova_rows": 39,
+      "sensitivity": true
+    }
+  ],
+  "packages": {
+    "numpy": "1.26.4",
+    "pandas": "2.2.3",
+    "scipy": "1.15.3",
+    "statsmodels": "0.15.0"
+  },
+  "table_sha256": {
+    "anova_real_credit_sensitivity.csv": "d3de1092c774032c491d04edaece09077a5bb4ecbfc570850ef035cf7f667b74",
+    "generator_labeler_dataset_scores.csv": "02146abdcfc98694fd2ed81b8965961bbb9b6c2f9a5539a7883b1c0547bbeefd",
+    "matched_group_contrasts.csv": "8e3d8df747c4b8a40e4e24bb4e6f4a909dcc3aeb78338763723e498c8f3d493b",
+    "anova_coverage.csv": "c26e6bf756b63f470b1b0e37d4ce702a60a02ede3c5ccb97bb93170a40ea25e5",
+    "generator_labeler_comparisons.csv": "f965fa11142a8e628b1d3d47e76cbee4d2b6767eec28f25cc273b3ff2870ff93",
+    "score_inventory_simulated.csv": "c99284896e997de34d758c6351576c683db05159ab85b74442029a7b84b22dc0",
+    "independent_F_checks.csv": "6d8de3ef583e4d5c4aeefbdea6823e781d91dc4b12ae6b562254d4c428fbdd16",
+    "anova_error_strata.csv": "95bd3f7cb521bc60a1d07f98ecd1979d0fa2cd8dc99c7c133b789dabd589889e",
+    "anova_simulated.csv": "0729873eb02a0ea8925d0c0dd7cb516d6b0a50659c4fb48c19f4ddd4df84afd6",
+    "score_inventory_real.csv": "8f437a5eb3ebf6738773b0c2211d3c268525c653af8de9f9515ac9efb8cc37c1",
+    "anova_real.csv": "e798077b608cd033ccf00b2eb582b99955fe3d5071a3ff0a3e630f0655258f60"
+  },
+  "validation": "Orthogonal bases and exact score reconstruction; independent OLS F checks for every one-dimensional within contrast and dataset interaction; no duplicate records or fabricated baseline cells."
+}
