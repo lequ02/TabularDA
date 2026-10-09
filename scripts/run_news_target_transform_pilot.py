@@ -284,12 +284,23 @@ def worker(output, transform):
                              'exit_code': result.returncode, 'finished_at_chicago': timestamp()})
                 save_json(manifest_path, manifest)
                 print(task['status'].upper(), str(log_path), flush=True)
+    summarize(output, transform)
+
+
+def summarize(output, transform):
+    """Finish reporting from completed records without launching training."""
+    manifest_path = output / 'pilot_status.json'
+    manifest = json.loads(manifest_path.read_text())
+    if (manifest['planned_runs'] != 3 or len(manifest['tasks']) != 3 or
+            any(task['status'] != 'complete' for task in manifest['tasks'])):
+        raise ValueError('Reporting requires the three completed pilot tasks')
     # Aggregate each transformation separately to avoid duplicate configuration keys.
     for transform in (transform,):
         run_root = output / transform
         if list(run_root.rglob('*.run.json')):
             subprocess.run([sys.executable, str(ROOT / 'scripts/build_corrected_results.py'),
                             '--runs', str(run_root), '--out', str(run_root / 'results'),
+                            '--matrix', 'news-transform-pilot',
                             '--generators', 'ctgan', 'tvae'], cwd=ROOT, check=True)
     records = [json.loads(path.read_text()) for path in output.rglob('*.run.json')]
     with (output / 'pilot_comparison.csv').open('w', newline='') as handle:
@@ -302,7 +313,9 @@ def worker(output, transform):
                              'test_r2': record['test_scores']['r2'], 'test_mae': record['test_scores']['mae'],
                              'test_nmae_sigma': record['test_scores']['nmae_sigma']})
     manifest.update({'status': 'completed_with_failures' if any(t['status'] == 'failed' for t in manifest['tasks']) else 'complete',
-                     'completed_records': len(records), 'finished_at_chicago': timestamp()})
+                     'completed_records': len(records),
+                     'training_finished_at_chicago': max(t['finished_at_chicago'] for t in manifest['tasks']),
+                     'finished_at_chicago': timestamp()})
     save_json(manifest_path, manifest)
     print(json.dumps(manifest), flush=True)
     if manifest['status'] != 'complete':
@@ -313,7 +326,7 @@ if __name__ == '__main__':
     if os.name == 'nt':
         raise SystemExit('This pilot must run in the remote experiment environment')
     parser = argparse.ArgumentParser()
-    parser.add_argument('action', choices=('preflight', 'worker', 'run'))
+    parser.add_argument('action', choices=('preflight', 'worker', 'run', 'summarize'))
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--seed', type=int, choices=(43,))
     parser.add_argument('--table', choices=('real', 'ctgan', 'tvae'))
@@ -331,5 +344,9 @@ if __name__ == '__main__':
         if args.transform not in ('log', 'yeo_johnson'):
             raise ValueError('Choose one target transform for the three-run pilot')
         worker(args.output, args.transform)
+    elif args.action == 'summarize':
+        if args.transform not in ('log', 'yeo_johnson'):
+            raise ValueError('Choose the completed pilot target transform')
+        summarize(args.output, args.transform)
     else:
         run_one(args)

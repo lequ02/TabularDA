@@ -11,6 +11,10 @@ from run_corrected_matrix import DATASETS, SEEDS, methods_for
 
 def expected_runs(matrix='full', generators=('ctgan', 'tvae')):
     expected = set()
+    if matrix == 'news-transform-pilot':
+        return {('news', 'original', None, 43),
+                ('news', 'synthetic', 'ctgan', 43),
+                ('news', 'synthetic', 'tvae', 43)}
     if matrix == 'pilot':
         from run_corrected_pilot import DATASETS as pilot_datasets, METHODS, SEED
         for dataset in pilot_datasets:
@@ -111,7 +115,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--runs", type=Path, default=Path("output/corrected_v2"))
     parser.add_argument("--out", type=Path, default=Path("output/corrected_v2/results"))
-    parser.add_argument("--matrix", choices=('full', 'pilot'), default='full')
+    parser.add_argument("--matrix", choices=('full', 'pilot', 'news-transform-pilot'), default='full')
     parser.add_argument('--generators', nargs='+', choices=('ctgan', 'tvae', 'tabddpm'),
                         default=('ctgan', 'tvae'))
     arguments = parser.parse_args()
