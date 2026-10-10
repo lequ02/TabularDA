@@ -1,0 +1,1948 @@
+{
+  "checked_at_chicago": "2026-10-08T17:13:08.751378-05:00",
+  "versions": {
+    "torch": "2.5.1",
+    "numpy": "1.26.4",
+    "pandas": "2.2.3",
+    "xgboost": "2.1.4"
+  },
+  "protocol": "Saved-model replay only; no training, clipping, tuning, or experiment changes",
+  "seeds": {
+    "42": {
+      "namespace": "corrected_v2_seed42_mnist28_news",
+      "real_target_stats": {
+        "train": {
+          "rows": 28543,
+          "min": 4.0,
+          "max": 843300.0,
+          "mean": 3399.202466454122,
+          "negative_count": 0
+        },
+        "dev": {
+          "rows": 3172,
+          "min": 49.0,
+          "max": 233400.0,
+          "mean": 3379.27711223203,
+          "negative_count": 0
+        }
+      },
+      "train_target_mean_float32": 3399.20263671875,
+      "train_target_std_float32": 12450.6923828125
+    },
+    "43": {
+      "namespace": "corrected_v2",
+      "real_target_stats": {
+        "train": {
+          "rows": 28543,
+          "min": 4.0,
+          "max": 843300.0,
+          "mean": 3399.202466454122,
+          "negative_count": 0
+        },
+        "dev": {
+          "rows": 3172,
+          "min": 49.0,
+          "max": 233400.0,
+          "mean": 3379.27711223203,
+          "negative_count": 0
+        }
+      },
+      "train_target_mean_float32": 3399.20263671875,
+      "train_target_std_float32": 12450.6923828125
+    }
+  },
+  "labelers": [
+    {
+      "seed": 42,
+      "generator": "ctgan",
+      "source": "full",
+      "labeler": "dnn",
+      "table": "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2_seed42_mnist28_news/news/seed_42/news_seed42_ctgan_full_dnn_100k.csv",
+      "table_sha256": "5486c67ddb4395646ea5c9b27852bdd95a108bcd3e994471ba4a37e60d16230c",
+      "predictor_sha256": "14ac34ea8170527865c9fcf8bcb7d3ef19ac084f58b45e07fac555ee7bbd2a32",
+      "saved_synthetic_targets": {
+        "rows": 100000,
+        "min": -2109.3901,
+        "max": 13477.99,
+        "mean": 3337.353765977522,
+        "negative_count": 224
+      },
+      "state_dict_sha256": "b17f6f9fa875cfa77c5ff636d6323e1f807fcc0e610a5dea9a02d17a3b1a52ff",
+      "scaling": {
+        "mu": 3399.20263671875,
+        "sigma": 12450.6923828125,
+        "zero_output_boundary": -0.27301314113351344,
+        "normalized_training_target_range": [
+          -0.27269187569618225,
+          67.45816040039062
+        ],
+        "train_target_roundtrip_max_abs_error": 0.015625,
+        "feature_mean_and_scale_exact_match_real_train": true,
+        "target_mean_and_scale_exact_match_real_train": true
+      },
+      "worst_row": {
+        "row_index": 6795,
+        "saved_shares": -2109.3901,
+        "network_output_standardized": -0.4424326717853546,
+        "positive_output_weight_contributions": 0.11530647426843643,
+        "negative_output_weight_contributions": -0.5691385269165039,
+        "output_bias": 0.011399430222809315,
+        "manual_dot_product": -0.4424326150328852,
+        "inverse_float64": -2109.3904597865476,
+        "inverse_using_numpy_float32": -2109.390625,
+        "hidden_activation_ranges": [
+          [
+            0.0,
+            2.9335827827453613
+          ],
+          [
+            0.0,
+            1.075170874595642
+          ]
+        ],
+        "final_weight_range": [
+          -0.11502750217914581,
+          0.1289587765932083
+        ],
+        "below_lowest_training_target_in_standardized_units": true,
+        "top_negative_contributions": [
+          {
+            "unit": 27,
+            "activation": 1.075170874595642,
+            "weight": -0.11502750217914581,
+            "product": -0.12367422133684158
+          },
+          {
+            "unit": 10,
+            "activation": 0.8945624232292175,
+            "weight": -0.10894104093313217,
+            "product": -0.09745456278324127
+          },
+          {
+            "unit": 26,
+            "activation": 0.9523671269416809,
+            "weight": -0.10158787667751312,
+            "product": -0.0967489555478096
+          },
+          {
+            "unit": 60,
+            "activation": 1.0563384294509888,
+            "weight": -0.06890647113323212,
+            "product": -0.0727885514497757
+          },
+          {
+            "unit": 8,
+            "activation": 0.33680814504623413,
+            "weight": -0.10810615122318268,
+            "product": -0.03641103208065033
+          }
+        ],
+        "features_outside_train_ranges": []
+      },
+      "real_predictions": {
+        "train": {
+          "rows": 28543,
+          "min": -94224.0078125,
+          "max": 32449.056640625,
+          "mean": 3475.5751953125,
+          "negative_count": 16,
+          "worst_row": {
+            "source_id": 31037,
+            "actual_shares": 5900.0,
+            "prediction_shares": -94224.0078125,
+            "network_output": -7.840785980224609
+          }
+        },
+        "dev": {
+          "rows": 3172,
+          "min": 15.695068359375,
+          "max": 21809.419921875,
+          "mean": 3446.922119140625,
+          "negative_count": 0
+        }
+      },
+      "dev_report": {
+        "dev_r2": 0.02361893653869629,
+        "selected_epoch": 2,
+        "epochs_run": 32,
+        "quality_gate_passed": true
+      },
+      "replay_synthetic_targets": {
+        "rows": 100000,
+        "min": -2109.390625,
+        "max": 13477.98828125,
+        "mean": 3337.35400390625,
+        "negative_count": 224
+      },
+      "replay_max_abs_difference": 0.0024374999993597157,
+      "replay_mean_abs_difference": 0.00020155080342044217,
+      "negative_rows_with_all_features_within_real_train_ranges": 224,
+      "negative_rows_outside_at_least_one_real_train_feature_range": 0,
+      "feature_order_verified": true
+    },
+    {
+      "seed": 42,
+      "generator": "ctgan",
+      "source": "full",
+      "labeler": "xgb",
+      "table": "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2_seed42_mnist28_news/news/seed_42/news_seed42_ctgan_full_xgb_100k.csv",
+      "table_sha256": "22bcbdbde994f42b2376f200addf9543ee9d77e2f384bc278cc596fbd8cf0efe",
+      "predictor_sha256": "bcd4f1613f061bc9d5c4700946df1f3b5e12256e11088b1072d3af4215f6550d",
+      "saved_synthetic_targets": {
+        "rows": 100000,
+        "min": -6649.272,
+        "max": 306073.16,
+        "mean": 7576.788974237905,
+        "negative_count": 2039
+      },
+      "objective": "reg:squarederror",
+      "no_target_scaler_in_artifact": true,
+      "artifact_fields": [
+        "estimator",
+        "feature_columns",
+        "is_classification",
+        "label_encoder",
+        "sanitized_feature_columns"
+      ],
+      "booster_sha256": "a8152ae9dda579ec61449bd138f9404830dfa638918c25e7ce1fc68bebd1af6d",
+      "worst_row": {
+        "row_index": 85478,
+        "saved_shares": -6649.272,
+        "predict_shares": -6649.27197265625,
+        "raw_margin": -6649.27197265625,
+        "base_score": 3399.2024,
+        "sum_negative_tree_contributions": -14921.834896002998,
+        "sum_positive_tree_contributions": 4873.358320003199,
+        "manual_tree_sum": -6649.274175999799,
+        "tree_count": 100,
+        "first_negative_boosting_round": 23,
+        "top_negative_tree_contributions": [
+          {
+            "tree": 22,
+            "leaf_node": 90,
+            "contribution": -1554.76477
+          },
+          {
+            "tree": 26,
+            "leaf_node": 85,
+            "contribution": -1415.33203
+          },
+          {
+            "tree": 41,
+            "leaf_node": 94,
+            "contribution": -1365.54382
+          },
+          {
+            "tree": 23,
+            "leaf_node": 54,
+            "contribution": -1294.54675
+          },
+          {
+            "tree": 8,
+            "leaf_node": 77,
+            "contribution": -1184.6582
+          }
+        ],
+        "features_outside_train_ranges": []
+      },
+      "real_predictions": {
+        "train": {
+          "rows": 28543,
+          "min": -3878.55712890625,
+          "max": 793132.1875,
+          "mean": 3394.371826171875,
+          "negative_count": 264,
+          "worst_row": {
+            "source_id": 952,
+            "actual_shares": 560.0,
+            "prediction_shares": -3878.55712890625
+          }
+        },
+        "dev": {
+          "rows": 3172,
+          "min": -2312.14501953125,
+          "max": 245660.28125,
+          "mean": 3577.870361328125,
+          "negative_count": 48,
+          "worst_row": {
+            "source_id": 6638,
+            "actual_shares": 15400.0,
+            "prediction_shares": -2312.14501953125
+          }
+        }
+      },
+      "replay_synthetic_targets": {
+        "rows": 100000,
+        "min": -6649.27197265625,
+        "max": 306073.15625,
+        "mean": 7576.7890625,
+        "negative_count": 2039
+      },
+      "replay_max_abs_difference": 0.006250000005820766,
+      "replay_mean_abs_difference": 0.00011459760618702777,
+      "negative_rows_with_all_features_within_real_train_ranges": 2039,
+      "negative_rows_outside_at_least_one_real_train_feature_range": 0,
+      "feature_order_verified": true
+    },
+    {
+      "seed": 42,
+      "generator": "ctgan",
+      "source": "xonly",
+      "labeler": "dnn",
+      "table": "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2_seed42_mnist28_news/news/seed_42/news_seed42_ctgan_xonly_dnn_100k.csv",
+      "table_sha256": "6491f471acce8c1ad88e265beb43d33a0c7de7ebea708ff55bb6c22617f9fa4d",
+      "predictor_sha256": "08e9b99a901df5acf77bd9be12289bf4d75df1b240044b23f1a01b8c4a212ebb",
+      "saved_synthetic_targets": {
+        "rows": 100000,
+        "min": -1195.5103,
+        "max": 13021.992,
+        "mean": 3563.5471579341,
+        "negative_count": 22
+      },
+      "state_dict_sha256": "a46592dcbcdaf5f05acd3141e57693182678ec04f3f74149182c44ce70740193",
+      "scaling": {
+        "mu": 3399.20263671875,
+        "sigma": 12450.6923828125,
+        "zero_output_boundary": -0.27301314113351344,
+        "normalized_training_target_range": [
+          -0.27269187569618225,
+          67.45816040039062
+        ],
+        "train_target_roundtrip_max_abs_error": 0.015625,
+        "feature_mean_and_scale_exact_match_real_train": true,
+        "target_mean_and_scale_exact_match_real_train": true
+      },
+      "worst_row": {
+        "row_index": 22440,
+        "saved_shares": -1195.5103,
+        "network_output_standardized": -0.36903277039527893,
+        "positive_output_weight_contributions": 0.015817366540431976,
+        "negative_output_weight_contributions": -0.39095020294189453,
+        "output_bias": 0.006100088823586702,
+        "manual_dot_product": -0.36903274460928515,
+        "inverse_float64": -1195.5108666499436,
+        "inverse_using_numpy_float32": -1195.5107421875,
+        "hidden_activation_ranges": [
+          [
+            0.0,
+            1.599151849746704
+          ],
+          [
+            0.0,
+            0.6921955347061157
+          ]
+        ],
+        "final_weight_range": [
+          -0.12575066089630127,
+          0.1308014690876007
+        ],
+        "below_lowest_training_target_in_standardized_units": true,
+        "top_negative_contributions": [
+          {
+            "unit": 19,
+            "activation": 0.5088484287261963,
+            "weight": -0.12575066089630127,
+            "product": -0.06398802250623703
+          },
+          {
+            "unit": 43,
+            "activation": 0.6296663284301758,
+            "weight": -0.07258891314268112,
+            "product": -0.045706793665885925
+          },
+          {
+            "unit": 62,
+            "activation": 0.6591404676437378,
+            "weight": -0.06387783586978912,
+            "product": -0.04210446774959564
+          },
+          {
+            "unit": 28,
+            "activation": 0.41806259751319885,
+            "weight": -0.09982676059007645,
+            "product": -0.04173383489251137
+          },
+          {
+            "unit": 50,
+            "activation": 0.5334002375602722,
+            "weight": -0.06757528334856033,
+            "product": -0.03604467213153839
+          }
+        ],
+        "features_outside_train_ranges": []
+      },
+      "real_predictions": {
+        "train": {
+          "rows": 28543,
+          "min": -20842.32421875,
+          "max": 33405.76171875,
+          "mean": 3577.654541015625,
+          "negative_count": 11,
+          "worst_row": {
+            "source_id": 31037,
+            "actual_shares": 5900.0,
+            "prediction_shares": -20842.32421875,
+            "network_output": -1.9470022916793823
+          }
+        },
+        "dev": {
+          "rows": 3172,
+          "min": -438.829833984375,
+          "max": 24653.013671875,
+          "mean": 3543.735595703125,
+          "negative_count": 2,
+          "worst_row": {
+            "source_id": 39,
+            "actual_shares": 2100.0,
+            "prediction_shares": -438.829833984375,
+            "network_output": -0.3082585632801056
+          }
+        }
+      },
+      "dev_report": {
+        "dev_r2": 0.021449029445648193,
+        "selected_epoch": 2,
+        "epochs_run": 32,
+        "quality_gate_passed": true
+      },
+      "replay_synthetic_targets": {
+        "rows": 100000,
+        "min": -1195.51025390625,
+        "max": 13021.9921875,
+        "mean": 3563.546875,
+        "negative_count": 22
+      },
+      "replay_max_abs_difference": 0.0024218750004365575,
+      "replay_mean_abs_difference": 0.00019668257515748945,
+      "negative_rows_with_all_features_within_real_train_ranges": 22,
+      "negative_rows_outside_at_least_one_real_train_feature_range": 0,
+      "feature_order_verified": true
+    },
+    {
+      "seed": 42,
+      "generator": "ctgan",
+      "source": "xonly",
+      "labeler": "xgb",
+      "table": "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2_seed42_mnist28_news/news/seed_42/news_seed42_ctgan_xonly_xgb_100k.csv",
+      "table_sha256": "63729118ed65eecfdda68314ecfc6b3a9b110605d472a2e5dfe48a33f52ccfa6",
+      "predictor_sha256": "845ca5d5b4e35562d6fd9424d49bcff5e534c253b34705066cb341be18306a75",
+      "saved_synthetic_targets": {
+        "rows": 100000,
+        "min": -7475.614,
+        "max": 275186.75,
+        "mean": 8340.333004191843,
+        "negative_count": 1012
+      },
+      "objective": "reg:squarederror",
+      "no_target_scaler_in_artifact": true,
+      "artifact_fields": [
+        "estimator",
+        "feature_columns",
+        "is_classification",
+        "label_encoder",
+        "sanitized_feature_columns"
+      ],
+      "booster_sha256": "c08f9683cbe7672dffe89bf84d51531b3f381a32f5ae12fd53f9c61525974d36",
+      "worst_row": {
+        "row_index": 97140,
+        "saved_shares": -7475.614,
+        "predict_shares": -7475.61376953125,
+        "raw_margin": -7475.61376953125,
+        "base_score": 3399.2024,
+        "sum_negative_tree_contributions": -19799.37262506,
+        "sum_positive_tree_contributions": 8924.5546551277,
+        "manual_tree_sum": -7475.615569932301,
+        "tree_count": 100,
+        "first_negative_boosting_round": 45,
+        "top_negative_tree_contributions": [
+          {
+            "tree": 63,
+            "leaf_node": 30,
+            "contribution": -2267.15942
+          },
+          {
+            "tree": 74,
+            "leaf_node": 80,
+            "contribution": -1657.01599
+          },
+          {
+            "tree": 24,
+            "leaf_node": 96,
+            "contribution": -1436.02393
+          },
+          {
+            "tree": 26,
+            "leaf_node": 85,
+            "contribution": -1415.33203
+          },
+          {
+            "tree": 41,
+            "leaf_node": 92,
+            "contribution": -1365.54382
+          }
+        ],
+        "features_outside_train_ranges": []
+      },
+      "real_predictions": {
+        "train": {
+          "rows": 28543,
+          "min": -3878.55712890625,
+          "max": 793132.1875,
+          "mean": 3394.371826171875,
+          "negative_count": 264,
+          "worst_row": {
+            "source_id": 952,
+            "actual_shares": 560.0,
+            "prediction_shares": -3878.55712890625
+          }
+        },
+        "dev": {
+          "rows": 3172,
+          "min": -2312.14501953125,
+          "max": 193351.734375,
+          "mean": 3640.191162109375,
+          "negative_count": 49,
+          "worst_row": {
+            "source_id": 6638,
+            "actual_shares": 15400.0,
+            "prediction_shares": -2312.14501953125
+          }
+        }
+      },
+      "replay_synthetic_targets": {
+        "rows": 100000,
+        "min": -7475.61376953125,
+        "max": 275186.75,
+        "mean": 8340.3330078125,
+        "negative_count": 1012
+      },
+      "replay_max_abs_difference": 0.006250000005820766,
+      "replay_mean_abs_difference": 0.0001255468822647546,
+      "negative_rows_with_all_features_within_real_train_ranges": 1012,
+      "negative_rows_outside_at_least_one_real_train_feature_range": 0,
+      "feature_order_verified": true
+    },
+    {
+      "seed": 42,
+      "generator": "tvae",
+      "source": "full",
+      "labeler": "dnn",
+      "table": "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2_seed42_mnist28_news/news/seed_42/news_seed42_tvae_full_dnn_100k.csv",
+      "table_sha256": "9bcba96857387169f4d9c28a26ff39aff4ba0c07fb8259882ca1223fa53d27d5",
+      "predictor_sha256": "c7951743c64a886d83d1b0cfb0e48db6345ced26f310f1ddb7d36e8f8c0da036",
+      "saved_synthetic_targets": {
+        "rows": 100000,
+        "min": -760.81006,
+        "max": 14294.85,
+        "mean": 3751.228957134788,
+        "negative_count": 10
+      },
+      "state_dict_sha256": "b17f6f9fa875cfa77c5ff636d6323e1f807fcc0e610a5dea9a02d17a3b1a52ff",
+      "scaling": {
+        "mu": 3399.20263671875,
+        "sigma": 12450.6923828125,
+        "zero_output_boundary": -0.27301314113351344,
+        "normalized_training_target_range": [
+          -0.27269187569618225,
+          67.45816040039062
+        ],
+        "train_target_roundtrip_max_abs_error": 0.015625,
+        "feature_mean_and_scale_exact_match_real_train": true,
+        "target_mean_and_scale_exact_match_real_train": true
+      },
+      "worst_row": {
+        "row_index": 71865,
+        "saved_shares": -760.81006,
+        "network_output_standardized": -0.33411893248558044,
+        "positive_output_weight_contributions": 0.10317476093769073,
+        "negative_output_weight_contributions": -0.44869306683540344,
+        "output_bias": 0.011399430222809315,
+        "manual_dot_product": -0.33411889753188007,
+        "inverse_float64": -760.8094109329104,
+        "inverse_using_numpy_float32": -760.8095703125,
+        "hidden_activation_ranges": [
+          [
+            0.0,
+            1.9102990627288818
+          ],
+          [
+            0.0,
+            1.0028159618377686
+          ]
+        ],
+        "final_weight_range": [
+          -0.11502750217914581,
+          0.1289587765932083
+        ],
+        "below_lowest_training_target_in_standardized_units": true,
+        "top_negative_contributions": [
+          {
+            "unit": 27,
+            "activation": 1.0028159618377686,
+            "weight": -0.11502750217914581,
+            "product": -0.11535141617059708
+          },
+          {
+            "unit": 10,
+            "activation": 0.9369357228279114,
+            "weight": -0.10894104093313217,
+            "product": -0.10207075625658035
+          },
+          {
+            "unit": 26,
+            "activation": 0.8532576560974121,
+            "weight": -0.10158787667751312,
+            "product": -0.08668063580989838
+          },
+          {
+            "unit": 8,
+            "activation": 0.3709767758846283,
+            "weight": -0.10810615122318268,
+            "product": -0.04010486975312233
+          },
+          {
+            "unit": 60,
+            "activation": 0.42475730180740356,
+            "weight": -0.06890647113323212,
+            "product": -0.029268527403473854
+          }
+        ],
+        "features_outside_train_ranges": []
+      },
+      "real_predictions": {
+        "train": {
+          "rows": 28543,
+          "min": -94224.0078125,
+          "max": 32449.056640625,
+          "mean": 3475.5751953125,
+          "negative_count": 16,
+          "worst_row": {
+            "source_id": 31037,
+            "actual_shares": 5900.0,
+            "prediction_shares": -94224.0078125,
+            "network_output": -7.840785980224609
+          }
+        },
+        "dev": {
+          "rows": 3172,
+          "min": 15.695068359375,
+          "max": 21809.419921875,
+          "mean": 3446.922119140625,
+          "negative_count": 0
+        }
+      },
+      "dev_report": {
+        "dev_r2": 0.02361893653869629,
+        "selected_epoch": 2,
+        "epochs_run": 32,
+        "quality_gate_passed": true
+      },
+      "replay_synthetic_targets": {
+        "rows": 100000,
+        "min": -760.8095703125,
+        "max": 14294.849609375,
+        "mean": 3751.22900390625,
+        "negative_count": 10
+      },
+      "replay_max_abs_difference": 0.0024374999993597157,
+      "replay_mean_abs_difference": 0.00019460208971972483,
+      "negative_rows_with_all_features_within_real_train_ranges": 10,
+      "negative_rows_outside_at_least_one_real_train_feature_range": 0,
+      "feature_order_verified": true
+    },
+    {
+      "seed": 42,
+      "generator": "tvae",
+      "source": "full",
+      "labeler": "xgb",
+      "table": "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2_seed42_mnist28_news/news/seed_42/news_seed42_tvae_full_xgb_100k.csv",
+      "table_sha256": "443045ff9bd7d6a1950e9914901175feebbb4873010eb8853d5f967af353578d",
+      "predictor_sha256": "bcd4f1613f061bc9d5c4700946df1f3b5e12256e11088b1072d3af4215f6550d",
+      "saved_synthetic_targets": {
+        "rows": 100000,
+        "min": -6184.6436,
+        "max": 325398.3,
+        "mean": 4694.006120148291,
+        "negative_count": 789
+      },
+      "objective": "reg:squarederror",
+      "no_target_scaler_in_artifact": true,
+      "artifact_fields": [
+        "estimator",
+        "feature_columns",
+        "is_classification",
+        "label_encoder",
+        "sanitized_feature_columns"
+      ],
+      "booster_sha256": "a8152ae9dda579ec61449bd138f9404830dfa638918c25e7ce1fc68bebd1af6d",
+      "worst_row": {
+        "row_index": 66869,
+        "saved_shares": -6184.6436,
+        "predict_shares": -6184.6435546875,
+        "raw_margin": -6184.6435546875,
+        "base_score": 3399.2024,
+        "sum_negative_tree_contributions": -11685.988845484999,
+        "sum_positive_tree_contributions": 2102.1410976462,
+        "manual_tree_sum": -6184.645347838799,
+        "tree_count": 100,
+        "first_negative_boosting_round": 40,
+        "top_negative_tree_contributions": [
+          {
+            "tree": 44,
+            "leaf_node": 70,
+            "contribution": -1754.82312
+          },
+          {
+            "tree": 83,
+            "leaf_node": 95,
+            "contribution": -1575.52783
+          },
+          {
+            "tree": 32,
+            "leaf_node": 93,
+            "contribution": -921.906921
+          },
+          {
+            "tree": 76,
+            "leaf_node": 70,
+            "contribution": -863.752991
+          },
+          {
+            "tree": 73,
+            "leaf_node": 93,
+            "contribution": -697.836304
+          }
+        ],
+        "features_outside_train_ranges": []
+      },
+      "real_predictions": {
+        "train": {
+          "rows": 28543,
+          "min": -3878.55712890625,
+          "max": 793132.1875,
+          "mean": 3394.371826171875,
+          "negative_count": 264,
+          "worst_row": {
+            "source_id": 952,
+            "actual_shares": 560.0,
+            "prediction_shares": -3878.55712890625
+          }
+        },
+        "dev": {
+          "rows": 3172,
+          "min": -2312.14501953125,
+          "max": 245660.28125,
+          "mean": 3577.870361328125,
+          "negative_count": 48,
+          "worst_row": {
+            "source_id": 6638,
+            "actual_shares": 15400.0,
+            "prediction_shares": -2312.14501953125
+          }
+        }
+      },
+      "replay_synthetic_targets": {
+        "rows": 100000,
+        "min": -6184.6435546875,
+        "max": 325398.3125,
+        "mean": 4694.005859375,
+        "negative_count": 789
+      },
+      "replay_max_abs_difference": 0.012500000011641532,
+      "replay_mean_abs_difference": 7.062591669910316e-05,
+      "negative_rows_with_all_features_within_real_train_ranges": 789,
+      "negative_rows_outside_at_least_one_real_train_feature_range": 0,
+      "feature_order_verified": true
+    },
+    {
+      "seed": 42,
+      "generator": "tvae",
+      "source": "xonly",
+      "labeler": "dnn",
+      "table": "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2_seed42_mnist28_news/news/seed_42/news_seed42_tvae_xonly_dnn_100k.csv",
+      "table_sha256": "f93a2c91e1a024b4cb4323112b091084e5209aaade30d783e65b6bcb94d5e88e",
+      "predictor_sha256": "d042c9c3c526961a7e2caa685d60fdc6a111da9d3b7d9dd781dabdf19129ba3e",
+      "saved_synthetic_targets": {
+        "rows": 100000,
+        "min": -531.823,
+        "max": 14770.971,
+        "mean": 3509.60755989541,
+        "negative_count": 16
+      },
+      "state_dict_sha256": "a46592dcbcdaf5f05acd3141e57693182678ec04f3f74149182c44ce70740193",
+      "scaling": {
+        "mu": 3399.20263671875,
+        "sigma": 12450.6923828125,
+        "zero_output_boundary": -0.27301314113351344,
+        "normalized_training_target_range": [
+          -0.27269187569618225,
+          67.45816040039062
+        ],
+        "train_target_roundtrip_max_abs_error": 0.015625,
+        "feature_mean_and_scale_exact_match_real_train": true,
+        "target_mean_and_scale_exact_match_real_train": true
+      },
+      "worst_row": {
+        "row_index": 69439,
+        "saved_shares": -531.823,
+        "network_output_standardized": -0.31572744250297546,
+        "positive_output_weight_contributions": 0.028499649837613106,
+        "negative_output_weight_contributions": -0.35032716393470764,
+        "output_bias": 0.006100088823586702,
+        "manual_dot_product": -0.31572742242133245,
+        "inverse_float64": -531.8226266979182,
+        "inverse_using_numpy_float32": -531.822509765625,
+        "hidden_activation_ranges": [
+          [
+            0.0,
+            1.481768012046814
+          ],
+          [
+            0.0,
+            0.8404103517532349
+          ]
+        ],
+        "final_weight_range": [
+          -0.12575066089630127,
+          0.1308014690876007
+        ],
+        "below_lowest_training_target_in_standardized_units": true,
+        "top_negative_contributions": [
+          {
+            "unit": 19,
+            "activation": 0.8404103517532349,
+            "weight": -0.12575066089630127,
+            "product": -0.10568215698003769
+          },
+          {
+            "unit": 28,
+            "activation": 0.4762561619281769,
+            "weight": -0.09982676059007645,
+            "product": -0.047543108463287354
+          },
+          {
+            "unit": 60,
+            "activation": 0.4865889549255371,
+            "weight": -0.06644511222839355,
+            "product": -0.03233145922422409
+          },
+          {
+            "unit": 62,
+            "activation": 0.45703038573265076,
+            "weight": -0.06387783586978912,
+            "product": -0.029194112867116928
+          },
+          {
+            "unit": 43,
+            "activation": 0.3350473940372467,
+            "weight": -0.07258891314268112,
+            "product": -0.024320725351572037
+          }
+        ],
+        "features_outside_train_ranges": []
+      },
+      "real_predictions": {
+        "train": {
+          "rows": 28543,
+          "min": -20842.32421875,
+          "max": 33405.76171875,
+          "mean": 3577.654541015625,
+          "negative_count": 11,
+          "worst_row": {
+            "source_id": 31037,
+            "actual_shares": 5900.0,
+            "prediction_shares": -20842.32421875,
+            "network_output": -1.9470022916793823
+          }
+        },
+        "dev": {
+          "rows": 3172,
+          "min": -438.829833984375,
+          "max": 24653.013671875,
+          "mean": 3543.735595703125,
+          "negative_count": 2,
+          "worst_row": {
+            "source_id": 39,
+            "actual_shares": 2100.0,
+            "prediction_shares": -438.829833984375,
+            "network_output": -0.3082585632801056
+          }
+        }
+      },
+      "dev_report": {
+        "dev_r2": 0.021449029445648193,
+        "selected_epoch": 2,
+        "epochs_run": 32,
+        "quality_gate_passed": true
+      },
+      "replay_synthetic_targets": {
+        "rows": 100000,
+        "min": -531.822509765625,
+        "max": 14770.970703125,
+        "mean": 3509.607421875,
+        "negative_count": 16
+      },
+      "replay_max_abs_difference": 0.0024218750004365575,
+      "replay_mean_abs_difference": 0.00018655334312635068,
+      "negative_rows_with_all_features_within_real_train_ranges": 16,
+      "negative_rows_outside_at_least_one_real_train_feature_range": 0,
+      "feature_order_verified": true
+    },
+    {
+      "seed": 42,
+      "generator": "tvae",
+      "source": "xonly",
+      "labeler": "xgb",
+      "table": "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2_seed42_mnist28_news/news/seed_42/news_seed42_tvae_xonly_xgb_100k.csv",
+      "table_sha256": "477eeb45f792738eebd268f849d28033819ed947e3af7c2b17fc87add2c99569",
+      "predictor_sha256": "845ca5d5b4e35562d6fd9424d49bcff5e534c253b34705066cb341be18306a75",
+      "saved_synthetic_targets": {
+        "rows": 100000,
+        "min": -7133.801,
+        "max": 268994.44,
+        "mean": 4774.375028933673,
+        "negative_count": 913
+      },
+      "objective": "reg:squarederror",
+      "no_target_scaler_in_artifact": true,
+      "artifact_fields": [
+        "estimator",
+        "feature_columns",
+        "is_classification",
+        "label_encoder",
+        "sanitized_feature_columns"
+      ],
+      "booster_sha256": "c08f9683cbe7672dffe89bf84d51531b3f381a32f5ae12fd53f9c61525974d36",
+      "worst_row": {
+        "row_index": 63637,
+        "saved_shares": -7133.801,
+        "predict_shares": -7133.80078125,
+        "raw_margin": -7133.80078125,
+        "base_score": 3399.2024,
+        "sum_negative_tree_contributions": -12583.130322690002,
+        "sum_positive_tree_contributions": 2050.1269968021998,
+        "manual_tree_sum": -7133.800925887801,
+        "tree_count": 100,
+        "first_negative_boosting_round": 19,
+        "top_negative_tree_contributions": [
+          {
+            "tree": 19,
+            "leaf_node": 59,
+            "contribution": -3095.07642
+          },
+          {
+            "tree": 53,
+            "leaf_node": 21,
+            "contribution": -1671.5033
+          },
+          {
+            "tree": 15,
+            "leaf_node": 84,
+            "contribution": -1616.29065
+          },
+          {
+            "tree": 36,
+            "leaf_node": 74,
+            "contribution": -1330.98621
+          },
+          {
+            "tree": 7,
+            "leaf_node": 60,
+            "contribution": -458.487701
+          }
+        ],
+        "features_outside_train_ranges": []
+      },
+      "real_predictions": {
+        "train": {
+          "rows": 28543,
+          "min": -3878.55712890625,
+          "max": 793132.1875,
+          "mean": 3394.371826171875,
+          "negative_count": 264,
+          "worst_row": {
+            "source_id": 952,
+            "actual_shares": 560.0,
+            "prediction_shares": -3878.55712890625
+          }
+        },
+        "dev": {
+          "rows": 3172,
+          "min": -2312.14501953125,
+          "max": 193351.734375,
+          "mean": 3640.191162109375,
+          "negative_count": 49,
+          "worst_row": {
+            "source_id": 6638,
+            "actual_shares": 15400.0,
+            "prediction_shares": -2312.14501953125
+          }
+        }
+      },
+      "replay_synthetic_targets": {
+        "rows": 100000,
+        "min": -7133.80078125,
+        "max": 268994.4375,
+        "mean": 4774.37451171875,
+        "negative_count": 913
+      },
+      "replay_max_abs_difference": 0.006250000005820766,
+      "replay_mean_abs_difference": 6.947478765754732e-05,
+      "negative_rows_with_all_features_within_real_train_ranges": 913,
+      "negative_rows_outside_at_least_one_real_train_feature_range": 0,
+      "feature_order_verified": true
+    },
+    {
+      "seed": 43,
+      "generator": "ctgan",
+      "source": "full",
+      "labeler": "dnn",
+      "table": "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/news/seed_43/news_seed43_ctgan_full_dnn_100k.csv",
+      "table_sha256": "2d78b79d3f3c4aae92df6bcfc3954128f0f700a28688bff5c493c553f85d77d2",
+      "predictor_sha256": "0f0e9f90718a21246c917e27f0215fdd439582419b15d458e9e7034367e7ce29",
+      "saved_synthetic_targets": {
+        "rows": 100000,
+        "min": -1629.8291,
+        "max": 13982.846,
+        "mean": 2906.149043207947,
+        "negative_count": 307
+      },
+      "state_dict_sha256": "1c6d7ec8e245d91c6bf66212edb3cde8c029484074efdb1c013b74d2d2d18638",
+      "scaling": {
+        "mu": 3399.20263671875,
+        "sigma": 12450.6923828125,
+        "zero_output_boundary": -0.27301314113351344,
+        "normalized_training_target_range": [
+          -0.27269187569618225,
+          67.45816040039062
+        ],
+        "train_target_roundtrip_max_abs_error": 0.015625,
+        "feature_mean_and_scale_exact_match_real_train": true,
+        "target_mean_and_scale_exact_match_real_train": true
+      },
+      "worst_row": {
+        "row_index": 81342,
+        "saved_shares": -1629.8291,
+        "network_output_standardized": -0.4039158225059509,
+        "positive_output_weight_contributions": 0.01572493277490139,
+        "negative_output_weight_contributions": -0.3302644193172455,
+        "output_bias": -0.08937634527683258,
+        "manual_dot_product": -0.40391584977624007,
+        "inverse_float64": -1629.829017853539,
+        "inverse_using_numpy_float32": -1629.8291015625,
+        "hidden_activation_ranges": [
+          [
+            0.0,
+            1.4311681985855103
+          ],
+          [
+            0.0,
+            0.6173027753829956
+          ]
+        ],
+        "final_weight_range": [
+          -0.11523421853780746,
+          0.12892350554466248
+        ],
+        "below_lowest_training_target_in_standardized_units": true,
+        "top_negative_contributions": [
+          {
+            "unit": 49,
+            "activation": 0.5864260196685791,
+            "weight": -0.10193556547164917,
+            "product": -0.05977766960859299
+          },
+          {
+            "unit": 62,
+            "activation": 0.4930771291255951,
+            "weight": -0.10533532500267029,
+            "product": -0.05193844065070152
+          },
+          {
+            "unit": 48,
+            "activation": 0.4206165373325348,
+            "weight": -0.0953131690621376,
+            "product": -0.04009029641747475
+          },
+          {
+            "unit": 35,
+            "activation": 0.6173027753829956,
+            "weight": -0.06209477037191391,
+            "product": -0.038331273943185806
+          },
+          {
+            "unit": 53,
+            "activation": 0.3289087116718292,
+            "weight": -0.08187582343816757,
+            "product": -0.026929670944809914
+          }
+        ],
+        "features_outside_train_ranges": []
+      },
+      "real_predictions": {
+        "train": {
+          "rows": 28543,
+          "min": -49433.62109375,
+          "max": 35312.921875,
+          "mean": 2944.341064453125,
+          "negative_count": 62,
+          "worst_row": {
+            "source_id": 31037,
+            "actual_shares": 5900.0,
+            "prediction_shares": -49433.62109375,
+            "network_output": -4.243364334106445
+          }
+        },
+        "dev": {
+          "rows": 3172,
+          "min": -354.779052734375,
+          "max": 18864.029296875,
+          "mean": 2913.45849609375,
+          "negative_count": 5,
+          "worst_row": {
+            "source_id": 11962,
+            "actual_shares": 1100.0,
+            "prediction_shares": -354.779052734375,
+            "network_output": -0.3015078604221344
+          }
+        }
+      },
+      "dev_report": {
+        "dev_r2": 0.016591012477874756,
+        "selected_epoch": 3,
+        "epochs_run": 33,
+        "quality_gate_passed": true
+      },
+      "replay_synthetic_targets": {
+        "rows": 100000,
+        "min": -1629.82958984375,
+        "max": 13982.84375,
+        "mean": 2906.149169921875,
+        "negative_count": 307
+      },
+      "replay_max_abs_difference": 0.003335937499286956,
+      "replay_mean_abs_difference": 0.00020384743373521485,
+      "negative_rows_with_all_features_within_real_train_ranges": 307,
+      "negative_rows_outside_at_least_one_real_train_feature_range": 0,
+      "feature_order_verified": true
+    },
+    {
+      "seed": 43,
+      "generator": "ctgan",
+      "source": "full",
+      "labeler": "xgb",
+      "table": "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/news/seed_43/news_seed43_ctgan_full_xgb_100k.csv",
+      "table_sha256": "0f1d4ce950e691e72f19c8312d83c08836d58f74dbb18cac0305f066d1ad2e5a",
+      "predictor_sha256": "bcd4f1613f061bc9d5c4700946df1f3b5e12256e11088b1072d3af4215f6550d",
+      "saved_synthetic_targets": {
+        "rows": 100000,
+        "min": -5792.171,
+        "max": 304736.56,
+        "mean": 7697.9140234808265,
+        "negative_count": 1312
+      },
+      "objective": "reg:squarederror",
+      "no_target_scaler_in_artifact": true,
+      "artifact_fields": [
+        "estimator",
+        "feature_columns",
+        "is_classification",
+        "label_encoder",
+        "sanitized_feature_columns"
+      ],
+      "booster_sha256": "a8152ae9dda579ec61449bd138f9404830dfa638918c25e7ce1fc68bebd1af6d",
+      "worst_row": {
+        "row_index": 37265,
+        "saved_shares": -5792.171,
+        "predict_shares": -5792.1708984375,
+        "raw_margin": -5792.1708984375,
+        "base_score": 3399.2024,
+        "sum_negative_tree_contributions": -16088.730174690001,
+        "sum_positive_tree_contributions": 6897.3555321477,
+        "manual_tree_sum": -5792.172242542301,
+        "tree_count": 100,
+        "first_negative_boosting_round": 23,
+        "top_negative_tree_contributions": [
+          {
+            "tree": 10,
+            "leaf_node": 48,
+            "contribution": -1469.27014
+          },
+          {
+            "tree": 24,
+            "leaf_node": 98,
+            "contribution": -1436.02393
+          },
+          {
+            "tree": 23,
+            "leaf_node": 54,
+            "contribution": -1294.54675
+          },
+          {
+            "tree": 19,
+            "leaf_node": 82,
+            "contribution": -925.209656
+          },
+          {
+            "tree": 18,
+            "leaf_node": 93,
+            "contribution": -871.658386
+          }
+        ],
+        "features_outside_train_ranges": []
+      },
+      "real_predictions": {
+        "train": {
+          "rows": 28543,
+          "min": -3878.55712890625,
+          "max": 793132.1875,
+          "mean": 3394.371826171875,
+          "negative_count": 264,
+          "worst_row": {
+            "source_id": 952,
+            "actual_shares": 560.0,
+            "prediction_shares": -3878.55712890625
+          }
+        },
+        "dev": {
+          "rows": 3172,
+          "min": -2312.14501953125,
+          "max": 245660.28125,
+          "mean": 3577.870361328125,
+          "negative_count": 48,
+          "worst_row": {
+            "source_id": 6638,
+            "actual_shares": 15400.0,
+            "prediction_shares": -2312.14501953125
+          }
+        }
+      },
+      "replay_synthetic_targets": {
+        "rows": 100000,
+        "min": -5792.1708984375,
+        "max": 304736.5625,
+        "mean": 7697.9140625,
+        "negative_count": 1312
+      },
+      "replay_max_abs_difference": 0.006250000005820766,
+      "replay_mean_abs_difference": 0.00011557500242644135,
+      "negative_rows_with_all_features_within_real_train_ranges": 1312,
+      "negative_rows_outside_at_least_one_real_train_feature_range": 0,
+      "feature_order_verified": true
+    },
+    {
+      "seed": 43,
+      "generator": "ctgan",
+      "source": "xonly",
+      "labeler": "dnn",
+      "table": "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/news/seed_43/news_seed43_ctgan_xonly_dnn_100k.csv",
+      "table_sha256": "631f863e6131c933649db9bd64ae7cdfce47a3f81c20dfac0e9e6d083a4157d3",
+      "predictor_sha256": "13ecc9ca02a9682d397a0925037c380785be9294d3524a0d466a87233f10e358",
+      "saved_synthetic_targets": {
+        "rows": 100000,
+        "min": -1334.355,
+        "max": 16168.592,
+        "mean": 2932.7865365856755,
+        "negative_count": 240
+      },
+      "state_dict_sha256": "1c6d7ec8e245d91c6bf66212edb3cde8c029484074efdb1c013b74d2d2d18638",
+      "scaling": {
+        "mu": 3399.20263671875,
+        "sigma": 12450.6923828125,
+        "zero_output_boundary": -0.27301314113351344,
+        "normalized_training_target_range": [
+          -0.27269187569618225,
+          67.45816040039062
+        ],
+        "train_target_roundtrip_max_abs_error": 0.015625,
+        "feature_mean_and_scale_exact_match_real_train": true,
+        "target_mean_and_scale_exact_match_real_train": true
+      },
+      "worst_row": {
+        "row_index": 11185,
+        "saved_shares": -1334.355,
+        "network_output_standardized": -0.3801842927932739,
+        "positive_output_weight_contributions": 0.05297984182834625,
+        "negative_output_weight_contributions": -0.34378781914711,
+        "output_bias": -0.08937634527683258,
+        "manual_dot_product": -0.3801843067194568,
+        "inverse_float64": -1334.355041627423,
+        "inverse_using_numpy_float32": -1334.35498046875,
+        "hidden_activation_ranges": [
+          [
+            0.0,
+            1.6828149557113647
+          ],
+          [
+            0.0,
+            0.9012237191200256
+          ]
+        ],
+        "final_weight_range": [
+          -0.11523421853780746,
+          0.12892350554466248
+        ],
+        "below_lowest_training_target_in_standardized_units": true,
+        "top_negative_contributions": [
+          {
+            "unit": 49,
+            "activation": 0.9012237191200256,
+            "weight": -0.10193556547164917,
+            "product": -0.09186674654483795
+          },
+          {
+            "unit": 28,
+            "activation": 0.8321887850761414,
+            "weight": -0.09200596064329147,
+            "product": -0.07656633108854294
+          },
+          {
+            "unit": 62,
+            "activation": 0.5113508701324463,
+            "weight": -0.10533532500267029,
+            "product": -0.05386330932378769
+          },
+          {
+            "unit": 35,
+            "activation": 0.7411279678344727,
+            "weight": -0.06209477037191391,
+            "product": -0.04602017253637314
+          },
+          {
+            "unit": 53,
+            "activation": 0.3478902578353882,
+            "weight": -0.08187582343816757,
+            "product": -0.0284838005900383
+          }
+        ],
+        "features_outside_train_ranges": []
+      },
+      "real_predictions": {
+        "train": {
+          "rows": 28543,
+          "min": -49433.62109375,
+          "max": 35312.921875,
+          "mean": 2944.341064453125,
+          "negative_count": 62,
+          "worst_row": {
+            "source_id": 31037,
+            "actual_shares": 5900.0,
+            "prediction_shares": -49433.62109375,
+            "network_output": -4.243364334106445
+          }
+        },
+        "dev": {
+          "rows": 3172,
+          "min": -354.779052734375,
+          "max": 18864.029296875,
+          "mean": 2913.45849609375,
+          "negative_count": 5,
+          "worst_row": {
+            "source_id": 11962,
+            "actual_shares": 1100.0,
+            "prediction_shares": -354.779052734375,
+            "network_output": -0.3015078604221344
+          }
+        }
+      },
+      "dev_report": {
+        "dev_r2": 0.016591012477874756,
+        "selected_epoch": 3,
+        "epochs_run": 33,
+        "quality_gate_passed": true
+      },
+      "replay_synthetic_targets": {
+        "rows": 100000,
+        "min": -1334.35498046875,
+        "max": 16168.591796875,
+        "mean": 2932.786865234375,
+        "negative_count": 240
+      },
+      "replay_max_abs_difference": 0.003179687499141437,
+      "replay_mean_abs_difference": 0.00020347017268921967,
+      "negative_rows_with_all_features_within_real_train_ranges": 240,
+      "negative_rows_outside_at_least_one_real_train_feature_range": 0,
+      "feature_order_verified": true
+    },
+    {
+      "seed": 43,
+      "generator": "ctgan",
+      "source": "xonly",
+      "labeler": "xgb",
+      "table": "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/news/seed_43/news_seed43_ctgan_xonly_xgb_100k.csv",
+      "table_sha256": "80ca19607b8b6f22e757723ea75b514e9a8043e9b17b38592256ad7188af16e1",
+      "predictor_sha256": "bcd4f1613f061bc9d5c4700946df1f3b5e12256e11088b1072d3af4215f6550d",
+      "saved_synthetic_targets": {
+        "rows": 100000,
+        "min": -5507.957,
+        "max": 329019.4,
+        "mean": 9164.439109415202,
+        "negative_count": 1306
+      },
+      "objective": "reg:squarederror",
+      "no_target_scaler_in_artifact": true,
+      "artifact_fields": [
+        "estimator",
+        "feature_columns",
+        "is_classification",
+        "label_encoder",
+        "sanitized_feature_columns"
+      ],
+      "booster_sha256": "a8152ae9dda579ec61449bd138f9404830dfa638918c25e7ce1fc68bebd1af6d",
+      "worst_row": {
+        "row_index": 66587,
+        "saved_shares": -5507.957,
+        "predict_shares": -5507.95703125,
+        "raw_margin": -5507.95703125,
+        "base_score": 3399.2024,
+        "sum_negative_tree_contributions": -18819.105933550003,
+        "sum_positive_tree_contributions": 9911.946269193202,
+        "manual_tree_sum": -5507.957264356799,
+        "tree_count": 100,
+        "first_negative_boosting_round": 21,
+        "top_negative_tree_contributions": [
+          {
+            "tree": 21,
+            "leaf_node": 37,
+            "contribution": -4106.00488
+          },
+          {
+            "tree": 36,
+            "leaf_node": 65,
+            "contribution": -3351.86768
+          },
+          {
+            "tree": 11,
+            "leaf_node": 101,
+            "contribution": -1744.74939
+          },
+          {
+            "tree": 74,
+            "leaf_node": 80,
+            "contribution": -1657.01599
+          },
+          {
+            "tree": 19,
+            "leaf_node": 82,
+            "contribution": -925.209656
+          }
+        ],
+        "features_outside_train_ranges": []
+      },
+      "real_predictions": {
+        "train": {
+          "rows": 28543,
+          "min": -3878.55712890625,
+          "max": 793132.1875,
+          "mean": 3394.371826171875,
+          "negative_count": 264,
+          "worst_row": {
+            "source_id": 952,
+            "actual_shares": 560.0,
+            "prediction_shares": -3878.55712890625
+          }
+        },
+        "dev": {
+          "rows": 3172,
+          "min": -2312.14501953125,
+          "max": 245660.28125,
+          "mean": 3577.870361328125,
+          "negative_count": 48,
+          "worst_row": {
+            "source_id": 6638,
+            "actual_shares": 15400.0,
+            "prediction_shares": -2312.14501953125
+          }
+        }
+      },
+      "replay_synthetic_targets": {
+        "rows": 100000,
+        "min": -5507.95703125,
+        "max": 329019.40625,
+        "mean": 9164.4384765625,
+        "negative_count": 1306
+      },
+      "replay_max_abs_difference": 0.006250000005820766,
+      "replay_mean_abs_difference": 0.0001385535401415454,
+      "negative_rows_with_all_features_within_real_train_ranges": 1306,
+      "negative_rows_outside_at_least_one_real_train_feature_range": 0,
+      "feature_order_verified": true
+    },
+    {
+      "seed": 43,
+      "generator": "tvae",
+      "source": "full",
+      "labeler": "dnn",
+      "table": "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/news/seed_43/news_seed43_tvae_full_dnn_100k.csv",
+      "table_sha256": "0d1fd73f5816cd79711bebb4a64fb4fceb400b035a342f26799e1f153a76d78d",
+      "predictor_sha256": "45da79e6979f1c73eba2994bcb96152e3af9b54f04eaa75265b83818e05109b1",
+      "saved_synthetic_targets": {
+        "rows": 100000,
+        "min": -427.29248,
+        "max": 18224.773,
+        "mean": 2934.3135890685003,
+        "negative_count": 26
+      },
+      "state_dict_sha256": "1c6d7ec8e245d91c6bf66212edb3cde8c029484074efdb1c013b74d2d2d18638",
+      "scaling": {
+        "mu": 3399.20263671875,
+        "sigma": 12450.6923828125,
+        "zero_output_boundary": -0.27301314113351344,
+        "normalized_training_target_range": [
+          -0.27269187569618225,
+          67.45816040039062
+        ],
+        "train_target_roundtrip_max_abs_error": 0.015625,
+        "feature_mean_and_scale_exact_match_real_train": true,
+        "target_mean_and_scale_exact_match_real_train": true
+      },
+      "worst_row": {
+        "row_index": 10030,
+        "saved_shares": -427.29248,
+        "network_output_standardized": -0.307331919670105,
+        "positive_output_weight_contributions": 0.07545364648103714,
+        "negative_output_weight_contributions": -0.29340922832489014,
+        "output_bias": -0.08937634527683258,
+        "manual_dot_product": -0.30733191657054704,
+        "inverse_float64": -427.2925545129692,
+        "inverse_using_numpy_float32": -427.29248046875,
+        "hidden_activation_ranges": [
+          [
+            0.0,
+            1.5137637853622437
+          ],
+          [
+            0.0,
+            0.6602760553359985
+          ]
+        ],
+        "final_weight_range": [
+          -0.11523421853780746,
+          0.12892350554466248
+        ],
+        "below_lowest_training_target_in_standardized_units": true,
+        "top_negative_contributions": [
+          {
+            "unit": 49,
+            "activation": 0.6602760553359985,
+            "weight": -0.10193556547164917,
+            "product": -0.06730560958385468
+          },
+          {
+            "unit": 62,
+            "activation": 0.6040923595428467,
+            "weight": -0.10533532500267029,
+            "product": -0.06363226473331451
+          },
+          {
+            "unit": 28,
+            "activation": 0.5090138912200928,
+            "weight": -0.09200596064329147,
+            "product": -0.046832311898469925
+          },
+          {
+            "unit": 35,
+            "activation": 0.6449848413467407,
+            "weight": -0.06209477037191391,
+            "product": -0.04005018621683121
+          },
+          {
+            "unit": 53,
+            "activation": 0.1991267204284668,
+            "weight": -0.08187582343816757,
+            "product": -0.016303664073348045
+          }
+        ],
+        "features_outside_train_ranges": []
+      },
+      "real_predictions": {
+        "train": {
+          "rows": 28543,
+          "min": -49433.62109375,
+          "max": 35312.921875,
+          "mean": 2944.341064453125,
+          "negative_count": 62,
+          "worst_row": {
+            "source_id": 31037,
+            "actual_shares": 5900.0,
+            "prediction_shares": -49433.62109375,
+            "network_output": -4.243364334106445
+          }
+        },
+        "dev": {
+          "rows": 3172,
+          "min": -354.779052734375,
+          "max": 18864.029296875,
+          "mean": 2913.45849609375,
+          "negative_count": 5,
+          "worst_row": {
+            "source_id": 11962,
+            "actual_shares": 1100.0,
+            "prediction_shares": -354.779052734375,
+            "network_output": -0.3015078604221344
+          }
+        }
+      },
+      "dev_report": {
+        "dev_r2": 0.016591012477874756,
+        "selected_epoch": 3,
+        "epochs_run": 33,
+        "quality_gate_passed": true
+      },
+      "replay_synthetic_targets": {
+        "rows": 100000,
+        "min": -427.29248046875,
+        "max": 18224.775390625,
+        "mean": 2934.313720703125,
+        "negative_count": 26
+      },
+      "replay_max_abs_difference": 0.0032265624995488906,
+      "replay_mean_abs_difference": 0.00019178025054748495,
+      "negative_rows_with_all_features_within_real_train_ranges": 26,
+      "negative_rows_outside_at_least_one_real_train_feature_range": 0,
+      "feature_order_verified": true
+    },
+    {
+      "seed": 43,
+      "generator": "tvae",
+      "source": "full",
+      "labeler": "xgb",
+      "table": "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/news/seed_43/news_seed43_tvae_full_xgb_100k.csv",
+      "table_sha256": "af4d373a62df36f8ff92f22227e3279de8c8f688840ec438ef2daa8df0a18226",
+      "predictor_sha256": "bcd4f1613f061bc9d5c4700946df1f3b5e12256e11088b1072d3af4215f6550d",
+      "saved_synthetic_targets": {
+        "rows": 100000,
+        "min": -9683.938,
+        "max": 231756.47,
+        "mean": 4471.459624123723,
+        "negative_count": 1160
+      },
+      "objective": "reg:squarederror",
+      "no_target_scaler_in_artifact": true,
+      "artifact_fields": [
+        "estimator",
+        "feature_columns",
+        "is_classification",
+        "label_encoder",
+        "sanitized_feature_columns"
+      ],
+      "booster_sha256": "a8152ae9dda579ec61449bd138f9404830dfa638918c25e7ce1fc68bebd1af6d",
+      "worst_row": {
+        "row_index": 22111,
+        "saved_shares": -9683.938,
+        "predict_shares": -9683.9384765625,
+        "raw_margin": -9683.9384765625,
+        "base_score": 3399.2024,
+        "sum_negative_tree_contributions": -18564.62669023,
+        "sum_positive_tree_contributions": 5481.4855821595,
+        "manual_tree_sum": -9683.9387080705,
+        "tree_count": 100,
+        "first_negative_boosting_round": 60,
+        "top_negative_tree_contributions": [
+          {
+            "tree": 83,
+            "leaf_node": 95,
+            "contribution": -1575.52783
+          },
+          {
+            "tree": 10,
+            "leaf_node": 68,
+            "contribution": -1365.00281
+          },
+          {
+            "tree": 36,
+            "leaf_node": 98,
+            "contribution": -1278.60449
+          },
+          {
+            "tree": 94,
+            "leaf_node": 88,
+            "contribution": -1216.6499
+          },
+          {
+            "tree": 64,
+            "leaf_node": 105,
+            "contribution": -1113.64795
+          }
+        ],
+        "features_outside_train_ranges": []
+      },
+      "real_predictions": {
+        "train": {
+          "rows": 28543,
+          "min": -3878.55712890625,
+          "max": 793132.1875,
+          "mean": 3394.371826171875,
+          "negative_count": 264,
+          "worst_row": {
+            "source_id": 952,
+            "actual_shares": 560.0,
+            "prediction_shares": -3878.55712890625
+          }
+        },
+        "dev": {
+          "rows": 3172,
+          "min": -2312.14501953125,
+          "max": 245660.28125,
+          "mean": 3577.870361328125,
+          "negative_count": 48,
+          "worst_row": {
+            "source_id": 6638,
+            "actual_shares": 15400.0,
+            "prediction_shares": -2312.14501953125
+          }
+        }
+      },
+      "replay_synthetic_targets": {
+        "rows": 100000,
+        "min": -9683.9384765625,
+        "max": 231756.46875,
+        "mean": 4471.4599609375,
+        "negative_count": 1160
+      },
+      "replay_max_abs_difference": 0.006250000005820766,
+      "replay_mean_abs_difference": 6.481896625171146e-05,
+      "negative_rows_with_all_features_within_real_train_ranges": 1160,
+      "negative_rows_outside_at_least_one_real_train_feature_range": 0,
+      "feature_order_verified": true
+    },
+    {
+      "seed": 43,
+      "generator": "tvae",
+      "source": "xonly",
+      "labeler": "dnn",
+      "table": "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/news/seed_43/news_seed43_tvae_xonly_dnn_100k.csv",
+      "table_sha256": "1e0a67226dded674d43f6d01fc203215cd6c8905e28988e9da5d9fb1be55fa44",
+      "predictor_sha256": "5c80f09bf72c913d425a774b7dad89e0c7681b800171932f8326b1af27e8b7a6",
+      "saved_synthetic_targets": {
+        "rows": 100000,
+        "min": -1540.1846,
+        "max": 19818.264,
+        "mean": 2956.1342610700203,
+        "negative_count": 38
+      },
+      "state_dict_sha256": "1c6d7ec8e245d91c6bf66212edb3cde8c029484074efdb1c013b74d2d2d18638",
+      "scaling": {
+        "mu": 3399.20263671875,
+        "sigma": 12450.6923828125,
+        "zero_output_boundary": -0.27301314113351344,
+        "normalized_training_target_range": [
+          -0.27269187569618225,
+          67.45816040039062
+        ],
+        "train_target_roundtrip_max_abs_error": 0.015625,
+        "feature_mean_and_scale_exact_match_real_train": true,
+        "target_mean_and_scale_exact_match_real_train": true
+      },
+      "worst_row": {
+        "row_index": 34323,
+        "saved_shares": -1540.1846,
+        "network_output_standardized": -0.3967159390449524,
+        "positive_output_weight_contributions": 0.062224335968494415,
+        "negative_output_weight_contributions": -0.36956387758255005,
+        "output_bias": -0.08937634527683258,
+        "manual_dot_product": -0.3967158950108569,
+        "inverse_float64": -1540.1854836885468,
+        "inverse_using_numpy_float32": -1540.185546875,
+        "hidden_activation_ranges": [
+          [
+            0.0,
+            2.409757137298584
+          ],
+          [
+            0.0,
+            1.1953563690185547
+          ]
+        ],
+        "final_weight_range": [
+          -0.11523421853780746,
+          0.12892350554466248
+        ],
+        "below_lowest_training_target_in_standardized_units": true,
+        "top_negative_contributions": [
+          {
+            "unit": 35,
+            "activation": 1.1953563690185547,
+            "weight": -0.06209477037191391,
+            "product": -0.07422538101673126
+          },
+          {
+            "unit": 53,
+            "activation": 0.8794213533401489,
+            "weight": -0.08187582343816757,
+            "product": -0.07200334966182709
+          },
+          {
+            "unit": 49,
+            "activation": 0.5767287015914917,
+            "weight": -0.10193556547164917,
+            "product": -0.05878916755318642
+          },
+          {
+            "unit": 28,
+            "activation": 0.4042532742023468,
+            "weight": -0.09200596064329147,
+            "product": -0.03719371184706688
+          },
+          {
+            "unit": 33,
+            "activation": 0.656933069229126,
+            "weight": -0.04289296269416809,
+            "product": -0.028177805244922638
+          }
+        ],
+        "features_outside_train_ranges": []
+      },
+      "real_predictions": {
+        "train": {
+          "rows": 28543,
+          "min": -49433.62109375,
+          "max": 35312.921875,
+          "mean": 2944.341064453125,
+          "negative_count": 62,
+          "worst_row": {
+            "source_id": 31037,
+            "actual_shares": 5900.0,
+            "prediction_shares": -49433.62109375,
+            "network_output": -4.243364334106445
+          }
+        },
+        "dev": {
+          "rows": 3172,
+          "min": -354.779052734375,
+          "max": 18864.029296875,
+          "mean": 2913.45849609375,
+          "negative_count": 5,
+          "worst_row": {
+            "source_id": 11962,
+            "actual_shares": 1100.0,
+            "prediction_shares": -354.779052734375,
+            "network_output": -0.3015078604221344
+          }
+        }
+      },
+      "dev_report": {
+        "dev_r2": 0.016591012477874756,
+        "selected_epoch": 3,
+        "epochs_run": 33,
+        "quality_gate_passed": true
+      },
+      "replay_synthetic_targets": {
+        "rows": 100000,
+        "min": -1540.1845703125,
+        "max": 19818.263671875,
+        "mean": 2956.134033203125,
+        "negative_count": 38
+      },
+      "replay_max_abs_difference": 0.0040156249997380655,
+      "replay_mean_abs_difference": 0.00019178630484453159,
+      "negative_rows_with_all_features_within_real_train_ranges": 38,
+      "negative_rows_outside_at_least_one_real_train_feature_range": 0,
+      "feature_order_verified": true
+    },
+    {
+      "seed": 43,
+      "generator": "tvae",
+      "source": "xonly",
+      "labeler": "xgb",
+      "table": "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/news/seed_43/news_seed43_tvae_xonly_xgb_100k.csv",
+      "table_sha256": "f1371899cf012c7519834be6b23b7b376ad4917b65faad0e34e48d71a860101e",
+      "predictor_sha256": "bcd4f1613f061bc9d5c4700946df1f3b5e12256e11088b1072d3af4215f6550d",
+      "saved_synthetic_targets": {
+        "rows": 100000,
+        "min": -6138.6475,
+        "max": 191571.19,
+        "mean": 4435.911533642406,
+        "negative_count": 1001
+      },
+      "objective": "reg:squarederror",
+      "no_target_scaler_in_artifact": true,
+      "artifact_fields": [
+        "estimator",
+        "feature_columns",
+        "is_classification",
+        "label_encoder",
+        "sanitized_feature_columns"
+      ],
+      "booster_sha256": "a8152ae9dda579ec61449bd138f9404830dfa638918c25e7ce1fc68bebd1af6d",
+      "worst_row": {
+        "row_index": 3941,
+        "saved_shares": -6138.6475,
+        "predict_shares": -6138.6474609375,
+        "raw_margin": -6138.6474609375,
+        "base_score": 3399.2024,
+        "sum_negative_tree_contributions": -14626.20828668,
+        "sum_positive_tree_contributions": 5088.358006447,
+        "manual_tree_sum": -6138.647880233,
+        "tree_count": 100,
+        "first_negative_boosting_round": 27,
+        "top_negative_tree_contributions": [
+          {
+            "tree": 23,
+            "leaf_node": 54,
+            "contribution": -1294.54675
+          },
+          {
+            "tree": 66,
+            "leaf_node": 75,
+            "contribution": -1215.91895
+          },
+          {
+            "tree": 8,
+            "leaf_node": 77,
+            "contribution": -1184.6582
+          },
+          {
+            "tree": 27,
+            "leaf_node": 67,
+            "contribution": -1123.74365
+          },
+          {
+            "tree": 15,
+            "leaf_node": 70,
+            "contribution": -1098.52942
+          }
+        ],
+        "features_outside_train_ranges": []
+      },
+      "real_predictions": {
+        "train": {
+          "rows": 28543,
+          "min": -3878.55712890625,
+          "max": 793132.1875,
+          "mean": 3394.371826171875,
+          "negative_count": 264,
+          "worst_row": {
+            "source_id": 952,
+            "actual_shares": 560.0,
+            "prediction_shares": -3878.55712890625
+          }
+        },
+        "dev": {
+          "rows": 3172,
+          "min": -2312.14501953125,
+          "max": 245660.28125,
+          "mean": 3577.870361328125,
+          "negative_count": 48,
+          "worst_row": {
+            "source_id": 6638,
+            "actual_shares": 15400.0,
+            "prediction_shares": -2312.14501953125
+          }
+        }
+      },
+      "replay_synthetic_targets": {
+        "rows": 100000,
+        "min": -6138.6474609375,
+        "max": 191571.1875,
+        "mean": 4435.91162109375,
+        "negative_count": 1001
+      },
+      "replay_max_abs_difference": 0.006250000005820766,
+      "replay_mean_abs_difference": 6.596307729033396e-05,
+      "negative_rows_with_all_features_within_real_train_ranges": 1001,
+      "negative_rows_outside_at_least_one_real_train_feature_range": 0,
+      "feature_order_verified": true
+    }
+  ]
+}

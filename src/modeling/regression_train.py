@@ -16,11 +16,22 @@ from .models_folder.model_news import DNN_News
 from .trainer import trainer
 from .run_record import write_run_record
 from . import constants
+from commons.log_target import inverse_log_target
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 torch.manual_seed(1)
 
 out_data_path = constants.OUT_DATA_PATHS
+
+
+class LogTargetMSE(nn.Module):
+    def forward(self, output, shares):
+        if not torch.isfinite(shares).all() or torch.any(shares <= 0):
+            raise ValueError('Log training requires finite positive share targets')
+        loss = nn.functional.mse_loss(output, torch.log(shares))
+        if not torch.isfinite(loss):
+            raise ValueError('Non-finite log-target training loss')
+        return loss
 
 class train:
 
@@ -30,8 +41,11 @@ class train:
                         batch_size = 128, learning_rate = 0.001, num_epochs = 10, patience=10, early_stop_criterion='loss', seed=42,
                         eval_metrics = None, metric_to_plot = None,
                         pre_trained_w_file = None,
-                        w_dir = None, acc_dir = None ):
+                        w_dir = None, acc_dir = None, target_transform='raw'):
 
+        if target_transform not in {'raw', 'log'} or (target_transform == 'log' and dataset_name.lower() != 'news'):
+            raise ValueError('Log downstream training is restricted to News')
+        self.target_transform = target_transform
         self.seed = seed
         self.setup_data(dataset_name = dataset_name, train_option = train_option,
                         augment_option = augment_option, mix_ratio = mix_ratio, n_sample = n_sample, test_option = test_option, validation = validation, batch_size = batch_size)
@@ -108,11 +122,11 @@ class train:
     def setup_trainer(self, pre_trained_w_file):
         print("=====Setting up trainer=====")
         input_size = next(iter(self.train_data))[0].shape[1]
-        criterion = nn.MSELoss(reduction = 'mean')
+        criterion = LogTargetMSE() if self.target_transform == 'log' else nn.MSELoss(reduction='mean')
 
         if self.dataset_name.lower() in {"news", "california_housing"}:
-            model = DNN_News(input_size=input_size).to(device)
-            self.model_name = "DNN_News"
+            model = DNN_News(input_size=input_size, batch_norm=self.target_transform != 'log').to(device)
+            self.model_name = "DNN_News_log_no_norm" if self.target_transform == 'log' else "DNN_News"
         else:
             raise ValueError("Unknown dataset name")
 
@@ -242,6 +256,9 @@ class train:
             test_scores={key: float(value) for key, value in test_score.items()},
             predictions_path=os.path.join(self.acc_dir, self.run_id + '.predictions.csv'),
             weight_path=self.w_dir + self.w_file_name,
+            target_transform=({'name': 'log', 'inverse': 'exp', 'normalization': 'none',
+                               'training_loss': 'log_target_mse', 'selection': 'raw_share_mse',
+                               'metric_units': 'shares'} if self.target_transform == 'log' else None),
         )
         self.plot_loss_and_f1_curves(train_losses, train_scores[self.metric_to_plot],
                                      dev_losses, dev_scores[self.metric_to_plot],
@@ -301,7 +318,12 @@ class train:
                 output = self.trainer.model(X)
 
 
-                loss += self.trainer.criterion(output, y).item() * len(y)
+                if self.target_transform == 'log':
+                    # Development checkpoint selection and all metrics stay in shares.
+                    output = torch.as_tensor(inverse_log_target(output.cpu().numpy()), device=device)
+                    loss += nn.functional.mse_loss(output, y).item() * len(y)
+                else:
+                    loss += self.trainer.criterion(output, y).item() * len(y)
 
                 all_preds.extend(output.cpu().numpy())
                 all_labels.extend(y.cpu().numpy())

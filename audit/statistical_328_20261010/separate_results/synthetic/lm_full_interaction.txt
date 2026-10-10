@@ -1,0 +1,93 @@
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:               macro_F1   R-squared:                       0.989
+Model:                            OLS   Adj. R-squared:                  0.978
+Method:                 Least Squares   F-statistic:                     91.70
+Date:                Sat, 10 Oct 2026   Prob (F-statistic):           6.44e-50
+Time:                        13:23:31   Log-Likelihood:                 379.62
+No. Observations:                 140   AIC:                            -619.2
+Df Residuals:                      70   BIC:                            -413.3
+Df Model:                          69                                         
+Covariance Type:            nonrobust                                         
+============================================================================================================================================
+                                                                               coef    std err          t      P>|t|      [0.025      0.975]
+--------------------------------------------------------------------------------------------------------------------------------------------
+Intercept                                                                    0.7577      0.016     47.135      0.000       0.726       0.790
+C(dataset)[T.census_kdd]                                                    -0.0472      0.023     -2.077      0.041      -0.093      -0.002
+C(dataset)[T.covertype]                                                     -0.3101      0.023    -13.640      0.000      -0.355      -0.265
+C(dataset)[T.mnist12]                                                       -0.2739      0.023    -12.047      0.000      -0.319      -0.229
+C(dataset)[T.mnist28]                                                       -0.2114      0.023     -9.299      0.000      -0.257      -0.166
+C(generator)[T.tvae]                                                        -0.0284      0.023     -1.249      0.216      -0.074       0.017
+C(condition)[T.rf_has_y0]                                                    0.0210      0.023      0.924      0.359      -0.024       0.066
+C(condition)[T.rf_has_y1]                                                    0.0085      0.023      0.373      0.710      -0.037       0.054
+C(condition)[T.xgb_has_y0]                                                   0.0229      0.023      1.007      0.317      -0.022       0.068
+C(condition)[T.xgb_has_y1]                                                   0.0115      0.023      0.507      0.613      -0.034       0.057
+C(condition)[T.dnn_has_y0]                                                   0.0281      0.023      1.234      0.221      -0.017       0.073
+C(condition)[T.dnn_has_y1]                                                   0.0241      0.023      1.061      0.292      -0.021       0.069
+C(dataset)[T.census_kdd]:C(generator)[T.tvae]                                0.0300      0.032      0.933      0.354      -0.034       0.094
+C(dataset)[T.covertype]:C(generator)[T.tvae]                                 0.0150      0.032      0.466      0.642      -0.049       0.079
+C(dataset)[T.mnist12]:C(generator)[T.tvae]                                   0.4729      0.032     14.711      0.000       0.409       0.537
+C(dataset)[T.mnist28]:C(generator)[T.tvae]                                   0.4243      0.032     13.198      0.000       0.360       0.488
+C(dataset)[T.census_kdd]:C(condition)[T.rf_has_y0]                           0.0151      0.032      0.470      0.640      -0.049       0.079
+C(dataset)[T.covertype]:C(condition)[T.rf_has_y0]                            0.0730      0.032      2.271      0.026       0.009       0.137
+C(dataset)[T.mnist12]:C(condition)[T.rf_has_y0]                              0.3836      0.032     11.931      0.000       0.319       0.448
+C(dataset)[T.mnist28]:C(condition)[T.rf_has_y0]                              0.3124      0.032      9.716      0.000       0.248       0.376
+C(dataset)[T.census_kdd]:C(condition)[T.rf_has_y1]                           0.0186      0.032      0.578      0.565      -0.046       0.083
+C(dataset)[T.covertype]:C(condition)[T.rf_has_y1]                            0.0989      0.032      3.076      0.003       0.035       0.163
+C(dataset)[T.mnist12]:C(condition)[T.rf_has_y1]                              0.4085      0.032     12.706      0.000       0.344       0.473
+C(dataset)[T.mnist28]:C(condition)[T.rf_has_y1]                              0.3185      0.032      9.907      0.000       0.254       0.383
+C(dataset)[T.census_kdd]:C(condition)[T.xgb_has_y0]                          0.0211      0.032      0.657      0.513      -0.043       0.085
+C(dataset)[T.covertype]:C(condition)[T.xgb_has_y0]                           0.0343      0.032      1.067      0.290      -0.030       0.098
+C(dataset)[T.mnist12]:C(condition)[T.xgb_has_y0]                             0.3968      0.032     12.341      0.000       0.333       0.461
+C(dataset)[T.mnist28]:C(condition)[T.xgb_has_y0]                             0.3194      0.032      9.934      0.000       0.255       0.384
+C(dataset)[T.census_kdd]:C(condition)[T.xgb_has_y1]                          0.0338      0.032      1.053      0.296      -0.030       0.098
+C(dataset)[T.covertype]:C(condition)[T.xgb_has_y1]                           0.0921      0.032      2.866      0.005       0.028       0.156
+C(dataset)[T.mnist12]:C(condition)[T.xgb_has_y1]                             0.4193      0.032     13.041      0.000       0.355       0.483
+C(dataset)[T.mnist28]:C(condition)[T.xgb_has_y1]                             0.3270      0.032     10.170      0.000       0.263       0.391
+C(dataset)[T.census_kdd]:C(condition)[T.dnn_has_y0]                          0.0188      0.032      0.586      0.560      -0.045       0.083
+C(dataset)[T.covertype]:C(condition)[T.dnn_has_y0]                           0.2152      0.032      6.693      0.000       0.151       0.279
+C(dataset)[T.mnist12]:C(condition)[T.dnn_has_y0]                             0.3999      0.032     12.439      0.000       0.336       0.464
+C(dataset)[T.mnist28]:C(condition)[T.dnn_has_y0]                             0.3451      0.032     10.733      0.000       0.281       0.409
+C(dataset)[T.census_kdd]:C(condition)[T.dnn_has_y1]                          0.0201      0.032      0.624      0.534      -0.044       0.084
+C(dataset)[T.covertype]:C(condition)[T.dnn_has_y1]                           0.2409      0.032      7.493      0.000       0.177       0.305
+C(dataset)[T.mnist12]:C(condition)[T.dnn_has_y1]                             0.4130      0.032     12.846      0.000       0.349       0.477
+C(dataset)[T.mnist28]:C(condition)[T.dnn_has_y1]                             0.3489      0.032     10.853      0.000       0.285       0.413
+C(generator)[T.tvae]:C(condition)[T.rf_has_y0]                               0.0295      0.032      0.919      0.361      -0.035       0.094
+C(generator)[T.tvae]:C(condition)[T.rf_has_y1]                               0.0341      0.032      1.060      0.293      -0.030       0.098
+C(generator)[T.tvae]:C(condition)[T.xgb_has_y0]                              0.0325      0.032      1.010      0.316      -0.032       0.097
+C(generator)[T.tvae]:C(condition)[T.xgb_has_y1]                              0.0386      0.032      1.202      0.234      -0.025       0.103
+C(generator)[T.tvae]:C(condition)[T.dnn_has_y0]                              0.0266      0.032      0.826      0.411      -0.038       0.091
+C(generator)[T.tvae]:C(condition)[T.dnn_has_y1]                              0.0302      0.032      0.938      0.351      -0.034       0.094
+C(dataset)[T.census_kdd]:C(generator)[T.tvae]:C(condition)[T.rf_has_y0]     -0.0556      0.045     -1.224      0.225      -0.146       0.035
+C(dataset)[T.covertype]:C(generator)[T.tvae]:C(condition)[T.rf_has_y0]      -0.0957      0.045     -2.104      0.039      -0.186      -0.005
+C(dataset)[T.mnist12]:C(generator)[T.tvae]:C(condition)[T.rf_has_y0]        -0.4340      0.045     -9.544      0.000      -0.525      -0.343
+C(dataset)[T.mnist28]:C(generator)[T.tvae]:C(condition)[T.rf_has_y0]        -0.3596      0.045     -7.908      0.000      -0.450      -0.269
+C(dataset)[T.census_kdd]:C(generator)[T.tvae]:C(condition)[T.rf_has_y1]     -0.0450      0.045     -0.989      0.326      -0.136       0.046
+C(dataset)[T.covertype]:C(generator)[T.tvae]:C(condition)[T.rf_has_y1]      -0.0979      0.045     -2.152      0.035      -0.189      -0.007
+C(dataset)[T.mnist12]:C(generator)[T.tvae]:C(condition)[T.rf_has_y1]        -0.4479      0.045     -9.851      0.000      -0.539      -0.357
+C(dataset)[T.mnist28]:C(generator)[T.tvae]:C(condition)[T.rf_has_y1]        -0.3571      0.045     -7.855      0.000      -0.448      -0.266
+C(dataset)[T.census_kdd]:C(generator)[T.tvae]:C(condition)[T.xgb_has_y0]    -0.0573      0.045     -1.260      0.212      -0.148       0.033
+C(dataset)[T.covertype]:C(generator)[T.tvae]:C(condition)[T.xgb_has_y0]     -0.0680      0.045     -1.497      0.139      -0.159       0.023
+C(dataset)[T.mnist12]:C(generator)[T.tvae]:C(condition)[T.xgb_has_y0]       -0.4384      0.045     -9.642      0.000      -0.529      -0.348
+C(dataset)[T.mnist28]:C(generator)[T.tvae]:C(condition)[T.xgb_has_y0]       -0.3580      0.045     -7.874      0.000      -0.449      -0.267
+C(dataset)[T.census_kdd]:C(generator)[T.tvae]:C(condition)[T.xgb_has_y1]    -0.0528      0.045     -1.161      0.249      -0.143       0.038
+C(dataset)[T.covertype]:C(generator)[T.tvae]:C(condition)[T.xgb_has_y1]     -0.1158      0.045     -2.547      0.013      -0.206      -0.025
+C(dataset)[T.mnist12]:C(generator)[T.tvae]:C(condition)[T.xgb_has_y1]       -0.4563      0.045    -10.037      0.000      -0.547      -0.366
+C(dataset)[T.mnist28]:C(generator)[T.tvae]:C(condition)[T.xgb_has_y1]       -0.3604      0.045     -7.927      0.000      -0.451      -0.270
+C(dataset)[T.census_kdd]:C(generator)[T.tvae]:C(condition)[T.dnn_has_y0]    -0.0377      0.045     -0.828      0.410      -0.128       0.053
+C(dataset)[T.covertype]:C(generator)[T.tvae]:C(condition)[T.dnn_has_y0]     -0.0647      0.045     -1.422      0.159      -0.155       0.026
+C(dataset)[T.mnist12]:C(generator)[T.tvae]:C(condition)[T.dnn_has_y0]       -0.4448      0.045     -9.782      0.000      -0.535      -0.354
+C(dataset)[T.mnist28]:C(generator)[T.tvae]:C(condition)[T.dnn_has_y0]       -0.3823      0.045     -8.408      0.000      -0.473      -0.292
+C(dataset)[T.census_kdd]:C(generator)[T.tvae]:C(condition)[T.dnn_has_y1]    -0.0371      0.045     -0.815      0.418      -0.128       0.054
+C(dataset)[T.covertype]:C(generator)[T.tvae]:C(condition)[T.dnn_has_y1]     -0.0799      0.045     -1.757      0.083      -0.171       0.011
+C(dataset)[T.mnist12]:C(generator)[T.tvae]:C(condition)[T.dnn_has_y1]       -0.4551      0.045    -10.010      0.000      -0.546      -0.364
+C(dataset)[T.mnist28]:C(generator)[T.tvae]:C(condition)[T.dnn_has_y1]       -0.3864      0.045     -8.498      0.000      -0.477      -0.296
+==============================================================================
+Omnibus:                       33.771   Durbin-Watson:                   1.705
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):              430.636
+Skew:                           0.000   Prob(JB):                     3.08e-94
+Kurtosis:                      11.592   Cond. No.                         120.
+==============================================================================
+
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.

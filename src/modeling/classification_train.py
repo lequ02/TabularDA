@@ -12,7 +12,7 @@ from torch import nn
 from torchsummary import summary
 from sklearn.metrics import accuracy_score, average_precision_score, balanced_accuracy_score, f1_score, precision_score, recall_score, roc_auc_score
 
-from .models_folder import model_mnist12, model_mnist28, model_intrusion,model_adult,model_census
+from .models_folder import model_mnist12, model_mnist28, model_multiclass,model_adult,model_census
 from .trainer import trainer
 from .run_record import write_run_record
 from . import constants
@@ -157,12 +157,8 @@ class train:
             criterion = nn.CrossEntropyLoss()
 
 
-        elif self.dataset_name.lower() == "intrusion":
-            model = model_intrusion.DNN_Intrusion(input_size=input_size, output_size=self.data_loader.num_classes).to(device)
-            self.model_name = "DNN_Intrusion"
-            criterion = nn.CrossEntropyLoss()
         elif self.dataset_name.lower() == "covertype":
-            model = model_intrusion.DNN_Intrusion(input_size=input_size, output_size=self.data_loader.num_classes).to(device)
+            model = model_multiclass.DNN_Multiclass(input_size=input_size, output_size=self.data_loader.num_classes).to(device)
             self.model_name = "DNN_Covertype"
             criterion = nn.CrossEntropyLoss()
         # elif self.dataset_name.lower() == "covertype":

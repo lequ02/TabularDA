@@ -1,0 +1,114 @@
+{
+  "launched_at_chicago": "2026-10-08T00:45:26.843057-05:00",
+  "host": "thuy@10.24.10.133",
+  "session": "news_log_pilot_20261008_0048",
+  "command": [
+    "env",
+    "OMP_NUM_THREADS=2",
+    "OPENBLAS_NUM_THREADS=2",
+    "MKL_NUM_THREADS=2",
+    "/home/thuy/miniconda3/envs/env/bin/python",
+    "-u",
+    "scripts/run_news_target_transform_pilot.py",
+    "worker",
+    "--output",
+    "/home/thuy/Research/minh_data_synth/TabularDA/output/news_log_pilot_20261008_0048",
+    "--transform",
+    "log"
+  ],
+  "output_namespace": "/home/thuy/Research/minh_data_synth/TabularDA/output/news_log_pilot_20261008_0048",
+  "worker_log": "/home/thuy/Research/minh_data_synth/TabularDA/output/news_log_pilot_20261008_0048/worker.log",
+  "planned_runs": 3,
+  "seed": 43,
+  "transform": "log",
+  "tables": [
+    "real_only",
+    "ctgan_generated_synthetic",
+    "tvae_generated_synthetic"
+  ],
+  "device": "cpu",
+  "cpu_threads": 2,
+  "resources_before_launch": {
+    "memory": "              total        used        free      shared  buff/cache   available\nMem:           31Gi       7.3Gi       6.8Gi        61Mi        17Gi        23Gi\nSwap:         2.0Gi       297Mi       1.7Gi\n",
+    "gpu": "1244 MiB, 69 %\n",
+    "uptime": " 00:45:26 up 128 days, 13:24,  6 users,  load average: 3.12, 3.17, 3.17\n",
+    "tmux": "research-fast-1: 1 windows (created Wed Oct  7 14:44:00 2026)\nresearch-fast-2: 1 windows (created Wed Oct  7 14:44:00 2026)\nresearch-slow: 1 windows (created Wed Oct  7 14:44:00 2026)\n"
+  },
+  "existing_processes": [
+    "  88832    10:01:26 tmux new-session -d -s research-slow -c /home/thuy/Research/minh_data_synth/TabularDA env OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 MKL_NUM_THREADS=2 MPLBACKEND=Agg /home/thuy/miniconda3/envs/env/bin/python -u /home/thuy/Research/minh_data_synth/TabularDA/.cache/full_completion_20261007/queue_runner.py worker --name research-slow > /home/thuy/Research/minh_data_synth/TabularDA/.cache/full_completion_20261007/research-slow.log 2>&1",
+    "  88833    10:01:26 bash -c env OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 MKL_NUM_THREADS=2 MPLBACKEND=Agg /home/thuy/miniconda3/envs/env/bin/python -u /home/thuy/Research/minh_data_synth/TabularDA/.cache/full_completion_20261007/queue_runner.py worker --name research-slow > /home/thuy/Research/minh_data_synth/TabularDA/.cache/full_completion_20261007/research-slow.log 2>&1",
+    "  88835    10:01:26 /home/thuy/miniconda3/envs/env/bin/python -u /home/thuy/Research/minh_data_synth/TabularDA/.cache/full_completion_20261007/queue_runner.py worker --name research-slow",
+    "  88838    10:01:26 bash -c env OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 MKL_NUM_THREADS=2 MPLBACKEND=Agg /home/thuy/miniconda3/envs/env/bin/python -u /home/thuy/Research/minh_data_synth/TabularDA/.cache/full_completion_20261007/queue_runner.py worker --name research-fast-1 > /home/thuy/Research/minh_data_synth/TabularDA/.cache/full_completion_20261007/research-fast-1.log 2>&1",
+    "  88840    10:01:26 /home/thuy/miniconda3/envs/env/bin/python -u /home/thuy/Research/minh_data_synth/TabularDA/.cache/full_completion_20261007/queue_runner.py worker --name research-fast-1",
+    "  88843    10:01:26 bash -c env OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 MKL_NUM_THREADS=2 MPLBACKEND=Agg /home/thuy/miniconda3/envs/env/bin/python -u /home/thuy/Research/minh_data_synth/TabularDA/.cache/full_completion_20261007/queue_runner.py worker --name research-fast-2 > /home/thuy/Research/minh_data_synth/TabularDA/.cache/full_completion_20261007/research-fast-2.log 2>&1",
+    "  88845    10:01:26 /home/thuy/miniconda3/envs/env/bin/python -u /home/thuy/Research/minh_data_synth/TabularDA/.cache/full_completion_20261007/queue_runner.py worker --name research-fast-2",
+    "  89628    09:58:55 /home/thuy/miniconda3/envs/env/bin/python -u /home/thuy/Research/minh_data_synth/TabularDA/.cache/full_completion_20261007/experiment_task.py fit --dataset mnist28 --seed 43 --generator ctgan --fit full",
+    " 228765       05:11 /home/thuy/miniconda3/envs/env/bin/python -u /home/thuy/Research/minh_data_synth/TabularDA/.cache/full_completion_20261007/queue_runner.py evaluate --run-id news_seed43_ctgan_xonly_dnn_mix",
+    " 228766       05:11 /home/thuy/miniconda3/envs/env/bin/python -u -m modeling --dataset-name news --train-option mix --test-option original --validation 0.2 --batchsize 128 --lr 0.001 --global-round 100 --patience 30 --early-stop-crit loss --seed 43 --augment-option dnn",
+    " 228972       04:48 /home/thuy/miniconda3/envs/env/bin/python -u /home/thuy/Research/minh_data_synth/TabularDA/.cache/full_completion_20261007/queue_runner.py evaluate --run-id news_seed43_ctgan_xonly_dnn_synthetic",
+    " 228973       04:48 /home/thuy/miniconda3/envs/env/bin/python -u -m modeling --dataset-name news --train-option synthetic --test-option original --validation 0.2 --batchsize 128 --lr 0.001 --global-round 100 --patience 30 --early-stop-crit loss --seed 43 --augment-option dnn"
+  ],
+  "latest_existing_logs": {
+    "research-fast-1": "2026-10-08T00:37:04.801917-05:00 START news_seed43_tvae_xonly_xgb_synthetic (evaluate)\n2026-10-08T00:40:38.610095-05:00 COMPLETE news_seed43_tvae_xonly_xgb_synthetic exit=0\n2026-10-08T00:40:38.625389-05:00 START news_seed43_ctgan_xonly_dnn_synthetic (evaluate)\n",
+    "research-fast-2": "2026-10-08T00:39:49.458676-05:00 START news_seed43_ctgan_xonly_dnn_label (label)\n2026-10-08T00:40:15.506654-05:00 COMPLETE news_seed43_ctgan_xonly_dnn_label exit=0\n2026-10-08T00:40:15.531438-05:00 START news_seed43_ctgan_xonly_dnn_mix (evaluate)\n",
+    "research-slow": "2026-10-07T14:44:00.760745-05:00 START mnist28_seed43_prepare (prepare)\n2026-10-07T14:46:31.888912-05:00 COMPLETE mnist28_seed43_prepare exit=0\n2026-10-07T14:46:31.903871-05:00 START mnist28_seed43_ctgan_full_fit_sample (heavy_fit)\n"
+  },
+  "preflight": {
+    "checked_at_chicago": "2026-10-08T00:44:35.012688-05:00",
+    "seeds": {
+      "43": {
+        "namespace": "corrected_v2",
+        "sources": {
+          "train_raw": {
+            "path": "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/news/seed_43/news_seed43_real_train_raw.csv",
+            "sha256": "7f5005b9eed611ccb026845e8844d1f0f9f2f242a1a82c56bc297d64992108cc"
+          },
+          "train_onehot": {
+            "path": "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/news/seed_43/news_seed43_real_train_onehot.csv",
+            "sha256": "7f5005b9eed611ccb026845e8844d1f0f9f2f242a1a82c56bc297d64992108cc"
+          },
+          "dev_raw": {
+            "path": "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/news/seed_43/news_seed43_real_dev_raw.csv",
+            "sha256": "afa4896708e221ce6fb0fd2484dfd94f7c2b0bf83e5d5cd9803e0eb1c29eaae3"
+          },
+          "dev_onehot": {
+            "path": "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/news/seed_43/news_seed43_real_dev_onehot.csv",
+            "sha256": "afa4896708e221ce6fb0fd2484dfd94f7c2b0bf83e5d5cd9803e0eb1c29eaae3"
+          },
+          "test_raw": {
+            "path": "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/news/seed_43/news_seed43_real_test_raw.csv",
+            "sha256": "97a51f5b39185968e7ab9d3c8610f28a12390328be041b7d37181023c16cc8fc"
+          },
+          "test_onehot": {
+            "path": "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/news/seed_43/news_seed43_real_test_onehot.csv",
+            "sha256": "97a51f5b39185968e7ab9d3c8610f28a12390328be041b7d37181023c16cc8fc"
+          },
+          "ctgan": {
+            "path": "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/news/seed_43/news_seed43_ctgan_full_generated_100k.csv",
+            "sha256": "197182bb7f9c51f9db35b83d6ad2cfa8f0fad956208027f6c5dbc3d5cc7a9d46",
+            "generator_sha256": "df342f48cc6b3e7ff63fb32aa5306f253ba06f5fff68d7884b5218dede09cdb2",
+            "provenance_sha256": "e65a7743e2b95b1ca948814c9d34ab6b8f50875aa312228f87ed4f3d522e86ce"
+          },
+          "tvae": {
+            "path": "/home/thuy/Research/minh_data_synth/TabularDA/data/corrected_v2/news/seed_43/news_seed43_tvae_full_generated_100k.csv",
+            "sha256": "c4ccea74c252db438b2273bfe2baf9b6148cf8612a58cefb012a2dc2f482eec4",
+            "generator_sha256": "b919f8eb27ebe18840d99503b91bd7b33b1f864a86f58ca784c128ae4d49b896",
+            "provenance_sha256": "8a063d3b7a20955bde36e631e0336947a9a3d09287361750902b4d90903e073a"
+          }
+        },
+        "manifest_sha256": "2deb0b23c34a36e62550db9f592189aa18b33a2df21a9f5412bb2cc1cc4aee5f",
+        "lambdas": {
+          "raw": null,
+          "log": null,
+          "yeo_johnson": -0.2181941366161931
+        },
+        "rows": {
+          "train": 28543,
+          "dev": 3172,
+          "test": 7929
+        }
+      }
+    },
+    "pilot_script_sha256": "29369fe58c6ee9c29a6c16bf885394abc03ee0b303d086da7f37da25db69a8db"
+  }
+}

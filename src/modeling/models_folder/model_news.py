@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 class DNN_News(nn.Module):
-    def __init__(self, input_size, hidden_sizes=[512, 512, 256, 128], output_size=1):
+    def __init__(self, input_size, hidden_sizes=[512, 512, 256, 128], output_size=1, batch_norm=True):
 
         # add relu output
         # add beginning layer
@@ -12,23 +12,23 @@ class DNN_News(nn.Module):
 
         # Input layer
         self.layer1 = nn.Linear(input_size, hidden_sizes[0])
-        self.bn1 = nn.BatchNorm1d(hidden_sizes[0])
+        self.bn1 = nn.BatchNorm1d(hidden_sizes[0]) if batch_norm else nn.Identity()
         self.act1 = nn.ReLU()
         self.drop1 = nn.Dropout(0.4)
 
         # Hidden layers
         self.layer2 = nn.Linear(hidden_sizes[0], hidden_sizes[1])
-        self.bn2 = nn.BatchNorm1d(hidden_sizes[1])
+        self.bn2 = nn.BatchNorm1d(hidden_sizes[1]) if batch_norm else nn.Identity()
         self.act2 = nn.ReLU()
         self.drop2 = nn.Dropout(0.4)
 
         self.layer3 = nn.Linear(hidden_sizes[1], hidden_sizes[2])
-        self.bn3 = nn.BatchNorm1d(hidden_sizes[2])
+        self.bn3 = nn.BatchNorm1d(hidden_sizes[2]) if batch_norm else nn.Identity()
         self.act3 = nn.ReLU()
         self.drop3 = nn.Dropout(0.4)
 
         self.layer4 = nn.Linear(hidden_sizes[2], hidden_sizes[3])
-        self.bn4 = nn.BatchNorm1d(hidden_sizes[3])
+        self.bn4 = nn.BatchNorm1d(hidden_sizes[3]) if batch_norm else nn.Identity()
         self.act4 = nn.ReLU()
         self.drop4 = nn.Dropout(0.4)
 

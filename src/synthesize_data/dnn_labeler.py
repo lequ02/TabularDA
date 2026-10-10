@@ -28,8 +28,13 @@ def fit_predict_dnn(
     artifact_path=None,
     device_name=None,
     enforce_quality_gate=True,
+    target_transform='raw',
 ):
     """Fit on real train rows, select on real dev rows, and label synthetic X."""
+    if target_transform not in {'raw', 'log'} or (is_classification and target_transform != 'raw'):
+        raise ValueError('Log targets are available only for regression labelers')
+    if target_transform == 'log':
+        from commons.log_target import log_target, inverse_log_target
     if not x_train.columns.equals(x_dev.columns) or not x_train.columns.equals(x_synthetic.columns):
         raise ValueError("Train, dev, and synthetic feature columns must match in order")
 
@@ -82,8 +87,8 @@ def fit_predict_dnn(
         )
         output_count = class_count
     else:
-        train_y = y_train.astype(np.float32)
-        dev_y = y_dev.astype(np.float32)
+        train_y = (log_target(y_train) if target_transform == 'log' else y_train).astype(np.float32)
+        dev_y = (log_target(y_dev) if target_transform == 'log' else y_dev).astype(np.float32)
         if not np.isfinite(train_y).all() or not np.isfinite(dev_y).all():
             raise ValueError("Regression targets contain non-finite values")
         target_mean = float(train_y.mean())
@@ -203,8 +208,12 @@ def fit_predict_dnn(
     else:
         synthetic_pred = synth_output.reshape(-1) * target_scale + target_mean
         dev_pred = dev_output.reshape(-1) * target_scale + target_mean
+        if target_transform == 'log':
+            synthetic_pred = inverse_log_target(synthetic_pred)
+            dev_pred = inverse_log_target(dev_pred)
         r2 = float(r2_score(y_dev, dev_pred))
-        baseline_r2 = float(r2_score(y_dev, np.full(len(y_dev), target_mean)))
+        baseline_mean = float(np.asarray(y_train).mean()) if target_transform == 'log' else target_mean
+        baseline_r2 = float(r2_score(y_dev, np.full(len(y_dev), baseline_mean)))
         report = {
             "dataset": dataset_name, "task": "regression", "seed": seed,
             "selected_epoch": best_epoch, "epochs_run": epoch, "dev_loss": best_loss,
@@ -215,6 +224,9 @@ def fit_predict_dnn(
         }
         quality_passed = r2 > max(0.0, baseline_r2)
     report["quality_gate_passed"] = bool(quality_passed)
+    if target_transform == 'log':
+        report['target_transform'] = 'log'
+        report['dev_loss_units'] = 'standardized_log_target_mse'
     report["quality_gate_enforced"] = bool(enforce_quality_gate)
     _write_report(report_path, report)
     if enforce_quality_gate and not stopped_early:
@@ -234,6 +246,7 @@ def fit_predict_dnn(
             "target_scale": None if is_classification else target_scale,
             "architecture": [train_x.shape[1], 128, 64, output_count],
             "selected_epoch": best_epoch,
+            "target_transform": target_transform,
         }, artifact_path)
     target = pd.DataFrame({target_name: synthetic_pred}, index=x_synthetic.index)
     return pd.concat([x_synthetic.copy(), target], axis=1)

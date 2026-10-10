@@ -1,5 +1,6 @@
 from sdv.single_table import CTGANSynthesizer, TVAESynthesizer
 from sdv.metadata import Metadata
+from rdt.transformers import AnonymizedFaker
 from naive_bayes import create_label_gaussianNB, create_label_categoricalNB, create_label_gmmNB
 from pca_gmm import PCA_GMM
 from bayes_net import create_label_BN, create_label_BN_from_trained
@@ -509,6 +510,8 @@ def load_synthesizer(link, expected_data=None, expected_seed=None):
         raise ValueError('Synthesizer provenance does not match the requested fit table')
   with open(link, 'rb') as file:
     model = pickle.load(file)
+  if any(isinstance(t, AnonymizedFaker) for t in model.get_transformers().values()):
+    raise ValueError('Saved generator uses AnonymizedFaker; refit it in a new output namespace')
   return model
 
 def train_synthesizer_ctgan(data, verbose=False, categorical_columns=None, target_name=None, seed=42):
@@ -523,7 +526,13 @@ def train_synthesizer_ctgan(data, verbose=False, categorical_columns=None, targe
   return synthesizer
 
 def get_metadata(data, verbose=False, categorical_columns=None, target_name=None):
-  metadata = Metadata.detect_from_dataframe(data)
+  # Keep observed columns instead of replacing them with Faker-generated values.
+  metadata = Metadata.detect_from_dataframe(data, infer_keys=None)
+  for column_name, column in metadata.to_dict()['tables']['table']['columns'].items():
+    if column['sdtype'] in {'id', 'unknown'} or column.get('pii', False):
+      sdtype = 'numerical' if pd.api.types.is_numeric_dtype(data[column_name]) else 'categorical'
+      metadata.update_column(table_name='table', column_name=column_name,
+                             sdtype=sdtype)
   categorical = set(categorical_columns or [])
   if target_name is not None:
     categorical.add(target_name)

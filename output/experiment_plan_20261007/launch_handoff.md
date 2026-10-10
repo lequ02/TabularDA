@@ -1,5 +1,7 @@
 # Remote experiment launch — October 7, 2026
 
+**October 8 update:** At 11:53 a.m. Chicago, the user authorized assigning the two independent MNIST28 X-only fits to the idle fast workers. `research-fast-1` claimed CTGAN X-only and `research-fast-2` claimed TVAE X-only; `research-slow` continues full-table TVAE. See [parallel_fits_20261008.md](parallel_fits_20261008.md). The October 7 snapshot below is historical.
+
 All three persistent tmux sessions launched at **2:44 p.m. Chicago** on `thuy@10.24.10.133`. The latest verified snapshot is **3:23:17 p.m. Chicago**. Old sessions `mnist28-news-seed42` and `summer-research` were removed after confirming they contained only dead panes or stale monitors. Their pane histories were saved; completed artifacts were preserved.
 
 The approved queue covers **169 initially missing downstream evaluations and 16 new generator fits**, plus preparation and RF/XGB/DNN relabeling. It includes unfinished CTGAN/TVAE runs and California Housing. Intrusion, NB, PCA/GMM, extra controls, extra seeds, new classification datasets and Tab-DDPM are excluded. The completed simulated benchmark is not rerun.
@@ -10,7 +12,7 @@ The approved queue covers **169 initially missing downstream evaluations and 16 
 | `research-fast-1` | Census 42 → Census 43 → Housing 42 | Census 42 TVAE full-table DNN relabeling, synthetic downstream training |
 | `research-fast-2` | MNIST12 43 → News 43 → Housing 43 | MNIST12 43 TVAE full-table DNN relabeling, synthetic downstream training |
 
-These are default allocations. Workers claim ready tasks under a shared lock, allowing the faster workers to help each other and evaluate MNIST28 tables as they become ready. Only the slow worker claims MNIST28 generator fits. Every task has a single recorded claimant; running work is not duplicated.
+These are default allocations. Workers claim ready tasks under a shared lock, allowing the faster workers to help each other and evaluate MNIST28 tables as they become ready. Initially the slow worker alone claimed MNIST28 generator fits; the October 8 routing adjustment releases the two pending X-only fits to fast workers. Every task has a single recorded claimant; running work is not duplicated.
 
 **Verified progress:** 5/169 new downstream records completed, leaving 164 evaluations unfinished (including the two running evaluations). Three preparation checks and two missing MNIST12 relabeling tables also completed. Across all 242 queue tasks: 10 complete, 3 running, 229 pending, **0 failed**. No new generator fit has completed yet. The five completed evaluations are:
 

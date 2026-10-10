@@ -1,0 +1,147 @@
+{
+  "training_rows": "all real training rows plus 100000 synthetic rows",
+  "classification_rows": 140,
+  "classification_datasets": [
+    "adult",
+    "census_kdd",
+    "covertype",
+    "mnist12",
+    "mnist28"
+  ],
+  "condition_levels": [
+    "generated",
+    "rf_has_y0",
+    "rf_has_y1",
+    "xgb_has_y0",
+    "xgb_has_y1",
+    "dnn_has_y0",
+    "dnn_has_y1"
+  ],
+  "seed_levels": [
+    42,
+    43
+  ],
+  "ols_models": [
+    {
+      "name": "full_interaction",
+      "formula": "macro_F1 ~ C(dataset)*C(generator)*C(condition)",
+      "n": 140,
+      "df_model": 69.0,
+      "df_resid": 70.0,
+      "rank": 70,
+      "columns": 70,
+      "r_squared": 0.9884269511007017,
+      "adjusted_r_squared": 0.9770192314713934,
+      "shapiro_p": 5.067121831814786e-15
+    },
+    {
+      "name": "blocked",
+      "formula": "macro_F1 ~ C(dataset) + C(generator)*C(condition)",
+      "n": 140,
+      "df_model": 17.0,
+      "df_resid": 122.0,
+      "rank": 18,
+      "columns": 18,
+      "r_squared": 0.9035116697244467,
+      "adjusted_r_squared": 0.8900665745221156,
+      "shapiro_p": 8.184298166919465e-08
+    },
+    {
+      "name": "dataset_interaction",
+      "formula": "macro_F1 ~ C(dataset)*C(condition) + C(generator)",
+      "n": 140,
+      "df_model": 35.0,
+      "df_resid": 104.0,
+      "rank": 36,
+      "columns": 36,
+      "r_squared": 0.9616742355506904,
+      "adjusted_r_squared": 0.9487761417456343,
+      "shapiro_p": 2.898164498715933e-17
+    }
+  ],
+  "mixed_model": {
+    "formula": "macro_F1 ~ C(generator)*C(condition) + (1 | dataset)",
+    "converged": true,
+    "n": 140,
+    "dataset_groups": 5,
+    "fixed_columns": 14,
+    "reml": true,
+    "random_intercept_variance": 0.01970520273248047,
+    "residual_variance": 0.0020620780484325303,
+    "warnings": [],
+    "inference": "Normal Wald; random dataset intercept, independent conditional residuals. Does not model dataset-specific treatment slopes or shared heldout uncertainty."
+  },
+  "repeated_model": {
+    "domain": "classification",
+    "metric": "f1_macro",
+    "datasets": [
+      "adult",
+      "census_kdd",
+      "covertype",
+      "mnist12",
+      "mnist28"
+    ],
+    "units": [
+      {
+        "dataset": "adult",
+        "seed": 42,
+        "rows": 14
+      },
+      {
+        "dataset": "adult",
+        "seed": 43,
+        "rows": 14
+      },
+      {
+        "dataset": "census_kdd",
+        "seed": 42,
+        "rows": 14
+      },
+      {
+        "dataset": "census_kdd",
+        "seed": 43,
+        "rows": 14
+      },
+      {
+        "dataset": "covertype",
+        "seed": 42,
+        "rows": 14
+      },
+      {
+        "dataset": "covertype",
+        "seed": 43,
+        "rows": 14
+      },
+      {
+        "dataset": "mnist12",
+        "seed": 42,
+        "rows": 14
+      },
+      {
+        "dataset": "mnist12",
+        "seed": 43,
+        "rows": 14
+      },
+      {
+        "dataset": "mnist28",
+        "seed": 42,
+        "rows": 14
+      },
+      {
+        "dataset": "mnist28",
+        "seed": 43,
+        "rows": 14
+      }
+    ],
+    "rows": 140,
+    "methods_per_generator": 7,
+    "generator_levels": [
+      "ctgan",
+      "tvae"
+    ],
+    "residual_seed_df": 5,
+    "anova_rows": 19
+  },
+  "multiplicity": "Holm across four planned contrasts, twelve method contrasts, and nineteen repeated ANOVA terms; each family is independent within this training analysis.",
+  "caveat": "Seeds share test partitions; five dataset means are the primary independent units. Unadjusted confidence intervals; exact two-sided sign-flip minimum p=0.0625."
+}

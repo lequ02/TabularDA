@@ -4,7 +4,7 @@ import sys
 import os
 import pandas as pd
 import argparse
-from create_synthetic_data import news, census, covertype, intrusion, credit, adult, mnist28, mnist12, census_kdd, california_housing
+from create_synthetic_data import news, census, covertype, credit, adult, mnist28, mnist12, census_kdd, california_housing
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -20,7 +20,6 @@ def single_run(dataset=None, seed=None, generator=None, profile='full', resume_f
       census_kdd.CreateSyntheticDataCensusKdd,
       credit.CreateSyntheticDataCredit,
       covertype.CreateSyntheticDataCovertype,
-      intrusion.CreateSyntheticDataIntrusion,
       mnist12.CreateSyntheticDataMnist12,
       mnist28.CreateSyntheticDataMnist28,
       news.CreateSyntheticDataNews,
@@ -28,7 +27,7 @@ def single_run(dataset=None, seed=None, generator=None, profile='full', resume_f
   ]
   available = {factory.__name__.removeprefix('CreateSyntheticData'): factory for factory in datasets}
   aliases = {'adult': 'Adult', 'census_kdd': 'CensusKdd', 'credit': 'Credit',
-             'covertype': 'Covertype', 'intrusion': 'Intrusion', 'mnist12': 'Mnist12',
+             'covertype': 'Covertype', 'mnist12': 'Mnist12',
              'mnist28': 'Mnist28', 'news': 'News',
              'california_housing': 'CaliforniaHousing'}
   if dataset is not None:
@@ -107,7 +106,7 @@ def create_synthetic_simulated():
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(description='Generate corrected synthetic datasets.')
-  parser.add_argument('--dataset', choices=['adult', 'census_kdd', 'credit', 'covertype', 'intrusion', 'mnist12', 'mnist28', 'news', 'california_housing'])
+  parser.add_argument('--dataset', choices=['adult', 'census_kdd', 'credit', 'covertype', 'mnist12', 'mnist28', 'news', 'california_housing'])
   parser.add_argument('--seed', type=int, choices=[42, 43])
   parser.add_argument('--generator', choices=['CTGAN', 'TVAE', 'TABDDPM'])
   parser.add_argument('--tabddpm-steps', type=int, default=20_000)

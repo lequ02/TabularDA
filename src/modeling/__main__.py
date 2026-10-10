@@ -4,7 +4,7 @@ import argparse
 
 
 CLASSIFICATION_DATASETS = {
-    "adult", "census_kdd", "credit", "covertype", "intrusion",
+    "adult", "census_kdd", "credit", "covertype",
     "mnist12", "mnist28",
 }
 
@@ -26,7 +26,7 @@ def main():
     else:
         parser.error(
             "unsupported dataset; choose adult, census_kdd, credit, covertype, "
-            "intrusion, mnist12, mnist28, news, or california_housing"
+            "mnist12, mnist28, news, or california_housing"
         )
 
     entrypoint.main(entrypoint.parse_args())

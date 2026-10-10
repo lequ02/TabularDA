@@ -28,7 +28,7 @@ def write_run_record(path, *, dataset, seed, train_option, augment_option,
                      synthetic_path, synthetic_label_counts, split_manifest_path,
                      classifier, batch_size, learning_rate, epoch_budget,
                      selected_epoch, selection_metric, test_loss, test_scores,
-                     predictions_path, weight_path):
+                     predictions_path, weight_path, target_transform=None):
     root = Path(__file__).resolve().parents[2]
     code_version = subprocess.check_output(
         ["git", "rev-parse", "HEAD"], cwd=root, text=True
@@ -124,5 +124,7 @@ def write_run_record(path, *, dataset, seed, train_option, augment_option,
     }
     if dataset in {"news", "california_housing"}:
         record["target_normalization"] = target_normalization
+    if target_transform is not None:
+        record['target_transform'] = target_transform
     with open(path, "w", encoding="utf-8") as record_file:
         json.dump(record, record_file, indent=2)

@@ -1,0 +1,133 @@
+{
+  "checked_at_chicago": "2026-10-08T18:13:10.879252-05:00",
+  "simplified_at_user_request": true,
+  "validation": {
+    "source_sha256": "e29894d5fc1fa139f1bad3d9459190a9b590bddcfeebab8fccb10a2873f90c65",
+    "preprocessing_checks": [
+      {
+        "table": "fixture",
+        "generator": "CTGANSynthesizer",
+        "rows": 20,
+        "input_columns": [
+          "Latitude",
+          "Longitude",
+          "email",
+          "name",
+          "row_number",
+          "flag",
+          "binary_feature",
+          "class_target"
+        ],
+        "faker_transformers": 0,
+        "coordinates_unchanged": true
+      },
+      {
+        "table": "fixture",
+        "generator": "TVAESynthesizer",
+        "rows": 20,
+        "input_columns": [
+          "Latitude",
+          "Longitude",
+          "email",
+          "name",
+          "row_number",
+          "flag",
+          "binary_feature",
+          "class_target"
+        ],
+        "faker_transformers": 0,
+        "coordinates_unchanged": true
+      },
+      {
+        "table": "housing_full",
+        "generator": "CTGANSynthesizer",
+        "rows": 14861,
+        "input_columns": [
+          "MedInc",
+          "HouseAge",
+          "AveRooms",
+          "AveBedrms",
+          "Population",
+          "AveOccup",
+          "Latitude",
+          "Longitude",
+          "MedHouseVal"
+        ],
+        "faker_transformers": 0,
+        "coordinates_unchanged": true
+      },
+      {
+        "table": "housing_full",
+        "generator": "TVAESynthesizer",
+        "rows": 14861,
+        "input_columns": [
+          "MedInc",
+          "HouseAge",
+          "AveRooms",
+          "AveBedrms",
+          "Population",
+          "AveOccup",
+          "Latitude",
+          "Longitude",
+          "MedHouseVal"
+        ],
+        "faker_transformers": 0,
+        "coordinates_unchanged": true
+      },
+      {
+        "table": "housing_xonly",
+        "generator": "CTGANSynthesizer",
+        "rows": 14861,
+        "input_columns": [
+          "MedInc",
+          "HouseAge",
+          "AveRooms",
+          "AveBedrms",
+          "Population",
+          "AveOccup",
+          "Latitude",
+          "Longitude"
+        ],
+        "faker_transformers": 0,
+        "coordinates_unchanged": true
+      },
+      {
+        "table": "housing_xonly",
+        "generator": "TVAESynthesizer",
+        "rows": 14861,
+        "input_columns": [
+          "MedInc",
+          "HouseAge",
+          "AveRooms",
+          "AveBedrms",
+          "Population",
+          "AveOccup",
+          "Latitude",
+          "Longitude"
+        ],
+        "faker_transformers": 0,
+        "coordinates_unchanged": true
+      }
+    ],
+    "legacy_rejection": "Saved generator uses AnonymizedFaker; refit it in a new output namespace",
+    "generator_training_performed": false
+  },
+  "deployment": {
+    "source_sha256": "e29894d5fc1fa139f1bad3d9459190a9b590bddcfeebab8fccb10a2873f90c65",
+    "backup": "/home/thuy/Research/minh_data_synth/TabularDA/.cache/faker_simple_20261008_181302/synthesizer.previous.py",
+    "removed_added_check_script": true
+  },
+  "preflight": {
+    "processes": [
+      "  88832  1-03:29:02 tmux new-session -d -s research-slow -c /home/thuy/Research/minh_data_synth/TabularDA env OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 MKL_NUM_THREADS=2 MPLBACKEND=Agg /home/thuy/miniconda3/envs/env/bin/python -u /home/thuy/Research/minh_data_synth/TabularDA/.cache/full_completion_20261007/queue_runner.py worker --name research-slow > /home/thuy/Research/minh_data_synth/TabularDA/.cache/full_completion_20261007/research-slow.log 2>&1",
+      "  88833  1-03:29:02 bash -c env OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 MKL_NUM_THREADS=2 MPLBACKEND=Agg /home/thuy/miniconda3/envs/env/bin/python -u /home/thuy/Research/minh_data_synth/TabularDA/.cache/full_completion_20261007/queue_runner.py worker --name research-slow > /home/thuy/Research/minh_data_synth/TabularDA/.cache/full_completion_20261007/research-slow.log 2>&1",
+      "  88835  1-03:29:02 /home/thuy/miniconda3/envs/env/bin/python -u /home/thuy/Research/minh_data_synth/TabularDA/.cache/full_completion_20261007/queue_runner.py worker --name research-slow",
+      "  88838  1-03:29:02 bash -c env OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 MKL_NUM_THREADS=2 MPLBACKEND=Agg /home/thuy/miniconda3/envs/env/bin/python -u /home/thuy/Research/minh_data_synth/TabularDA/.cache/full_completion_20261007/queue_runner.py worker --name research-fast-1 > /home/thuy/Research/minh_data_synth/TabularDA/.cache/full_completion_20261007/research-fast-1.log 2>&1",
+      "  88840  1-03:29:02 /home/thuy/miniconda3/envs/env/bin/python -u /home/thuy/Research/minh_data_synth/TabularDA/.cache/full_completion_20261007/queue_runner.py worker --name research-fast-1",
+      "  88843  1-03:29:02 bash -c env OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 MKL_NUM_THREADS=2 MPLBACKEND=Agg /home/thuy/miniconda3/envs/env/bin/python -u /home/thuy/Research/minh_data_synth/TabularDA/.cache/full_completion_20261007/queue_runner.py worker --name research-fast-2 > /home/thuy/Research/minh_data_synth/TabularDA/.cache/full_completion_20261007/research-fast-2.log 2>&1",
+      "  88845  1-03:29:02 /home/thuy/miniconda3/envs/env/bin/python -u /home/thuy/Research/minh_data_synth/TabularDA/.cache/full_completion_20261007/queue_runner.py worker --name research-fast-2",
+      " 388124    06:19:23 /home/thuy/miniconda3/envs/env/bin/python -u /home/thuy/Research/minh_data_synth/TabularDA/.cache/full_completion_20261007/experiment_task.py fit --dataset mnist28 --seed 43 --generator ctgan --fit xonly"
+    ]
+  },
+  "existing_results_rewritten": false
+}

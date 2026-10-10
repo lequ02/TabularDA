@@ -13,7 +13,7 @@ os.environ.setdefault('CORRECTED_RUN_NAMESPACE', 'corrected_v2')
 sys.path.insert(0, str(ROOT / 'src'))
 from modeling import constants
 DATASETS = (
-    "adult", "census_kdd", "credit", "covertype", "intrusion",
+    "adult", "census_kdd", "credit", "covertype",
     "mnist12", "mnist28", "news", "california_housing",
 )
 SEEDS = (42, 43)
