@@ -106,7 +106,7 @@ class DNN_MNIST12(nn.Module):
         x = self.drop3(self.bn3(self.act3(self.layer3(x))))
         # x = self.drop4(self.bn4(self.act4(self.layer4(x))))
 
-        return x
+        return self.output(x)
 
     def train(self, mode=True):
         super().train(mode)
