@@ -1,0 +1,48 @@
+\begin{table}[ht]
+\centering
+{\small
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{lrrrr}
+\toprule
+Construction & Seed & CTGAN & TVAE & TabDDPM \\
+\midrule
+Real only & 42 & 47.93 & 47.93 & 47.93 \\
+ & 43 & 53.00 & 53.00 & --- \\
+\midrule
+\multicolumn{5}{l}{\textit{Synthetic-only training}} \\
+Generated target & 42 & 44.63 & 43.28 & --- \\
+ & 43 & 44.89 & 43.56 & --- \\
+Joint + RF & 42 & 54.06 & 45.10 & --- \\
+ & 43 & 56.94 & 50.47 & --- \\
+Joint + XGB & 42 & 59.78 & 42.94 & --- \\
+ & 43 & 50.48 & 49.20 & --- \\
+Joint + DNN & 42 & 72.92 & 66.12 & --- \\
+ & 43 & 69.60 & 63.79 & --- \\
+X-only + RF & 42 & 55.59 & 47.43 & --- \\
+ & 43 & 52.73 & 44.99 & --- \\
+X-only + XGB & 42 & 56.15 & 45.69 & --- \\
+ & 43 & 44.81 & 45.48 & --- \\
+X-only + DNN & 42 & 68.92 & 62.18 & --- \\
+ & 43 & 69.25 & 65.69 & --- \\
+\midrule
+\multicolumn{5}{l}{\textit{Real + synthetic training}} \\
+Generated target & 42 & 49.86 & 47.89 & --- \\
+ & 43 & 49.37 & 49.95 & --- \\
+Joint + RF & 42 & 56.22 & 54.21 & --- \\
+ & 43 & 54.06 & 58.94 & --- \\
+Joint + XGB & 42 & 62.51 & 60.85 & --- \\
+ & 43 & 58.83 & 58.31 & --- \\
+Joint + DNN & 42 & 78.25 & 75.10 & --- \\
+ & 43 & 75.18 & 70.94 & --- \\
+X-only + RF & 42 & 58.85 & 53.91 & --- \\
+ & 43 & 55.96 & 54.61 & --- \\
+X-only + XGB & 42 & 53.22 & 54.64 & --- \\
+ & 43 & 62.57 & 56.56 & --- \\
+X-only + DNN & 42 & 74.09 & 73.12 & --- \\
+ & 43 & 75.43 & 73.19 & --- \\
+\bottomrule
+\end{tabular}
+}
+\caption{Covertype. Macro F1 (\%, higher is better). Joint uses baseline features; X-only uses a separate fit. Real-only references are repeated. TabDDPM is preliminary; --- denotes an unfinished entry.}
+\label{tab:covertype}
+\end{table}

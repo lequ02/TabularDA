@@ -1,0 +1,48 @@
+\begin{table}[ht]
+\centering
+{\small
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{lrrrr}
+\toprule
+Construction & Seed & CTGAN & TVAE & TabDDPM \\
+\midrule
+Real only & 42 & 0.525/0.540 & 0.525/0.540 & 0.525/0.540 \\
+ & 43 & 0.500/0.561 & 0.500/0.561 & --- \\
+\midrule
+\multicolumn{5}{l}{\textit{Synthetic-only training}} \\
+Generated target & 42 & 0.608/0.467 & 0.700/0.391 & 0.802/0.303 \\
+ & 43 & 0.655/0.432 & 0.729/0.368 & --- \\
+Joint + RF & 42 & 0.788/0.308 & 0.785/0.324 & 0.798/0.303 \\
+ & 43 & 0.791/0.308 & 0.784/0.319 & --- \\
+Joint + XGB & 42 & 0.813/0.287 & 0.821/0.288 & 0.830/0.277 \\
+ & 43 & 0.821/0.285 & 0.821/0.285 & --- \\
+Joint + DNN & 42 & 0.801/0.297 & 0.698/0.319 & --- \\
+ & 43 & 0.799/0.302 & 0.794/0.304 & --- \\
+X-only + RF & 42 & 0.785/0.325 & 0.773/0.332 & --- \\
+ & 43 & 0.795/0.311 & 0.785/0.323 & --- \\
+X-only + XGB & 42 & 0.822/0.289 & 0.815/0.290 & --- \\
+ & 43 & 0.817/0.292 & 0.820/0.290 & --- \\
+X-only + DNN & 42 & 0.807/0.299 & 0.729/0.300 & --- \\
+ & 43 & 0.801/0.303 & 0.786/0.304 & --- \\
+\midrule
+\multicolumn{5}{l}{\textit{Real + synthetic training}} \\
+Generated target & 42 & 0.609/0.462 & 0.673/0.396 & 0.800/0.309 \\
+ & 43 & 0.662/0.430 & 0.726/0.367 & --- \\
+Joint + RF & 42 & 0.782/0.315 & 0.778/0.328 & 0.795/0.309 \\
+ & 43 & 0.791/0.313 & 0.774/0.331 & --- \\
+Joint + XGB & 42 & 0.803/0.295 & 0.749/0.298 & --- \\
+ & 43 & 0.823/0.284 & 0.775/0.293 & --- \\
+Joint + DNN & 42 & 0.801/0.298 & 0.807/0.301 & --- \\
+ & 43 & 0.774/0.301 & 0.789/0.305 & --- \\
+X-only + RF & 42 & 0.790/0.316 & 0.759/0.343 & --- \\
+ & 43 & 0.774/0.317 & 0.762/0.339 & --- \\
+X-only + XGB & 42 & 0.815/0.291 & 0.801/0.307 & --- \\
+ & 43 & 0.804/0.298 & 0.799/0.297 & --- \\
+X-only + DNN & 42 & 0.807/0.298 & 0.789/0.304 & --- \\
+ & 43 & 0.798/0.303 & 0.786/0.309 & --- \\
+\bottomrule
+\end{tabular}
+}
+\caption{California Housing. $R^2$ / $\mathrm{NMAE}_{\sigma}$ (higher / lower is better). Joint uses baseline features; X-only uses a separate fit. Real-only references are repeated. TabDDPM is preliminary; --- denotes an unfinished entry.}
+\label{tab:california-housing}
+\end{table}

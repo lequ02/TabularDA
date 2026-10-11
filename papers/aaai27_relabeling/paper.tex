@@ -1,0 +1,199 @@
+% Manuscript scaffold: section headers, measured results, and dataset construction.
+% Unwritten prose remains in comments rather than appearing as instructions.
+\documentclass[letterpaper]{article}
+\usepackage[submission]{aaai2027}
+\usepackage[hyphens]{url}
+\usepackage{graphicx}
+\urlstyle{rm}
+\def\UrlFont{\rm}
+\usepackage{natbib}
+\usepackage{caption}
+\frenchspacing
+\usepackage{booktabs}
+\pdfinfo{/TemplateVersion (2027.1)}
+\setcounter{secnumdepth}{2}
+\title{Target Assignment in Synthetic Tabular Data}
+\author{Anonymous Authors}
+\affiliations{}
+\begin{document}
+\maketitle
+\begin{abstract}
+% Write after the main claims and results are settled.
+\end{abstract}
+
+\section{Introduction}
+% Motivation, target-assignment question, and bounded contributions.
+\section{Related Work}
+% Synthetic tabular data, predictive utility, and supervised target assignment.
+
+\section{Target Assignment in Synthetic Tables}
+We compare three constructions. A joint generator produces $(\widetilde X,
+\widetilde Y)$; the generated-target baseline retains both. Joint relabeling
+retains exactly the same $\widetilde X$ and replaces $\widetilde Y$ with
+$h(\widetilde X)$, where $h$ is trained on real training data. Features-only
+relabeling fits a separate generator to $X$ and assigns targets with the
+same labeler. We evaluate CTGAN and TVAE~\citep{xu2019ctgan} and include
+the ongoing TabDDPM comparison~\citep{kotelnikov2023tabddpm}.
+\subsection{Learning the Target Predictor}
+% Labelers, hard classification decisions, and regression predictions.
+\subsection{Synthetic-only and Mixed Training}
+% Define the two training regimes and the real-only reference.
+
+\section{Experimental Setup}
+\subsection{Real-data Benchmark}
+The selected benchmark contains Adult, Census KDD, Covertype, MNIST12,
+MNIST28, News, and California Housing, with experiment seeds 42 and 43.
+Rows are partitioned before fitted preprocessing. Identical feature groups
+are kept together, split state 42 is shared across experiment seeds, and
+rare-class protection can change the realized partition sizes. Encodings,
+scaling, generators, and labelers are fitted on training data. Real
+development data select downstream checkpoints; real test data evaluate
+the selected checkpoint.
+
+Generators use 500 epochs, batch size 500, and 100,000 synthetic rows.
+Mixed training concatenates all real training rows and all synthetic rows.
+RF, XGB, and DNN are target predictors. Neural networks
+evaluate downstream utility. The TabDDPM comparison uses unconditional
+joint and features-only models under this protocol; it is not a replication
+of the original paper's conditional classification protocol.
+
+\subsection{Construction of the Simulated Datasets}
+The known-distribution benchmark separates prediction from recovery of
+the original joint distribution. Each dataset has independent training
+and test draws of 10,000 rows, and each synthetic table has 10,000 rows.
+Experiment seeds are 42 and 43. CTGAN and TVAE use 300 epochs and batch
+size 500. The seven datasets comprise three mixed continuous/categorical
+distributions and four categorical Bayesian networks.
+
+\subsubsection{Gaussian, Grid, and Ring}
+Each row contains two continuous features $X_0,X_1$, a binary feature $C$,
+and a binary target $Y$. Gaussian draws $X_0$ and $X_1$ independently from
+$\mathcal N(0,1)$. Grid independently selects each coordinate's center
+uniformly from $\{-4,-2,0,2,4\}$, adds Gaussian noise of standard deviation
+$0.2$, and divides by $\sqrt{8+0.2^2}$. It has 25 modes on a five-by-five
+grid. Ring selects one of eight equally spaced centers on the unit circle,
+adds isotropic Gaussian noise of standard deviation $0.2$, and divides
+both coordinates by $\sqrt{0.5+0.2^2}$. Its coordinates are dependent.
+
+All three use the same conditional feature and target rules:
+\begin{equation}
+ C\mid X\sim\mathrm{Bernoulli}\!\left(\sigma(2X_0X_1)\right),
+\end{equation}
+where $\sigma$ is the logistic function, and
+\begin{equation}
+ h^*(X,C)=\mathbf 1\{X_1+[1+0.75(2C-1)]X_0>0\}.
+\end{equation}
+The observed target is $Y=h^*(X,C)\mathbin{\oplus}E$, with independent
+$E\sim\mathrm{Bernoulli}(0.10)$ and exclusive-or $\oplus$.
+Thus the Bayes accuracy is $0.90$. Conditioning on $C$ changes the
+decision boundary, as shown in Figure~\ref{fig:simulated-construction}.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/simulated_construction.pdf}
+\caption{Gaussian, Grid, and Ring, conditioned on the binary feature $C$.
+Points are original-process rows; circles denote $Y=0$ and triangles
+denote $Y=1$. Dashed lines show the Bayes decision boundary. Each dataset
+is illustrated with 2,000 saved rows (seed 7), independent of the
+benchmark's 10,000-row draws with seeds 42 and 43.}
+\label{fig:simulated-construction}
+\end{figure*}
+
+\subsubsection{Categorical Bayesian Networks}
+Asia, Alarm, Child, and Insurance use the packaged graphs and their
+original conditional probability tables. We sample ancestrally from each
+network, designate one node as the target (Table~\ref{tab:simulated-schema}),
+and observe every other node as a feature. State codes are categorical,
+not ordinal. No additional label noise is introduced. Figure~\ref{fig:asia}
+shows Asia as an example. Oracle posteriors are computed by enumerating
+the target states with the other nodes observed. Bayes accuracy is
+estimated by averaging the maximum posterior over independent test features.
+\input{tables/simulated_schema.tex}
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/asia_graph.pdf}
+\caption{The Asia network. The boxed node, \texttt{dysp}, is the target;
+all other nodes are observed features. Arrows and conditional probability
+tables define the original joint distribution used to sample rows.}
+\label{fig:asia}
+\end{figure}
+
+\subsection{Evaluation Metrics}
+Real-data classification tables report the metric used in the dataset
+comparison: binary and macro F1 for Adult and Census KDD, macro F1 for
+Covertype, and accuracy for MNIST12 and MNIST28. Regression tables report
+$R^2$ and $D^2$ absolute error. $D^2$ is one minus the test MAE divided
+by the MAE of the constant test-median predictor. Both metrics are
+unscaled; higher is better.
+
+The simulated benchmark reports accuracy against observed targets,
+macro F1, and agreement with $h^*$. $L_{\rm syn}$ scores training rows
+under the known original joint distribution. $L_{\rm test}$ fits a
+normalized density to the training table and scores independent original
+test rows; it is a density-refit proxy. Bayesian-network likelihood
+reports use $\log(p+10^{-8})$ once on the full joint probability and track
+exact-zero support violations separately.
+
+\FloatBarrier
+\section{Results on Real Data}
+Tables~\ref{tab:real-synthetic} and~\ref{tab:real-mix} compare generated
+targets with X-only relabeling in the two training regimes. TabDDPM
+results are partial.
+\subsection{Generated Targets versus Predicted Targets}
+\input{tables/real_synthetic.tex}
+\input{tables/real_mix.tex}
+\subsection{Contrast Analysis}
+We evaluate two contrasts separately in each training regime. Relabeled
+minus generated compares predicted targets with generated targets,
+averaging equally over CTGAN/TVAE, RF/XGB/DNN, seeds 42/43, and both
+relabeled feature sources. Joint minus X-only compares the two feature
+sources with predicted targets in both arms, matching generator, labeler,
+and seed. TabDDPM is excluded from these contrasts because its matrix
+is incomplete.
+
+Classification inference uses one macro-F1 contrast per dataset, with
+equal weight for all five tasks (Table~\ref{tab:classification-contrasts}).
+The two-sided paired $t$ tests have four degrees of freedom. Confidence
+intervals are pointwise 95\%, and $p$ values are unadjusted. The contrast
+questions were selected after earlier analyses, so these tests are
+exploratory.
+
+Regression tests use matched held-out predictions for each fixed task
+(Table~\ref{tab:regression-contrasts}). We average each case's loss over
+the specified fits before comparing constructions. Reductions in squared
+and absolute error correspond to gains in $R^2$ and $D^2$, respectively.
+We use 99,999 paired sign flips, giving identical-feature groups a common
+sign, and compare the absolute permuted and observed mean contrasts.
+The raw $p$ value is $(b+1)/100{,}000$, where $b$ counts permutations at
+least as extreme. These exploratory tests assume independent groups with
+sign-exchangeable loss contrasts under the null. They are conditional on
+the fitted models and do not estimate variation from retraining.
+\input{tables/classification_contrasts.tex}
+\input{tables/regression_contrasts.tex}
+
+\section{Results under Known Distributions}
+\input{tables/oracle.tex}
+% Interpret utility, Bayes agreement, and the two density scores separately.
+\subsection{Predictive Utility and Bayes Agreement}
+% Full method comparisons and paired joint-target replacement effects.
+\subsection{Joint-distribution Fidelity}
+% Conditional noise, support violations, and density-refit behavior.
+
+\section{Discussion}
+\subsection{When Does Target Replacement Help?}
+% Explain task-level heterogeneity without selecting labelers on test scores.
+\subsection{Does the Generator Need to Model the Target?}
+% Compare joint and features-only sources after fixing the labeler.
+
+\section{Limitations}
+The two experiment seeds share real-data partitions, and MNIST12 and
+MNIST28 are related tasks. The corrected MNIST12 TVAE data retain the
+documented exact feature-collision caveat; train-only fitting does not
+establish that every test feature vector is unseen. Hard relabeling does
+not reproduce independent target noise. Density-refit scores depend on
+the specified estimators. The TabDDPM matrix is incomplete.
+
+\section{Conclusion}
+% Write once the claims and the complete generator comparison are settled.
+\bibliography{references}
+\end{document}

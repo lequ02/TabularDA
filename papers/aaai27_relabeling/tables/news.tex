@@ -1,0 +1,48 @@
+\begin{table}[ht]
+\centering
+{\small
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{lrrrr}
+\toprule
+Construction & Seed & CTGAN & TVAE & TabDDPM \\
+\midrule
+Real only & 42 & 0.005/0.279 & 0.005/0.279 & --- \\
+ & 43 & -0.063/0.258 & -0.063/0.258 & --- \\
+\midrule
+\multicolumn{5}{l}{\textit{Synthetic-only training}} \\
+Generated target & 42 & -0.014/0.254 & -0.029/0.256 & --- \\
+ & 43 & -0.025/0.252 & -0.026/0.256 & --- \\
+Joint + RF & 42 & -0.005/0.258 & 0.002/0.259 & --- \\
+ & 43 & -0.001/0.259 & -0.001/0.259 & --- \\
+Joint + XGB & 42 & -0.013/0.253 & 0.000/0.260 & --- \\
+ & 43 & -0.000/0.258 & -0.005/0.260 & --- \\
+Joint + DNN & 42 & 0.002/0.256 & 0.013/0.265 & --- \\
+ & 43 & 0.000/0.255 & 0.003/0.264 & --- \\
+X-only + RF & 42 & -0.000/0.257 & 0.003/0.258 & --- \\
+ & 43 & -0.001/0.258 & 0.002/0.257 & --- \\
+X-only + XGB & 42 & 0.000/0.261 & 0.004/0.269 & --- \\
+ & 43 & -0.000/0.259 & 0.000/0.262 & --- \\
+X-only + DNN & 42 & 0.002/0.255 & 0.011/0.265 & --- \\
+ & 43 & 0.002/0.255 & 0.009/0.260 & --- \\
+\midrule
+\multicolumn{5}{l}{\textit{Real + synthetic training}} \\
+Generated target & 42 & -0.008/0.252 & -0.022/0.248 & --- \\
+ & 43 & -0.026/0.250 & -0.022/0.248 & --- \\
+Joint + RF & 42 & -0.003/0.255 & -0.003/0.255 & --- \\
+ & 43 & -0.002/0.255 & 0.000/0.256 & --- \\
+Joint + XGB & 42 & -0.004/0.254 & -0.002/0.253 & --- \\
+ & 43 & 0.000/0.256 & -0.000/0.255 & --- \\
+Joint + DNN & 42 & 0.001/0.253 & 0.002/0.255 & --- \\
+ & 43 & 0.002/0.253 & -0.001/0.253 & --- \\
+X-only + RF & 42 & -0.002/0.255 & 0.002/0.258 & --- \\
+ & 43 & -0.002/0.255 & -0.001/0.256 & --- \\
+X-only + XGB & 42 & 0.002/0.259 & -0.000/0.258 & --- \\
+ & 43 & 0.003/0.255 & -0.001/0.252 & --- \\
+X-only + DNN & 42 & 0.000/0.252 & 0.004/0.257 & --- \\
+ & 43 & -0.001/0.251 & -0.001/0.252 & --- \\
+\bottomrule
+\end{tabular}
+}
+\caption{News. $R^2$ / $\mathrm{NMAE}_{\sigma}$ (higher / lower is better). Joint uses baseline features; X-only uses a separate fit. Real-only references are repeated. TabDDPM is preliminary; --- denotes an unfinished entry.}
+\label{tab:news}
+\end{table}

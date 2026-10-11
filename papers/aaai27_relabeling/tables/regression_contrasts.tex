@@ -1,0 +1,31 @@
+\begin{table*}[t]
+\centering
+\setlength{\tabcolsep}{9pt}
+\begin{tabular}{@{}llrrrr@{}}
+\toprule
+\multicolumn{6}{c}{\textbf{(a) $R^2$}} \\
+\textbf{Training} & \textbf{Contrast} & \multicolumn{2}{c}{\textbf{News}} & \multicolumn{2}{c}{\textbf{Housing}} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+ & & Gain & Raw $p$ & Gain & Raw $p$ \\
+\midrule
+Synthetic-only & Relabeled $-$ generated & +0.0246 & $<0.0001$ & +0.1208 & $<0.0001$ \\
+ & Joint $-$ X-only & -0.0031 & $<0.0001$ & -0.0015 & 0.0336 \\
+\midrule
+Mix & Relabeled $-$ generated & +0.0192 & $<0.0001$ & +0.1212 & $<0.0001$ \\
+ & Joint $-$ X-only & -0.0010 & 0.0563 & -0.0033 & 1.0000 \\
+\midrule
+\multicolumn{6}{c}{\textbf{(b) $D^2$ absolute error}} \\
+\textbf{Training} & \textbf{Contrast} & \multicolumn{2}{c}{\textbf{News}} & \multicolumn{2}{c}{\textbf{Housing}} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+ & & Gain & Raw $p$ & Gain & Raw $p$ \\
+\midrule
+Synthetic-only & Relabeled $-$ generated & -0.0178 & $<0.0001$ & +0.1448 & $<0.0001$ \\
+ & Joint $-$ X-only & +0.0038 & $<0.0001$ & +0.0036 & $<0.0001$ \\
+\midrule
+Mix & Relabeled $-$ generated & -0.0208 & $<0.0001$ & +0.1382 & $<0.0001$ \\
+ & Joint $-$ X-only & +0.0025 & $<0.0001$ & +0.0066 & $<0.0001$ \\
+\bottomrule
+\end{tabular}
+\caption{Regression contrasts with unadjusted, two-sided paired permutation $p$ values (99,999 group sign flips). Gains are unscaled; positive values favor the first construction. CTGAN/TVAE, RF/XGB/DNN, and seeds 42/43 receive equal weight. Tests use squared error for $R^2$ and absolute error for $D^2$ on 7,929 News and 4,128 Housing test rows. Inference is exploratory and conditional on the fitted models; it does not measure retraining variability.}
+\label{tab:regression-contrasts}
+\end{table*}

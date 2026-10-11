@@ -1,0 +1,48 @@
+\begin{table}[ht]
+\centering
+{\small
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{lrrrr}
+\toprule
+Construction & Seed & CTGAN & TVAE & TabDDPM \\
+\midrule
+Real only & 42 & 66.93/78.89 & 66.93/78.89 & 66.93/78.89 \\
+ & 43 & 67.97/79.38 & 67.97/79.38 & --- \\
+\midrule
+\multicolumn{5}{l}{\textit{Synthetic-only training}} \\
+Generated target & 42 & 59.71/74.72 & 59.13/74.13 & --- \\
+ & 43 & 63.72/76.82 & 54.36/71.73 & --- \\
+Joint + RF & 42 & 62.25/76.15 & 65.87/78.11 & --- \\
+ & 43 & 64.07/77.09 & 62.67/76.26 & --- \\
+Joint + XGB & 42 & 62.30/76.19 & 67.30/78.55 & --- \\
+ & 43 & 65.62/77.66 & 65.15/77.34 & --- \\
+Joint + DNN & 42 & 68.83/78.44 & 68.21/78.24 & --- \\
+ & 43 & 67.72/77.92 & 68.00/78.48 & --- \\
+X-only + RF & 42 & 64.81/77.49 & 65.73/77.82 & --- \\
+ & 43 & 66.45/78.25 & 65.99/78.14 & --- \\
+X-only + XGB & 42 & 66.16/77.87 & 66.76/78.38 & --- \\
+ & 43 & 66.70/78.25 & 67.06/78.56 & --- \\
+X-only + DNN & 42 & 68.62/78.43 & 68.70/78.33 & --- \\
+ & 43 & 68.66/78.72 & 68.40/78.46 & --- \\
+\midrule
+\multicolumn{5}{l}{\textit{Real + synthetic training}} \\
+Generated target & 42 & 62.71/76.46 & 56.70/73.31 & --- \\
+ & 43 & 67.62/78.93 & 63.66/76.59 & --- \\
+Joint + RF & 42 & 60.31/75.23 & 66.03/78.03 & --- \\
+ & 43 & 68.84/79.45 & 62.66/76.40 & --- \\
+Joint + XGB & 42 & 60.06/75.14 & 67.27/78.55 & --- \\
+ & 43 & 66.35/78.00 & 65.44/77.68 & --- \\
+Joint + DNN & 42 & 68.60/78.18 & 68.55/78.60 & --- \\
+ & 43 & 67.69/77.77 & 68.58/78.79 & --- \\
+X-only + RF & 42 & 67.26/79.05 & 64.67/77.42 & --- \\
+ & 43 & 66.15/78.15 & 65.70/78.11 & --- \\
+X-only + XGB & 42 & 65.74/77.76 & 66.48/78.36 & --- \\
+ & 43 & 67.14/78.64 & 67.19/78.77 & --- \\
+X-only + DNN & 42 & 68.49/78.11 & 69.02/78.71 & --- \\
+ & 43 & 68.75/78.62 & 68.92/79.11 & --- \\
+\bottomrule
+\end{tabular}
+}
+\caption{Adult. Binary F1 / macro F1 (\%, higher is better). Joint uses baseline features; X-only uses a separate fit. Real-only references are repeated. TabDDPM is preliminary; --- denotes an unfinished entry.}
+\label{tab:adult}
+\end{table}

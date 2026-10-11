@@ -1,0 +1,58 @@
+\begin{table*}[!t]
+\centering
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+\multicolumn{8}{@{}l}{\textbf{(a) Classification (\%)}} \\
+\addlinespace
+\textbf{Method} & \multicolumn{2}{c}{\textbf{Adult}} & \multicolumn{2}{c}{\textbf{Census KDD}} & \multicolumn{1}{c}{\textbf{Covertype}} & \multicolumn{1}{c}{\textbf{MNIST12}} & \multicolumn{1}{c}{\textbf{MNIST28}} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-6}\cmidrule(lr){7-7}\cmidrule(lr){8-8}
+ & Binary F1 & Macro F1 & Binary F1 & Macro F1 & Macro F1 & Accuracy & Accuracy \\
+\midrule
+Real only & 67.45 & \textbf{79.14} & \textbf{55.21} & \underline{75.63} & 50.47 & \textbf{95.63} & \textbf{97.97} \\
+\midrule
+\multicolumn{8}{@{}l}{\textbf{Baselines: generated targets}} \\
+CTGAN & 61.71 & 75.77 & 47.42 & 71.05 & 44.76 & 54.02 & 57.26 \\
+TVAE & 56.74 & 72.93 & 47.00 & 71.21 & 43.42 & 92.83 & 94.20 \\
+TabDDPM & --- & --- & --- & --- & --- & --- & --- \\
+\midrule
+\multicolumn{8}{@{}l}{\textbf{Our methods: X-only + predicted targets}} \\
+CTGAN-X + RF & 65.63 & 77.87 & 52.75 & 74.66 & 54.16 & 88.83 & 87.95 \\
+CTGAN-X + XGB & 66.43 & 78.06 & 54.24 & 75.45 & 50.48 & 90.28 & 88.83 \\
+CTGAN-X + DNN & \textbf{68.64} & \underline{78.57} & \underline{54.40} & \textbf{75.74} & \textbf{69.09} & 91.14 & 91.95 \\
+\addlinespace
+TVAE-X + RF & 65.86 & 77.98 & 48.53 & 72.21 & 46.21 & 92.84 & 94.55 \\
+TVAE-X + XGB & 66.91 & 78.47 & 49.92 & 73.13 & 45.59 & \underline{94.20} & 95.89 \\
+TVAE-X + DNN & \underline{68.55} & 78.39 & 52.85 & 74.79 & \underline{63.94} & 93.80 & \underline{95.95} \\
+\bottomrule
+\end{tabular}
+\par\medskip
+\setlength{\tabcolsep}{16pt}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+\multicolumn{5}{@{}l}{\textbf{(b) Regression}} \\
+\addlinespace
+\textbf{Method} & \multicolumn{2}{c}{\textbf{News}} & \multicolumn{2}{c}{\textbf{Housing}} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+ & $R^2$ & $D^2$ & $R^2$ & $D^2$ \\
+\midrule
+Real only & -0.0290 & -0.0445 & 0.5125 & 0.2822 \\
+\midrule
+\multicolumn{5}{@{}l}{\textbf{Baselines: generated targets}} \\
+CTGAN & -0.0195 & \textbf{0.0150} & 0.6315 & 0.4136 \\
+TVAE & -0.0274 & 0.0049 & 0.7145 & 0.5054 \\
+TabDDPM & --- & --- & 0.8020$^{\dagger}$ & 0.6045$^{\dagger}$ \\
+\midrule
+\multicolumn{5}{@{}l}{\textbf{Our methods: X-only + predicted targets}} \\
+CTGAN-X + RF & -0.0003 & -0.0006 & 0.7900 & 0.5857 \\
+CTGAN-X + XGB & 0.0000 & -0.0104 & \textbf{0.8195} & \underline{0.6212} \\
+CTGAN-X + DNN & 0.0018 & \underline{0.0074} & 0.8039 & 0.6075 \\
+\addlinespace
+TVAE-X + RF & \underline{0.0026} & -0.0026 & 0.7790 & 0.5732 \\
+TVAE-X + XGB & 0.0020 & -0.0319 & \underline{0.8173} & \textbf{0.6217} \\
+TVAE-X + DNN & \textbf{0.0102} & -0.0208 & 0.7577 & 0.6061 \\
+\bottomrule
+\end{tabular}
+\caption{Synthetic-only training. Means over seeds 42/43; higher is better for every metric. $D^2$ uses absolute error relative to the test-median baseline. G-X fits generator G to features only, then uses the named labeler. Bold: best; underline: second-best distinct displayed mean, including real-only and ties. $\dagger$: seed 42 only, excluded from ranking; ---: no completed entry in the October 11, 2026, 00:25 Chicago TabDDPM snapshot. TabDDPM X-only results are unavailable. MNIST12 TVAE retains the feature-collision caveat.}
+\label{tab:real-synthetic}
+\end{table*}

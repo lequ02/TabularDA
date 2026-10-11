@@ -1,0 +1,48 @@
+\begin{table}[ht]
+\centering
+{\small
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{lrrrr}
+\toprule
+Construction & Seed & CTGAN & TVAE & TabDDPM \\
+\midrule
+Real only & 42 & 97.96 & 97.96 & 97.96 \\
+ & 43 & 97.98 & 97.98 & --- \\
+\midrule
+\multicolumn{5}{l}{\textit{Synthetic-only training}} \\
+Generated target & 42 & 51.96 & 94.14 & --- \\
+ & 43 & 62.55 & 94.27 & --- \\
+Joint + RF & 42 & 86.33 & 94.63 & --- \\
+ & 43 & 88.44 & 94.58 & --- \\
+Joint + XGB & 42 & 87.48 & 95.96 & --- \\
+ & 43 & 89.43 & 95.81 & --- \\
+Joint + DNN & 42 & 90.89 & 95.85 & --- \\
+ & 43 & 93.04 & 95.95 & --- \\
+X-only + RF & 42 & 88.37 & 94.41 & --- \\
+ & 43 & 87.53 & 94.68 & --- \\
+X-only + XGB & 42 & 89.10 & 95.90 & --- \\
+ & 43 & 88.55 & 95.89 & --- \\
+X-only + DNN & 42 & 92.05 & 95.84 & --- \\
+ & 43 & 91.86 & 96.07 & --- \\
+\midrule
+\multicolumn{5}{l}{\textit{Real + synthetic training}} \\
+Generated target & 42 & 90.60 & 96.49 & --- \\
+ & 43 & 94.95 & 96.42 & --- \\
+Joint + RF & 42 & 95.45 & 96.09 & --- \\
+ & 43 & 95.80 & 95.90 & --- \\
+Joint + XGB & 42 & 96.02 & 96.89 & --- \\
+ & 43 & 96.83 & 96.78 & --- \\
+Joint + DNN & 42 & 95.88 & 96.63 & --- \\
+ & 43 & 96.85 & 96.70 & --- \\
+X-only + RF & 42 & 96.27 & 95.94 & --- \\
+ & 43 & 95.19 & 96.05 & --- \\
+X-only + XGB & 42 & 96.37 & 96.88 & --- \\
+ & 43 & 96.02 & 96.86 & --- \\
+X-only + DNN & 42 & 96.40 & 96.76 & --- \\
+ & 43 & 96.35 & 96.81 & --- \\
+\bottomrule
+\end{tabular}
+}
+\caption{MNIST28. Accuracy (\%, higher is better). Joint uses baseline features; X-only uses a separate fit. Real-only references are repeated. TabDDPM is preliminary; --- denotes an unfinished entry.}
+\label{tab:mnist28}
+\end{table}
