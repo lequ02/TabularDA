@@ -23,6 +23,7 @@ def parse_args():
   parser.add_argument('--lr', dest='lr', help='Learning rate', type=float, required=True)
   parser.add_argument('--global-round', dest='global_round', help='Number of epochs to train the model', type=int, required=True)
   parser.add_argument('--seed', type=int, default=42)
+  parser.add_argument('--target-transform', choices=('raw', 'log'), default='raw', help='News-only log-target training without BatchNorm')
   parser.add_argument('--patience', dest='patience', help='Patience for early stopping, -1 means no early stopping', type=int, default=30)
   parser.add_argument('--early-stop-crit', dest='early_stop_criterion', help='Early stopping criterion (any metrics such as mae, mape, r2, or mse)', type=str, default='mse')
 
@@ -56,6 +57,7 @@ def main(args):
       learning_rate=args.lr,
       num_epochs=args.global_round,
       seed=args.seed,
+      target_transform=args.target_transform,
       patience=args.patience,
       early_stop_criterion=args.early_stop_criterion,
 

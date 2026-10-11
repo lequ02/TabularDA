@@ -4,14 +4,16 @@ import sys
 import os
 import pandas as pd
 import argparse
-from create_synthetic_data import news, census, covertype, intrusion, credit, adult, mnist28, mnist12, census_kdd, california_housing
+from create_synthetic_data import news, census, covertype, credit, adult, mnist28, mnist12, census_kdd, california_housing
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # from datasets import load_adult, load_news, load_census, load_covertype, load_intrusion
 
 def single_run(dataset=None, seed=None, generator=None, profile='full', resume_from_ensemble=False,
-               tabddpm_steps=20_000):
+               tabddpm_steps=None, target_transform='raw', prepare_only=False, tabddpm_epochs=None):
+  if target_transform == 'log' and (dataset != 'news' or profile != 'full' or resume_from_ensemble):
+    raise ValueError('Log generation requires the full News path')
   if profile == 'pilot':
     if dataset not in {'adult', 'mnist28', 'covertype'} or generator != 'CTGAN':
       raise ValueError('Pilot requires one of adult, mnist28, covertype and CTGAN')
@@ -20,7 +22,6 @@ def single_run(dataset=None, seed=None, generator=None, profile='full', resume_f
       census_kdd.CreateSyntheticDataCensusKdd,
       credit.CreateSyntheticDataCredit,
       covertype.CreateSyntheticDataCovertype,
-      intrusion.CreateSyntheticDataIntrusion,
       mnist12.CreateSyntheticDataMnist12,
       mnist28.CreateSyntheticDataMnist28,
       news.CreateSyntheticDataNews,
@@ -28,7 +29,7 @@ def single_run(dataset=None, seed=None, generator=None, profile='full', resume_f
   ]
   available = {factory.__name__.removeprefix('CreateSyntheticData'): factory for factory in datasets}
   aliases = {'adult': 'Adult', 'census_kdd': 'CensusKdd', 'credit': 'Credit',
-             'covertype': 'Covertype', 'intrusion': 'Intrusion', 'mnist12': 'Mnist12',
+             'covertype': 'Covertype', 'mnist12': 'Mnist12',
              'mnist28': 'Mnist28', 'news': 'News',
              'california_housing': 'CaliforniaHousing'}
   if dataset is not None:
@@ -46,9 +47,13 @@ def single_run(dataset=None, seed=None, generator=None, profile='full', resume_f
     for feature_synthesizer in generators:
       for dataset_factory in datasets:
         job = dataset_factory(feature_synthesizer=feature_synthesizer, seed=run_seed)
-        if feature_synthesizer == 'TABDDPM':
+        if job.ds_name == 'news':
+          job.target_transform = target_transform
+        if prepare_only:
+          job.ensure_prepared()
+        elif feature_synthesizer == 'TABDDPM':
           from tabddpm import create_tabddpm_data
-          create_tabddpm_data(job, tabddpm_steps)
+          create_tabddpm_data(job, tabddpm_steps, epochs=tabddpm_epochs)
         elif resume_from_ensemble:
           job.create_synthetic_data_ensemble()
           job.create_synthetic_data_dnn()
@@ -107,10 +112,14 @@ def create_synthetic_simulated():
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(description='Generate corrected synthetic datasets.')
-  parser.add_argument('--dataset', choices=['adult', 'census_kdd', 'credit', 'covertype', 'intrusion', 'mnist12', 'mnist28', 'news', 'california_housing'])
-  parser.add_argument('--seed', type=int, choices=[42, 43])
+  parser.add_argument('--dataset', choices=['adult', 'census_kdd', 'credit', 'covertype', 'mnist12', 'mnist28', 'news', 'california_housing'])
+  parser.add_argument('--seed', type=int)
+  parser.add_argument('--target-transform', choices=('raw', 'log'), default='raw')
+  parser.add_argument('--prepare-only', action='store_true')
   parser.add_argument('--generator', choices=['CTGAN', 'TVAE', 'TABDDPM'])
-  parser.add_argument('--tabddpm-steps', type=int, default=20_000)
+  budget = parser.add_mutually_exclusive_group()
+  budget.add_argument('--tabddpm-steps', type=int)
+  budget.add_argument('--tabddpm-epochs', type=int)
   parser.add_argument('--profile', choices=['full', 'pilot'], default='full')
   parser.add_argument('--resume-from-ensemble', action='store_true')
   args = parser.parse_args()
@@ -118,4 +127,5 @@ if __name__ == '__main__':
     parser.error('--resume-from-ensemble requires Census KDD, a seed, a generator, and the full profile')
   single_run(dataset=args.dataset, seed=args.seed, generator=args.generator,
              profile=args.profile, resume_from_ensemble=args.resume_from_ensemble,
-             tabddpm_steps=args.tabddpm_steps)
+             tabddpm_steps=args.tabddpm_steps, target_transform=args.target_transform,
+             prepare_only=args.prepare_only, tabddpm_epochs=args.tabddpm_epochs)

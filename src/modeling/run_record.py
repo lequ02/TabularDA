@@ -11,6 +11,23 @@ from pathlib import Path
 from . import constants
 
 
+def file_sha256(path):
+    digest = hashlib.sha256()
+    with Path(path).open('rb') as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b''):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def source_sha256():
+    root = Path(__file__).resolve().parents[2]
+    digest = hashlib.sha256()
+    for source in sorted((root / 'src').rglob('*.py')):
+        digest.update(str(source.relative_to(root)).encode('utf-8'))
+        digest.update(source.read_bytes())
+    return digest.hexdigest()
+
+
 def news_target_normalization(predictions_path, split_manifest):
     with open(predictions_path, newline="", encoding="utf-8") as source:
         predictions = list(csv.DictReader(source))
@@ -28,15 +45,11 @@ def write_run_record(path, *, dataset, seed, train_option, augment_option,
                      synthetic_path, synthetic_label_counts, split_manifest_path,
                      classifier, batch_size, learning_rate, epoch_budget,
                      selected_epoch, selection_metric, test_loss, test_scores,
-                     predictions_path, weight_path):
+                     predictions_path, weight_path, target_transform=None, evaluation_protocol=None):
     root = Path(__file__).resolve().parents[2]
     code_version = subprocess.check_output(
         ["git", "rev-parse", "HEAD"], cwd=root, text=True
     ).strip()
-    code_hash = hashlib.sha256()
-    for source in sorted((root / "src").rglob("*.py")):
-        code_hash.update(str(source.relative_to(root)).encode("utf-8"))
-        code_hash.update(source.read_bytes())
     with open(split_manifest_path, encoding="utf-8") as split_file:
         split_manifest = json.load(split_file)
     if dataset in {"news", "california_housing"}:
@@ -89,7 +102,7 @@ def write_run_record(path, *, dataset, seed, train_option, augment_option,
                 dnn_dev_report = json.load(report_file)
     record = {
         "code_version": code_version,
-        "source_sha256": code_hash.hexdigest(),
+        "source_sha256": source_sha256(),
         "package_versions": {
             package: version(package)
             for package in ("sdv", "ctgan", "rdt", "torch", "pandas", "numpy", "scikit-learn")
@@ -124,5 +137,20 @@ def write_run_record(path, *, dataset, seed, train_option, augment_option,
     }
     if dataset in {"news", "california_housing"}:
         record["target_normalization"] = target_normalization
+    if target_transform is not None:
+        record['target_transform'] = target_transform
+    if evaluation_protocol is not None:
+        record['evaluation_protocol'] = evaluation_protocol
+    artifacts = [split_manifest_path, predictions_path, weight_path]
+    artifacts.extend(prepared_path for split_paths in prepared_real_paths.values() for prepared_path in split_paths.values())
+    if synthetic_path is not None:
+        artifacts.extend([synthetic_path, synthetic_quality_path, generator_model_path, generator_provenance_path])
+        if predictor_model_path is not None:
+            artifacts.append(predictor_model_path)
+        if dnn_dev_report_path is not None:
+            artifacts.append(dnn_dev_report_path)
+        if synthetic_quality.get('feature_source') is not None:
+            artifacts.append(synthetic_quality['feature_source']['path'])
+    record['artifact_sha256'] = {str(artifact): file_sha256(artifact) for artifact in artifacts}
     with open(path, "w", encoding="utf-8") as record_file:
         json.dump(record, record_file, indent=2)

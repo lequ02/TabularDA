@@ -7,7 +7,10 @@ import sklearn.ensemble
 import sklearn.metrics
 
 class Ensemble():
-    def __init__(self, x_original, y_original, x_synthesized, target_name, target_synthesizer, filename, verbose=True, is_classification=True, artifact_path=None, random_state=None):
+    def __init__(self, x_original, y_original, x_synthesized, target_name, target_synthesizer, filename, verbose=True, is_classification=True, artifact_path=None, random_state=None, target_transform='raw'):
+        if target_transform not in {'raw', 'log'} or (is_classification and target_transform != 'raw'):
+            raise ValueError('Log targets are available only for regression labelers')
+        self.target_transform = target_transform
         # Model feature names must not change the caller's schema.
         self.x_original = x_original.copy()
         # self.y_original = y_original
@@ -41,18 +44,21 @@ class Ensemble():
         return le, le.fit_transform(y)
     
     def fit(self):
+        if self.target_transform == 'log':
+            from commons.log_target import log_target, inverse_log_target
         model = self.get_ensemble_model()
         if self.verbose:
             print("Training ensemble model...")
         
-        model.fit(self.x_original, self.y_original)
+        model.fit(self.x_original, log_target(self.y_original) if self.target_transform == 'log' else self.y_original)
         if self.artifact_path:
             Path(self.artifact_path).parent.mkdir(parents=True, exist_ok=True)
             with open(self.artifact_path, "wb") as artifact_file:
                 pickle.dump({"estimator": model, "label_encoder": self.label_encoder,
                              "feature_columns": self.original_x_columns,
                              "sanitized_feature_columns": list(self.x_original.columns),
-                             "is_classification": self.is_classification}, artifact_file)
+                             "is_classification": self.is_classification,
+                             "target_transform": self.target_transform}, artifact_file)
         
         # Predict on the synthesized data
         if self.is_classification:
@@ -61,6 +67,9 @@ class Ensemble():
             y_syn_pred = model.predict(self.x_synthesized)
 
         y_hat_train = model.predict(self.x_original)
+        if self.target_transform == 'log':
+            y_syn_pred = inverse_log_target(y_syn_pred)
+            y_hat_train = inverse_log_target(y_hat_train)
         if self.is_classification:
             train_f1 = {}
             train_f1['weighted'] = sklearn.metrics.f1_score(self.y_original, y_hat_train, average='weighted')

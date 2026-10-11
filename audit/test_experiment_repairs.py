@@ -137,11 +137,53 @@ class ExperimentRepairTests(unittest.TestCase):
                 record = {'dataset': 'adult', 'seed': 42, 'train_option': mode, 'augment_option': method,
                           'selected_dev_epoch': 3, 'predictions_path': str(artifact),
                           'downstream_weight_path': str(artifact)}
-                path = output / (matrix.constants.run_name('adult', 42, mode, method) + '.run.json')
+                path = output / (constants.run_name('adult', 42, mode, method) + '.run.json')
                 path.write_text(json.dumps(record))
             with patch.object(matrix, 'ROOT', root), patch.object(matrix, 'run_command') as run:
-                matrix.run_matrix(('adult',), (42,), 'classifiers', resume=True)
+                for mode, method in runs:
+                    matrix.run_classifier(root / 'output/corrected_v2', 'adult', 42, mode, method, True, 'legacy')
                 run.assert_not_called()
+
+    def test_completed_generator_fit_survives_sampling_error(self):
+        sys.path.insert(0, str(ROOT / 'src/synthesize_data'))
+        import synthesizer
+        model = unittest.mock.Mock()
+        model.save.side_effect = lambda path: Path(path).write_bytes(b'completed fit')
+        model.sample.side_effect = RuntimeError('sample failed')
+        real = pd.DataFrame({'x': [0., 1.], 'target': [1., 2.]})
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'generator.pkl'
+            with patch.object(synthesizer.torch.cuda, 'is_available', return_value=True), \
+                 patch.object(synthesizer, 'train_synthesizer_ctgan', return_value=model), \
+                 patch.object(synthesizer, '_save_synthesis_provenance') as provenance:
+                with self.assertRaisesRegex(RuntimeError, 'sample failed'):
+                    synthesizer.fit_sample_generator(real, [], 'target', 'ctgan', 10, path, 5,
+                                                    is_classification=False)
+                self.assertEqual(path.read_bytes(), b'completed fit')
+                provenance.assert_called_once()
+
+    def test_census_weighted_model_uses_logits_and_actual_training_counts(self):
+        import torch
+        from torch.utils.data import DataLoader, TensorDataset
+        from modeling.classification_train import train, device
+        labels = torch.tensor([0., 0., 0., 0., 1., 1.])
+        job = train.__new__(train)
+        job.dataset_name = 'census_kdd'
+        job.evaluation_protocol = {'name': 'census-weighted'}
+        job.train_data = DataLoader(TensorDataset(torch.zeros(6, 3), labels), batch_size=3)
+        job.learning_rate = .001
+        job.multi_y = False
+        with patch('modeling.classification_train.summary'):
+            job.setup_trainer(None)
+        self.assertIsNone(job.trainer.model.sigmoid)
+        self.assertEqual(job.evaluation_protocol['training_label_counts'], {'0': 4, '1': 2})
+        self.assertEqual(job.evaluation_protocol['pos_weight'], 2.)
+        logits = torch.tensor([[-100.], [0.], [100.]], device=device, requires_grad=True)
+        targets = torch.tensor([[1.], [1.], [0.]], device=device)
+        loss = job.trainer.criterion(logits, targets)
+        loss.backward()
+        self.assertTrue(torch.isfinite(loss))
+        self.assertTrue(torch.isfinite(logits.grad).all())
 
 
 if __name__ == '__main__':

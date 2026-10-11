@@ -10,7 +10,10 @@ from pathlib import Path
 class PCA_GMM:
     def __init__(self, X_original, y_original, X_synthesized, numerical_cols, target_name, 
                  pca_n_components=0.99, gmm_n_components=10, verbose=True,
-                 filename = None, is_classification=True, artifact_path=None):
+                 filename = None, is_classification=True, artifact_path=None, target_transform='raw'):
+        if target_transform not in {'raw', 'log'} or (is_classification and target_transform != 'raw'):
+            raise ValueError('Log targets are available only for regression labelers')
+        self.target_transform = target_transform
         self.X_original = X_original
         self.y_original = y_original
         self.X_synthesized = X_synthesized
@@ -46,6 +49,8 @@ class PCA_GMM:
         Training results (accuracy, f1).
         DataFrame: Synthetic data with target column.
         """
+        if self.target_transform == 'log':
+            from commons.log_target import log_target, inverse_log_target
         X_original_backup = self.X_original.copy()
         X_synthesized_backup = self.X_synthesized.copy()
 
@@ -108,19 +113,23 @@ class PCA_GMM:
         if self.verbose:
             print('Fitting GMM...')
         gmm = GMMNaiveBayes(n_components=self.gmm_n_components, is_classification=self.is_classification)
-        gmm.fit(pca_X_original, self.y_original, numeric_cols=pca_numeric_cols) # use pca_numeric_cols instead of self.numerical_cols because after pca, number of numerical columns may have changed
+        fit_y = log_target(self.y_original) if self.target_transform == 'log' else self.y_original
+        gmm.fit(pca_X_original, fit_y, numeric_cols=pca_numeric_cols)
         if self.artifact_path:
             Path(self.artifact_path).parent.mkdir(parents=True, exist_ok=True)
             with open(self.artifact_path, "wb") as artifact_file:
                 pickle.dump({"scaler": scaler, "pca": pca, "gmm": gmm,
                              "feature_columns": list(X_original_backup.columns),
                              "numerical_columns": list(self.numerical_cols),
-                             "pca_columns": list(pca_numeric_cols)}, artifact_file)
+                             "pca_columns": list(pca_numeric_cols),
+                             "target_transform": self.target_transform}, artifact_file)
 
         # Train results
         # y_train = pca_X_original[self.target_name]
         y_train = self.y_original
         y_hat_train = gmm.predict(pca_X_original)
+        if self.target_transform == 'log':
+            y_hat_train = inverse_log_target(y_hat_train)
 
         if self.is_classification:
             train_accuracy = np.mean(y_hat_train == y_train)
@@ -151,6 +160,8 @@ class PCA_GMM:
         else:
             X_synthesized = pca_synthesized_df
         y_hat = gmm.predict(X_synthesized)
+        if self.target_transform == 'log':
+            y_hat = inverse_log_target(y_hat)
         y_hat = pd.DataFrame(y_hat, columns=[self.target_name])
 
         # Concatenate synthesized data (not normalized or pca) with target column

@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 from datasets import load_adult, load_news, load_census, load_covertype, load_credit
 
 class CreateSyntheticDataNews(CreateSyntheticData.CreateSyntheticData):
-    def __init__(self, feature_synthesizer = 'CTGAN', seed=42, output_root=None):
+    def __init__(self, feature_synthesizer = 'CTGAN', seed=42, output_root=None, target_transform='raw'):
         ds_name = 'news'
         # initially synthesize the data with no categorical columns
         categorical_columns = []
@@ -30,7 +30,7 @@ class CreateSyntheticDataNews(CreateSyntheticData.CreateSyntheticData):
 
         super().__init__(ds_name, load_news, ' shares', categorical_columns=categorical_columns, features_synthesizer=feature_synthesizer,
                             numerical_cols_pca_gmm=numerical_columns_pca_gmm,
-                            sample_size_to_synthesize=100_000, missing_values_strategy='drop', test_size=0.2, is_classification=False, seed=seed, output_root=output_root)
+                            sample_size_to_synthesize=100_000, missing_values_strategy='drop', test_size=0.2, is_classification=False, seed=seed, output_root=output_root, target_transform=target_transform)
 
     # def create_synthetic_data_pca_gmm(self):
     #     xtrain, xtest, ytrain, ytest, target_name, categorical_columns = self.read_data()

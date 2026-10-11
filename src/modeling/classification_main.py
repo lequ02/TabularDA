@@ -23,6 +23,7 @@ def parse_args():
   parser.add_argument('--lr', dest='lr', help='Learning rate', type=float, required=True)
   parser.add_argument('--global-round', dest='global_round', help='Number of epochs to train the model', type=int, required=True)
   parser.add_argument('--seed', type=int, default=42)
+  parser.add_argument('--evaluation-protocol', choices=('standard', 'census-weighted'), default='standard')
   parser.add_argument('--patience', dest='patience', help='Patience for early stopping, -1 means no early stopping', type=int, default=30)
   parser.add_argument('--early-stop-crit', dest='early_stop_criterion', help='Early stopping criterion (any metrics including (f1, accuracy, recall, precision for classification. If f1/recall/precision, need to include type = micro/macro/weighted/binary/samples. Example f1_micro; Example accuracy), (mae, mape, r2 for regression) or loss)', type=str, default='loss')
 
@@ -65,6 +66,7 @@ def main(args):
       learning_rate=args.lr,
       num_epochs=args.global_round,
       seed=args.seed,
+      evaluation_protocol=args.evaluation_protocol,
       patience=args.patience,
       early_stop_criterion=args.early_stop_criterion,
 

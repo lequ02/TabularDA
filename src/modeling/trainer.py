@@ -3,7 +3,7 @@ import torch
 from torch import nn, optim
 
 class trainer:
-    def __init__(self, model, data, criterion, learning_rate, dataset_name='', device='cuda' if torch.cuda.is_available() else 'cpu', multi_y = True):
+    def __init__(self, model, data, criterion, learning_rate, dataset_name='', device='cuda', multi_y = True):
         self.model = model.to(device)
         self.device = device
         self.criterion = criterion

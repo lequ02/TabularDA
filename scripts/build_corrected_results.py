@@ -9,8 +9,10 @@ import matplotlib.pyplot as plt
 from run_corrected_matrix import DATASETS, SEEDS, methods_for
 
 
-def expected_runs(matrix='full', generators=('ctgan', 'tvae')):
+def expected_runs(matrix='full', generators=('ctgan', 'tvae'), datasets=None, seeds=None):
     expected = set()
+    if (datasets is not None or seeds is not None) and matrix not in {'full', 'news-log'}:
+        raise ValueError('Explicit datasets/seeds require the full or news-log matrix')
     if matrix == 'news-transform-pilot':
         return {('news', 'original', None, 43),
                 ('news', 'synthetic', 'ctgan', 43),
@@ -23,8 +25,8 @@ def expected_runs(matrix='full', generators=('ctgan', 'tvae')):
                 for mode in ('synthetic', 'mix'):
                     expected.add((dataset, mode, method, SEED))
         return expected
-    for dataset in DATASETS:
-        for seed in SEEDS:
+    for dataset in (datasets if datasets is not None else ('news',) if matrix == 'news-log' else DATASETS):
+        for seed in (seeds if seeds is not None else SEEDS):
             expected.add((dataset, "original", None, seed))
             for generator in generators:
                 for method in methods_for(dataset, generator):
@@ -33,7 +35,7 @@ def expected_runs(matrix='full', generators=('ctgan', 'tvae')):
     return expected
 
 
-def build(run_root, output_root, matrix='full', generators=('ctgan', 'tvae')):
+def build(run_root, output_root, matrix='full', generators=('ctgan', 'tvae'), datasets=None, seeds=None):
     records = sorted(run_root.rglob("*.run.json"))
     if not records:
         raise ValueError(f"No corrected run records found under {run_root}")
@@ -72,7 +74,7 @@ def build(run_root, output_root, matrix='full', generators=('ctgan', 'tvae')):
         row.update(record["test_scores"])
         rows.append(row)
 
-    planned = expected_runs(matrix, generators)
+    planned = expected_runs(matrix, generators, datasets, seeds)
     missing = planned - keys
     unexpected = keys - planned
     if missing or unexpected:
@@ -115,8 +117,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--runs", type=Path, default=Path("output/corrected_v2"))
     parser.add_argument("--out", type=Path, default=Path("output/corrected_v2/results"))
-    parser.add_argument("--matrix", choices=('full', 'pilot', 'news-transform-pilot'), default='full')
+    parser.add_argument("--matrix", choices=('full', 'pilot', 'news-transform-pilot', 'news-log'), default='full')
     parser.add_argument('--generators', nargs='+', choices=('ctgan', 'tvae', 'tabddpm'),
                         default=('ctgan', 'tvae'))
+    parser.add_argument('--datasets', nargs='+', choices=DATASETS)
+    parser.add_argument('--seeds', nargs='+', type=int)
     arguments = parser.parse_args()
-    build(arguments.runs, arguments.out, arguments.matrix, tuple(arguments.generators))
+    build(arguments.runs, arguments.out, arguments.matrix, tuple(arguments.generators),
+          arguments.datasets, arguments.seeds)

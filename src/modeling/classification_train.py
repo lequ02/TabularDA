@@ -12,12 +12,12 @@ from torch import nn
 from torchsummary import summary
 from sklearn.metrics import accuracy_score, average_precision_score, balanced_accuracy_score, f1_score, precision_score, recall_score, roc_auc_score
 
-from .models_folder import model_mnist12, model_mnist28, model_intrusion,model_adult,model_census
+from .models_folder import model_mnist12, model_mnist28, model_multiclass,model_adult,model_census
 from .trainer import trainer
 from .run_record import write_run_record
 from . import constants
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:0")
 torch.manual_seed(1)
 
 out_data_path = constants.OUT_DATA_PATHS
@@ -30,8 +30,13 @@ class train:
                         batch_size = 128, learning_rate = 0.001, num_epochs = 10, patience=10, early_stop_criterion='loss', seed=42,
                         eval_metrics = None, metric_to_plot = None,
                         pre_trained_w_file = None,
-                        w_dir = None, acc_dir = None ):
+                        w_dir = None, acc_dir = None, evaluation_protocol='standard'):
 
+        if evaluation_protocol not in {'standard', 'census-weighted'}:
+            raise ValueError('Unknown classification evaluation protocol')
+        if evaluation_protocol == 'census-weighted' and (dataset_name != 'census_kdd' or early_stop_criterion != 'f1_macro'):
+            raise ValueError('Weighted Census requires Census KDD and development macro-F1 selection')
+        self.evaluation_protocol = {'name': evaluation_protocol}
         self.seed = seed
         self.setup_data(dataset_name = dataset_name, train_option = train_option,
                         augment_option = augment_option, mix_ratio = mix_ratio, n_sample = n_sample, test_option = test_option, validation = validation, batch_size = batch_size)
@@ -124,9 +129,28 @@ class train:
             criterion = nn.BCELoss()
 
         elif self.dataset_name.lower() in {"census", "census_kdd"}:
-            model = model_census.DNN_Census(input_size=input_size).to(device)
+            weighted = self.evaluation_protocol['name'] == 'census-weighted'
+            model = model_census.DNN_Census(input_size=input_size, logits=weighted).to(device)
             self.model_name = "DNN_Census"
-            criterion = nn.BCELoss()
+            if weighted:
+                labels = self.train_data.dataset.tensors[1]
+                if set(labels.unique().tolist()) != {0., 1.}:
+                    raise ValueError('Weighted Census training requires both binary classes')
+                positives = int((labels == 1).sum())
+                negatives = int((labels == 0).sum())
+                pos_weight = negatives / positives
+                criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([pos_weight], device=device))
+                self.evaluation_protocol.update({
+                    'objective': 'BCEWithLogitsLoss', 'model_output': 'logits',
+                    'pos_weight_rule': 'actual_training_negatives / actual_training_positives',
+                    'pos_weight': pos_weight, 'training_label_counts': {'0': negatives, '1': positives},
+                    'shuffle': False, 'threshold': 0.5, 'threshold_rule': 'probability > 0.5',
+                    'selection': 'real development f1_macro',
+                    'test_loss_definition': "weighted BCE using this arm's training pos_weight",
+                })
+                print(f"Weighted Census protocol: {self.evaluation_protocol}", flush=True)
+            else:
+                criterion = nn.BCELoss()
 
         # elif self.dataset_name.lower() == "mnist28":
         #     # model = model_mnist28.DNN_MNIST28(input_size=input_size).to(device)
@@ -157,12 +181,8 @@ class train:
             criterion = nn.CrossEntropyLoss()
 
 
-        elif self.dataset_name.lower() == "intrusion":
-            model = model_intrusion.DNN_Intrusion(input_size=input_size, output_size=self.data_loader.num_classes).to(device)
-            self.model_name = "DNN_Intrusion"
-            criterion = nn.CrossEntropyLoss()
         elif self.dataset_name.lower() == "covertype":
-            model = model_intrusion.DNN_Intrusion(input_size=input_size, output_size=self.data_loader.num_classes).to(device)
+            model = model_multiclass.DNN_Multiclass(input_size=input_size, output_size=self.data_loader.num_classes).to(device)
             self.model_name = "DNN_Covertype"
             criterion = nn.CrossEntropyLoss()
         # elif self.dataset_name.lower() == "covertype":
@@ -304,6 +324,7 @@ class train:
             test_scores={key: float(value) for key, value in test_score.items()},
             predictions_path=predictions_path,
             weight_path=self.w_dir + self.w_file_name,
+            evaluation_protocol=self.evaluation_protocol,
         )
 
 
@@ -364,10 +385,14 @@ class train:
                 if self.multi_y == True:
                     _, predicted = torch.max(output.data, 1)  # Changed prediction for multi-class
                 else:
-                    predicted = (output > 0.5).float()
-                    all_scores.extend(output[:, 0].cpu().numpy())
+                    probability = output.sigmoid() if self.evaluation_protocol['name'] == 'census-weighted' else output
+                    predicted = (probability > 0.5).float()
+                    all_scores.extend(probability[:, 0].cpu().numpy())
 
-                loss += self.trainer.criterion(output, y).item() * len(y)
+                batch_loss = self.trainer.criterion(output, y)
+                if not torch.isfinite(batch_loss):
+                    raise ValueError('Non-finite classification loss')
+                loss += batch_loss.item() * len(y)
 
                 all_preds.extend(predicted.cpu().numpy().ravel())
                 all_labels.extend(y.cpu().numpy().ravel())
