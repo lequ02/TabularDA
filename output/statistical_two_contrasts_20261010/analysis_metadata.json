@@ -1,0 +1,67 @@
+{
+  "checked_at_chicago": "2026-10-10T23:35:57.591803-05:00",
+  "selected_records": 406,
+  "d2_sidecars": 116,
+  "datasets": [
+    "adult",
+    "census_kdd",
+    "covertype",
+    "mnist12",
+    "mnist28",
+    "news",
+    "california_housing"
+  ],
+  "labelers": [
+    "rf",
+    "xgb",
+    "dnn"
+  ],
+  "generators": [
+    "ctgan",
+    "tvae"
+  ],
+  "seeds": [
+    42,
+    43
+  ],
+  "contrasts": [
+    "relabel_minus_generated",
+    "has_y1_minus_has_y0"
+  ],
+  "classification_metric": "f1_macro",
+  "regression_metrics": [
+    "r2",
+    "nmae_sigma",
+    "d2_absolute_error"
+  ],
+  "classification_inference": "Exploratory two-sided paired t across five task means (df=4), with exact sensitivity checks",
+  "primary_family": "Two classification contrasts within each training regime; Holm2",
+  "joint_claim_family": "All four classification contrasts across both training regimes; Holm4",
+  "intervals": "ci1: pointwise 95%; ci2/ci4: Bonferroni simultaneous 95% for stated families, not Holm intervals",
+  "regression_inference": "Native-unit descriptive contrasts separately for News and Housing; nominal factorial ANOVAs exploratory",
+  "scope_change": "Two questions selected after previous analyses; not an untouched preregistered confirmatory test",
+  "limitations": [
+    "Five selected classification tasks; MNIST12/28 share a task family and split",
+    "Two fixed experiment seeds and shared heldout samples; task-generalization assumptions are uncertain",
+    "MNIST12 TVAE synthetic tables retain documented holdout-feature collisions",
+    "R2, D2, NMAE and macro F1 are distinct outcomes; no seven-task pooled score"
+  ],
+  "source_hashes": {
+    "scores.csv": "548208d7777d7a49e7e9de7f0fe18789cd4dabc4e69daca79276751bc24d5dae",
+    "regression_d2_scores.csv": "38c2c59083322b76664843964bf99e1f027a44d77b9cdf461eb7ea07accaff40",
+    "source_snapshot.json": "d1e6fe105c13c5425a371ef53f50ba637d0def93699d40caa3489436843b3d2e",
+    "d2_verification.json": "82551ed460d13fab9fd079ca4c600e724cca44b98dde67951b2ff267ed85dbd0",
+    "analyze.py": "20ce37b08e047eb41c9fb5668f91fb6f3b13254664d5be2431fece3923e3bfb8"
+  },
+  "environment": {
+    "python": "3.10.21",
+    "numpy": "1.26.4",
+    "pandas": "2.2.3",
+    "scipy": "1.15.3",
+    "statsmodels": "0.15.0"
+  },
+  "verified_source_values": 3770,
+  "independent_F_checks": 202,
+  "numerical_thread_limit": 1,
+  "experiment_changes": false
+}
