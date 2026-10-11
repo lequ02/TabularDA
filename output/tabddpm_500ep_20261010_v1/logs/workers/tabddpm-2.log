@@ -1,0 +1,15 @@
+WORKER tabddpm-2 DATASET covertype SEED 42
+2026-10-10T22:53:11.940891-05:00 START /home/thuy/miniconda3/envs/env/bin/python synthesize_data/main.py --dataset covertype --seed 42 --generator TABDDPM --prepare-only log=/home/thuy/Research/minh_data_synth/TabularDA/output/tabddpm_500ep_20261010_v1/logs/covertype/seed_42/prepare.log
+2026-10-10T22:53:17.512167-05:00 START /home/thuy/miniconda3/envs/env/bin/python -m modeling --dataset-name covertype --train-option original --test-option original --validation 0.2 --batchsize 128 --lr 0.001 --global-round 100 --patience 30 --early-stop-crit loss --seed 42 log=/home/thuy/Research/minh_data_synth/TabularDA/output/tabddpm_500ep_20261010_v1/logs/covertype/seed_42/covertype_seed42_real_original.log
+2026-10-10T23:47:26.928028-05:00 START /home/thuy/miniconda3/envs/env/bin/python synthesize_data/main.py --dataset covertype --seed 42 --generator TABDDPM --tabddpm-epochs 500 log=/home/thuy/Research/minh_data_synth/TabularDA/output/tabddpm_500ep_20261010_v1/logs/covertype/seed_42/covertype_seed42_tabddpm_generate.log
+Traceback (most recent call last):
+  File "<string>", line 7, in <module>
+  File "/home/thuy/Research/minh_data_synth/TabularDA/scripts/run_corrected_matrix.py", line 192, in run_experiment
+    run_matrix(datasets, (seed,), stage, resume, generators=generators,
+  File "/home/thuy/Research/minh_data_synth/TabularDA/scripts/run_corrected_matrix.py", line 162, in run_matrix
+    run_command(command, src_dir, log_path)
+  File "/home/thuy/Research/minh_data_synth/TabularDA/scripts/run_corrected_matrix.py", line 46, in run_command
+    subprocess.run(command, cwd=cwd, stdout=log, stderr=subprocess.STDOUT, check=True)
+  File "/home/thuy/miniconda3/envs/env/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['/home/thuy/miniconda3/envs/env/bin/python', 'synthesize_data/main.py', '--dataset', 'covertype', '--seed', '42', '--generator', 'TABDDPM', '--tabddpm-epochs', '500']' returned non-zero exit status 1.
