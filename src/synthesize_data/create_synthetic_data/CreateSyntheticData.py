@@ -9,6 +9,7 @@ from sklearn.model_selection import GroupShuffleSplit
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from synthesizer import *
+from synthesizer import _save_synthetic_quality
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 # from datasets import load_adult, load_news, load_census, load_covertype
 from commons import create_train_test, handle_missing_values, check_directory, read_train_test_csv, onehot
@@ -18,7 +19,7 @@ from modeling import constants
 class CreateSyntheticData:
     def __init__(self, ds_name, load_data_func, target_name, categorical_columns, features_synthesizer='CTGAN',
                  sample_size_to_synthesize=100_000, missing_values_strategy='drop', test_size=0.2, is_classification=True,
-                 numerical_cols_pca_gmm=None, output_root=None, seed=42):
+                 numerical_cols_pca_gmm=None, output_root=None, seed=42, target_transform='raw'):
         self.ds_name = ds_name
         self.load_data_func = load_data_func
         self.target_name = target_name
@@ -30,6 +31,9 @@ class CreateSyntheticData:
         self.seed = seed
         self.numerical_cols_pca_gmm = numerical_cols_pca_gmm
         self.features_synthesizer = features_synthesizer.lower()
+        if target_transform not in {'raw', 'log'} or (target_transform == 'log' and ds_name != 'news'):
+            raise ValueError('Log generator targets are restricted to News')
+        self.target_transform = target_transform
 
         if self.features_synthesizer == 'ctgan':
             self.fsyn_name = ''
@@ -61,20 +65,74 @@ class CreateSyntheticData:
             self.paths[f'{key}_csv'] = constants.synthetic_name(ds_name, seed, self.fsyn_name + label)
 
     def create_synthetic_data(self):
-        """
-        wrapper function to create synthetic data, including: CTGAN (SDV), GaussianNB, CategoricalNB, PCA-GMM, Ensemble methods (XGBoost, RandomForest), and TVAE
-        """
+        """Generate each feature source once, then use the maintained labelers."""
         if self.features_synthesizer not in {'ctgan', 'tvae'}:
             raise ValueError("features_synthesizer must be 'ctgan' or 'tvae'")
-        self.create_synthetic_data_sdv_only()
-
+        self.ensure_prepared()
+        data_dir = Path(self.paths['data_dir'])
+        generator = self.features_synthesizer
+        if any(data_dir.glob(f'{self.ds_name}_seed{self.seed}_{generator}_*')):
+            raise FileExistsError('Existing synthetic artifacts require explicit validated reuse')
+        x, y, _, categories = self.read_train_data()
+        full_data = pd.concat([x, y], axis=1)
+        full_path = data_dir / constants.synthetic_name(self.ds_name, self.seed, generator)
+        model_root = Path(self.paths['synthesizer_dir'])
+        full_model = model_root / constants.generator_name(self.ds_name, self.seed, generator, 'full')
+        real, full = fit_sample_generator(full_data, categories, self.target_name, generator,
+            self.sample_size_to_synthesize, full_model, self.seed,
+            is_classification=self.is_classification, target_transform=self.target_transform)
+        full.to_csv(full_path, index=False)
+        _save_synthetic_quality(full, real, y, self.target_name, self.sample_size_to_synthesize,
+            str(full_path), self.is_classification, target_transform=self.target_transform)
+        del full, real
+        xonly_model = model_root / constants.generator_name(self.ds_name, self.seed, generator, 'xonly')
+        _, features = fit_sample_generator(x, categories, None, generator,
+            self.sample_size_to_synthesize, xonly_model, self.seed, is_classification=self.is_classification)
+        feature_path = data_dir / f'{self.ds_name}_seed{self.seed}_{generator}_xonly_features_100k.csv'
+        features.to_csv(feature_path, index=False)
+        del features
+        features = pd.read_csv(feature_path)
+        labelers = ['pca_gmm', 'rf', 'xgb', 'dnn']
         if self.is_classification:
-            self.create_synthetic_data_sdv_gaussian()
-            self.create_synthetic_data_sdv_categorical()
-        self.create_synthetic_data_pca_gmm()
-        self.create_synthetic_data_ensemble()
-        self.create_synthetic_data_dnn()
-        self.create_comparison_from_trained_model()
+            labelers = ['gaussianNB', 'categoricalNB'] + labelers
+        dev = self.read_dev_data()
+        for fit, source, model in (('full', full_path, full_model), ('xonly', feature_path, xonly_model)):
+            feature_source = {'path': str(source), 'sha256': file_sha256(source),
+                              'generator_path': str(model), 'generator_sha256': file_sha256(model),
+                              'seed': self.seed, 'rows': self.sample_size_to_synthesize}
+            for labeler in labelers:
+                label = {'gaussianNB': 'gaussian', 'categoricalNB': 'categorical'}.get(labeler, labeler)
+                method = self.fsyn_name + ('compare_' if fit == 'full' else '') + label
+                table = data_dir / constants.synthetic_name(self.ds_name, self.seed, method)
+                synthesize_comparison_from_trained_model(x, y, categories, self.target_name,
+                    sample_size=self.sample_size_to_synthesize, target_synthesizer=labeler,
+                    numerical_columns_pca_gmm=self.numerical_cols_pca_gmm, csv_file_name=str(table),
+                    is_classification=self.is_classification, seed=self.seed, dnn_dev_data=dev,
+                    dataset_name=self.ds_name, target_transform=self.target_transform,
+                    feature_source=feature_source,
+                    full_table_csv=str(full_path) if fit == 'full' else None,
+                    synthetic_features=features if fit == 'xonly' else None)
+
+    def ensure_prepared(self):
+        """Prepare once; reject partial or changed real partitions."""
+        folder = Path(self.paths['data_dir'])
+        manifest_path = folder / 'split_manifest.json'
+        if not manifest_path.exists():
+            if any(folder.glob('*real*.csv')):
+                raise FileExistsError('Partial preparation requires explicit recovery')
+            self.prepare_train_test()
+        manifest = json.loads(manifest_path.read_text())
+        if (manifest['dataset'], manifest['seed'], manifest['split_random_state']) != (self.ds_name, self.seed, 42):
+            raise ValueError('Prepared split manifest does not match the requested dataset, seed, or splitter')
+        ids = [source_id for split in ('train', 'dev', 'test') for source_id in manifest['splits'][split]]
+        if len(ids) != len(set(ids)):
+            raise ValueError('Prepared source partitions overlap')
+        for split in ('train', 'dev', 'test'):
+            for view, key in (('raw', f'{split}_csv'), ('onehot', f'{split}_csv_onehot')):
+                details = manifest['files'][split][view]
+                if details['rows'] != len(manifest['splits'][split]) or file_sha256(folder / self.paths[key]) != details['sha256']:
+                    raise ValueError(f'Prepared {split}/{view} differs from its split manifest')
+        return manifest
 
     def create_pilot_data(self):
         self.create_synthetic_data_sdv_only()
@@ -86,7 +144,7 @@ class CreateSyntheticData:
 
 
     def create_synthetic_data_sdv_only(self):
-        self.prepare_train_test()
+        self.ensure_prepared()
         # need this line or the xy data will be double one-hot encoded. dont know why
         xtrain, ytrain, target_name, categorical_columns = self.read_train_data()
         xytrain = pd.concat([xtrain, ytrain], axis=1)
@@ -122,7 +180,7 @@ class CreateSyntheticData:
         )
 
     def create_synthetic_data_tvae_only(self):
-        self.prepare_train_test()
+        self.ensure_prepared()
         xtrain, ytrain, target_name, categorical_columns = self.read_train_data()
         xytrain = pd.concat([xtrain, ytrain], axis=1)
         self.synthesize_data(xytrain, ytrain, categorical_columns, 'sdv_tvae_only', '', features_synthesizer='TVAE')

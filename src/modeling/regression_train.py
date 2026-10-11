@@ -18,7 +18,7 @@ from .run_record import write_run_record
 from . import constants
 from commons.log_target import inverse_log_target
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:0")
 torch.manual_seed(1)
 
 out_data_path = constants.OUT_DATA_PATHS

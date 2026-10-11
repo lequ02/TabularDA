@@ -1,7 +1,5 @@
 """Unconditional Tab-DDPM on exactly the supplied columns; reuse our labelers."""
 
-import hashlib
-import json
 import pickle
 from pathlib import Path
 
@@ -19,12 +17,20 @@ UPSTREAM_COMMIT = 'b476257dd460b778ba09eb97f7a51d6490fa17f8'
 
 
 class TabDDPM:
-    def __init__(self, *, seed=42, steps=20_000, batch_size=500,
+    def __init__(self, *, seed=42, steps=None, epochs=None, batch_size=500,
                  num_timesteps=1000, sample_batch_size=500, device='cuda'):
-        if min(steps, batch_size, num_timesteps, sample_batch_size) <= 0:
+        if steps is not None and epochs is not None:
+            raise ValueError('Choose either Tab-DDPM steps or epochs, not both')
+        if steps is None and epochs is None:
+            steps = 20_000
+        budget = epochs if epochs is not None else steps
+        if not isinstance(budget, int) or min(budget, batch_size, num_timesteps, sample_batch_size) <= 0:
             raise ValueError('Tab-DDPM budgets and batch sizes must be positive')
         self.seed = seed
         self.steps = steps
+        self.epochs = epochs
+        self.training_rows = None
+        self.updates_per_epoch = None
         self.batch_size = batch_size
         self.num_timesteps = num_timesteps
         self.sample_batch_size = sample_batch_size
@@ -77,6 +83,10 @@ class TabDDPM:
             self.cardinalities = [len(c) for c in self.encoder.categories_]
         features = torch.from_numpy(np.concatenate(parts, axis=1))
         loader = DataLoader(TensorDataset(features), batch_size=self.batch_size, shuffle=True)
+        self.training_rows = len(data)
+        self.updates_per_epoch = len(loader)
+        if self.epochs is not None:
+            self.steps = self.epochs * self.updates_per_epoch
         diffusion = self._diffusion()
         optimizer = torch.optim.AdamW(diffusion.parameters(), lr=0.001, weight_decay=0.00001)
         history = []
@@ -137,6 +147,8 @@ class TabDDPM:
 
     def get_parameters(self):
         return dict(upstream_commit=UPSTREAM_COMMIT, seed=self.seed, steps=self.steps,
+                    epochs=self.epochs, training_rows=self.training_rows,
+                    updates_per_epoch=self.updates_per_epoch,
                     batch_size=self.batch_size, num_timesteps=self.num_timesteps,
                     sample_batch_size=self.sample_batch_size, device=self.device,
                     is_y_cond=False, d_layers=[256, 256], dim_t=128, dropout=0.0,
@@ -144,28 +156,19 @@ class TabDDPM:
                     gaussian_loss_type='mse', checkpoint='final', sampler='ancestral')
 
 
-def create_tabddpm_data(job, steps):
+def create_tabddpm_data(job, steps=None, *, epochs=None):
     """Fit full/X-only tables, then invoke the existing real-data labeling path."""
     from commons.onehot import onehot
+    from commons.log_target import log_target, inverse_log_target
     from modeling import constants
-    from synthesizer import _save_synthesis_provenance, _save_synthetic_quality
+    from synthesizer import _save_synthesis_provenance, _save_synthetic_quality, file_sha256
     from synthesizer import synthesize_comparison_from_trained_model
 
-    manifest = Path(job.paths['data_dir']) / 'split_manifest.json'
-    if not manifest.is_file():
-        job.prepare_train_test()
-    split = json.loads(manifest.read_text())
-    if (split['dataset'], split['seed']) != (job.ds_name, job.seed):
-        raise ValueError('Prepared split manifest does not match the dataset/seed')
-    for partition in ('train', 'dev', 'test'):
-        for view in ('raw', 'onehot'):
-            path = Path(job.paths['data_dir']) / constants.split_name(job.ds_name, job.seed, partition, view)
-            digest = hashlib.sha256()
-            with path.open('rb') as file:
-                for block in iter(lambda: file.read(1024 * 1024), b''):
-                    digest.update(block)
-            if digest.hexdigest() != split['files'][partition][view]['sha256']:
-                raise ValueError(f'Prepared split hash mismatch: {path}')
+    job.ensure_prepared()
+    for folder in ('data_dir', 'synthesizer_dir'):
+        existing = list(Path(job.paths[folder]).glob(f'{job.ds_name}_seed{job.seed}_tabddpm_*'))
+        if existing:
+            raise FileExistsError(f'Tab-DDPM artifacts already exist; preserve them: {existing[0]}')
     xtrain, ytrain, target, categorical = job.read_train_data()
     x_encoded, _ = onehot(xtrain, xtrain, categorical)
     labelers = ['pca_gmm', 'rf', 'xgb', 'dnn']
@@ -174,22 +177,26 @@ def create_tabddpm_data(job, steps):
     dev = job.read_dev_data()
     for source in ('full', 'xonly'):
         fit_table = pd.concat([xtrain, ytrain], axis=1) if source == 'full' else xtrain
+        fit_transform = job.target_transform if source == 'full' else 'raw'
+        if fit_transform == 'log':
+            fit_table[target] = log_target(ytrain)
         fit_categories = list(categorical)
         if source == 'full' and job.is_classification:
             fit_categories.append(target)
         model_path = Path(job.paths['synthesizer_dir']) / constants.generator_name(
             job.ds_name, job.seed, 'tabddpm', source)
-        if model_path.exists():
-            raise FileExistsError(f'Tab-DDPM generator already exists; preserve it: {model_path}')
-        generator = TabDDPM(seed=job.seed, steps=steps)
+        generator = TabDDPM(seed=job.seed, steps=steps, epochs=epochs)
         generator.fit(fit_table, fit_categories)
         model_path.parent.mkdir(parents=True, exist_ok=True)
         generator.save(model_path)
         _save_synthesis_provenance(generator, fit_table, job.sample_size_to_synthesize,
                                   str(model_path), job.seed,
                                   metadata={'columns': generator.columns,
-                                            'categorical_columns': generator.categorical})
+                                            'categorical_columns': generator.categorical},
+                                  target_transform=fit_transform)
         sample = generator.sample(job.sample_size_to_synthesize)
+        if fit_transform == 'log':
+            sample[target] = inverse_log_target(sample[target])
         _, features = onehot(xtrain, sample.drop(columns=[target]) if source == 'full' else sample,
                              categorical)
         features = features.reindex(sorted(features.columns), axis=1)
@@ -200,9 +207,13 @@ def create_tabddpm_data(job, steps):
             baseline.to_csv(baseline_path, index=False)
             _save_synthetic_quality(baseline, x_encoded, ytrain, target,
                                    job.sample_size_to_synthesize, str(baseline_path),
-                                   job.is_classification)
+                                   job.is_classification, target_transform=job.target_transform)
         # Persist X once; no resampling between supervised labelers.
-        features.to_csv(model_path.with_suffix('.sample.csv'), index=False)
+        feature_path = model_path.with_suffix('.sample.csv')
+        features.to_csv(feature_path, index=False)
+        feature_source = dict(path=str(feature_path), sha256=file_sha256(feature_path),
+                              generator_path=str(model_path), generator_sha256=file_sha256(model_path),
+                              seed=job.seed, rows=len(features))
         for labeler in labelers:
             label = {'gaussianNB': 'gaussian', 'categoricalNB': 'categorical'}.get(labeler, labeler)
             method = 'tabddpm_' + ('compare_' if source == 'full' else '') + label
@@ -213,5 +224,6 @@ def create_tabddpm_data(job, steps):
                 numerical_columns_pca_gmm=job.numerical_cols_pca_gmm,
                 csv_file_name=str(csv_path), is_classification=job.is_classification,
                 seed=job.seed, dnn_dev_data=dev, dataset_name=job.ds_name,
-                synthetic_features=features,
+                synthetic_features=features, target_transform=job.target_transform,
+                feature_source=feature_source,
             )

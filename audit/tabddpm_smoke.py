@@ -33,6 +33,11 @@ def main(device='cpu'):
         output = Path(directory)
         model = TabDDPM(**kwargs)
         model.fit(x, ['category'])
+        epoch_model = TabDDPM(**{k: v for k, v in kwargs.items() if k != 'steps'}, epochs=2)
+        epoch_model.fit(x.iloc[:65], ['category'])
+        assert epoch_model.steps == 6 and epoch_model.updates_per_epoch == 3
+        assert epoch_model.get_parameters()['epochs'] == 2
+        assert epoch_model.loss_history.iloc[-1]['step'] == 6
         sample = model.sample(15)
         assert list(sample) == list(x) and len(sample) == 15 and 'target' not in sample
         assert set(sample['category']) <= {'a', 'b'}
@@ -95,12 +100,13 @@ def main(device='cpu'):
                 assert label == 'generated' or label in {'gaussian', 'categorical', 'pca_gmm', 'rf', 'xgb', 'dnn'}
         assert len(methods_for('adult', 'tabddpm')) == 13
         assert len(methods_for('california_housing', 'tabddpm')) == 9
-        assert len(expected_runs()) == 890
-        assert len(expected_runs(generators=('tabddpm',))) == 454
-        assert len(expected_runs(generators=('ctgan', 'tvae', 'tabddpm'))) == 1326
+        datasets = ('adult', 'census_kdd', 'covertype', 'mnist12', 'mnist28', 'news', 'california_housing')
+        assert len(expected_runs(datasets=datasets)) == 678
+        assert len(expected_runs(datasets=datasets, generators=('tabddpm',))) == 346
+        assert len(expected_runs(datasets=datasets, generators=('ctgan', 'tvae', 'tabddpm'))) == 1010
         assert constants.method_parts('compare_rf') == ('ctgan', 'full', 'rf')
         assert constants.method_parts('tvae_rf') == ('tvae', 'xonly', 'rf')
-    print('PASS: X-only independence, seeds, mixed/categorical/numerical schemas, reload, labelers, matrix counts')
+    print('PASS: epoch/update budget, X-only independence, seeds, schemas, reload, labelers, matrix counts')
 
 
 if __name__ == '__main__':

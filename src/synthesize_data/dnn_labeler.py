@@ -44,7 +44,7 @@ def fit_predict_dnn(
     torch.manual_seed(seed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
-    device = torch.device(device_name or ("cuda" if torch.cuda.is_available() else "cpu"))
+    device = torch.device('cuda' if device_name is None else device_name)
     if device.type == "cuda" and not torch.cuda.is_available():
         raise ValueError("DNN requested CUDA, but CUDA is unavailable")
 

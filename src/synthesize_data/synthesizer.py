@@ -11,6 +11,7 @@ import numpy as np
 import os
 import json
 import hashlib
+from pathlib import Path
 from ensemble import *
 from dnn_labeler import fit_predict_dnn
 from ctgan.data_transformer import DataTransformer
@@ -19,6 +20,7 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 # print(sys.path)
 from commons.onehot import onehot
+from modeling.run_record import file_sha256
 
 
 def _transform_float32(self, raw_data):
@@ -39,6 +41,43 @@ def _transform_float32(self, raw_data):
 # ctgan 0.10.2 has no transformer injection API. Its default transforms columns
 # in parallel and retains two additional float64 copies of the expanded table.
 DataTransformer.transform = _transform_float32
+
+
+def fit_sample_generator(data, categorical_columns, target_name, generator,
+                         sample_size, model_path, seed, is_classification=True, target_transform='raw'):
+  """Fit a fresh production generator and preserve its fit before sampling."""
+  if not torch.cuda.is_available():
+    raise RuntimeError('Production generator fits require remote CUDA')
+  if generator not in {'ctgan', 'tvae'}:
+    raise ValueError('Fresh generator must be CTGAN or TVAE')
+  if target_transform not in {'raw', 'log'} or (target_transform == 'log' and (target_name is None or is_classification)):
+    raise ValueError('Log generation requires a full-table regression target')
+  model_path = Path(model_path)
+  if model_path.exists() or model_path.with_suffix('.provenance.json').exists():
+    raise FileExistsError(f'Existing generator requires explicit validated reuse: {model_path}')
+  training = data.copy()
+  if target_transform == 'log':
+    from commons.log_target import log_target, inverse_log_target
+    training[target_name] = log_target(training[target_name])
+  fit = train_synthesizer_ctgan if generator == 'ctgan' else train_tvae_synthesizer
+  model = fit(training, categorical_columns=categorical_columns,
+              target_name=target_name if is_classification else None, seed=seed)
+  model_path.parent.mkdir(parents=True, exist_ok=True)
+  model.save(str(model_path))
+  _save_synthesis_provenance(model, training, sample_size, str(model_path), seed,
+                            target_transform=target_transform)
+  sample = model.sample(num_rows=sample_size)
+  if target_transform == 'log':
+    sample[target_name] = inverse_log_target(sample[target_name])
+  real, sample = onehot(data, sample, categorical_columns, verbose=False)
+  columns = sorted(c for c in sample if c != target_name)
+  if target_name is not None:
+    columns.append(target_name)
+  sample = sample.loc[:, columns]
+  if len(sample) != sample_size or not np.isfinite(sample.to_numpy()).all():
+    raise ValueError('Generator sample has an invalid row count or non-finite values')
+  model.save(str(model_path))
+  return real, sample
 
 def synthesize_data(x_original, y_original, categorical_columns, target_name,
                     features_synthesizer='CTGAN',
@@ -361,7 +400,8 @@ def synthesize_comparison_from_trained_model(x_original, y_original, categorical
                   BN_model = None, BN_filename=None,
                   csv_file_name=None, npz_file_name=None,
                   is_classification=True, seed=42, full_table_csv=None,
-                  dnn_dev_data=None, dataset_name=None, synthetic_features=None):
+                  dnn_dev_data=None, dataset_name=None, synthetic_features=None,
+                  target_transform='raw', feature_source=None):
 
   """
   Relabel the saved full-table sample's features after discarding its generated target.
@@ -374,6 +414,10 @@ def synthesize_comparison_from_trained_model(x_original, y_original, categorical
   if not target_synthesizer:
     raise ValueError("Target synthesizer must be specified for comparison function")
   _validate_labeler_task(target_synthesizer, is_classification)
+  if target_transform not in {'raw', 'log'} or (is_classification and target_transform != 'raw'):
+    raise ValueError('Log targets are available only for regression labelers')
+  np.random.seed(seed)
+  torch.manual_seed(seed)
 
   if synthetic_features is None:
     if full_table_csv is None:
@@ -413,13 +457,13 @@ def synthesize_comparison_from_trained_model(x_original, y_original, categorical
                       numerical_cols =  numerical_columns_pca_gmm,
                       pca_n_components=0.99, gmm_n_components=10, verbose=verbose,
                       target_name = target_name, filename=csv_file_name, is_classification=is_classification,
-                      artifact_path=predictor_artifact)
+                      artifact_path=predictor_artifact, target_transform=target_transform)
     _, synthesized_data = pca_gmm.fit()
 
   elif target_synthesizer in ['xgb', 'rf']:
     ensemble = Ensemble(x_original, y_original, x_synthesized, target_name=target_name, target_synthesizer=target_synthesizer,
                         filename=csv_file_name, verbose=verbose, is_classification=is_classification,
-                        artifact_path=predictor_artifact)
+                        artifact_path=predictor_artifact, target_transform=target_transform)
     _, synthesized_data = ensemble.fit()
 
   elif target_synthesizer == 'dnn':
@@ -434,6 +478,7 @@ def synthesize_comparison_from_trained_model(x_original, y_original, categorical
         report_path=os.path.splitext(csv_file_name)[0] + '.dnn.json',
         dataset_name=dataset_name,
         artifact_path=os.path.splitext(csv_file_name)[0] + '.predictor.pt',
+        target_transform=target_transform,
     )
 
   elif target_synthesizer == 'gmmNB':
@@ -468,7 +513,7 @@ def synthesize_comparison_from_trained_model(x_original, y_original, categorical
   synthesized_data.to_csv(csv_file_name, index=False)
   _save_synthetic_quality(
       synthesized_data, x_original, y_original, target_name, sample_size, csv_file_name,
-      is_classification
+      is_classification, target_transform=target_transform, feature_source=feature_source
   )
   if verbose:
     print(f"Successfully synthesized X and y data with {target_synthesizer}")
@@ -510,7 +555,8 @@ def load_synthesizer(link, expected_data=None, expected_seed=None):
         raise ValueError('Synthesizer provenance does not match the requested fit table')
   with open(link, 'rb') as file:
     model = pickle.load(file)
-  if any(isinstance(t, AnonymizedFaker) for t in model.get_transformers().values()):
+  from tabddpm import TabDDPM
+  if not isinstance(model, TabDDPM) and any(isinstance(t, AnonymizedFaker) for t in model.get_transformers().values()):
     raise ValueError('Saved generator uses AnonymizedFaker; refit it in a new output namespace')
   return model
 
@@ -592,12 +638,14 @@ def create_synthesizer_tvae(metadata):
   return synthesizer
 
 
-def _save_synthesis_provenance(synthesizer, data, sample_size, synthesizer_file_name, seed, metadata=None):
+def _save_synthesis_provenance(synthesizer, data, sample_size, synthesizer_file_name, seed, metadata=None,
+                             target_transform='raw'):
   """Save the fitted SDV configuration and table metadata next to the model."""
   provenance = {
       'sdv_version': __import__('sdv').__version__,
       'sample_size': sample_size,
       'seed': seed,
+      'target_transform': target_transform,
       'training_rows': len(data),
       'training_columns': list(data.columns),
       'fit_table_sha256': hashlib.sha256(
@@ -612,7 +660,8 @@ def _save_synthesis_provenance(synthesizer, data, sample_size, synthesizer_file_
 
 
 def _save_synthetic_quality(synthetic, training_data, training_labels, target_name,
-                            sample_size, csv_file_name, is_classification):
+                            sample_size, csv_file_name, is_classification,
+                            target_transform='raw', feature_source=None):
   if len(synthetic) != sample_size:
     raise ValueError(f'Expected {sample_size} synthetic rows, got {len(synthetic)}')
   training_features = training_data.drop(columns=[target_name]) if target_name in training_data.columns else training_data
@@ -644,6 +693,8 @@ def _save_synthetic_quality(synthetic, training_data, training_labels, target_na
          training_labels.rename(target_name).reset_index(drop=True)], axis=1
     )
   quality = {
+      'table_sha256': file_sha256(csv_file_name),
+      'target_transform': target_transform,
       'rows': len(synthetic),
       'columns': [str(column) for column in synthetic.columns],
       'synthetic_label_counts': (
@@ -660,6 +711,8 @@ def _save_synthetic_quality(synthetic, training_data, training_labels, target_na
           synthetic.loc[:, expected_columns], index=False
       ).isin(set(pd.util.hash_pandas_object(training_full, index=False).tolist())).sum()),
   }
+  if feature_source is not None:
+    quality['feature_source'] = feature_source
   quality_path = os.path.splitext(csv_file_name)[0] + '.quality.json'
   with open(quality_path, 'w', encoding='utf-8') as file:
     json.dump(quality, file, indent=2, default=str)

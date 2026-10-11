@@ -6,7 +6,7 @@ import torch.nn as nn
 
 
 class DNN_Census(nn.Module):
-    def __init__(self, input_size, hidden_sizes=[256, 128, 64, 32], output_size=1):
+    def __init__(self, input_size, hidden_sizes=[256, 128, 64, 32], output_size=1, logits=False):
         super(DNN_Census, self).__init__()
 
         # Input layer
@@ -37,7 +37,7 @@ class DNN_Census(nn.Module):
         self.output = nn.Linear(hidden_sizes[3], output_size)
 
         # Sigmoid activation for binary classification
-        self.sigmoid = nn.Sigmoid() if output_size == 1 else None
+        self.sigmoid = nn.Sigmoid() if output_size == 1 and not logits else None
 
     def forward(self, x):
         x = self.drop1(self.act1(self.bn1(self.layer1(x))))
