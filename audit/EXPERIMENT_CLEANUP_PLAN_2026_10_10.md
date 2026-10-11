@@ -1,5 +1,7 @@
 # Investigated experiment cleanup plan
 
+**Superseded for local scientific retention and organization by [the individual CSV and research-decision review](LOCAL_CSV_PURPOSE_REVIEW_2026_10_10.md).** The file/hash findings below remain useful, but evidence of unsuccessful alternatives, corrections, and limitations must be retained even outside the final 406-run grid. Verified duplicates may be consolidated after current consumers and provenance location mappings are updated. This earlier proposal remains unexecuted.
+
 Revised October 10, 2026, after the remote dependency investigation completed at 1:13:51 p.m. Chicago and subsequent focused checks. No experiment asset was deleted, moved, rewritten, loaded, or retrained. Only investigation evidence, file lists, and copies of small historical report snapshots were written locally.
 
 The earlier folder-level proposal is withdrawn. In particular, pilot_ctgan_v1 is not a disposable 6.21-GiB pool. Names, timestamps, and absence from today's comparison figure do not establish disuse.
