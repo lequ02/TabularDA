@@ -9,6 +9,8 @@ Local changes to `gaussian_multinomial_diffsuion.py`:
 - Allow `y_dist=None` to sample without target conditioning or dummy targets.
 - Put absent numerical/categorical loss tensors on the input device.
 - Raise on nonfinite samples before returning them; no filtering or retries.
+- Normalize each categorical posterior with direct logsumexp to avoid float32
+  cancellation when subtracting cumulative sums across many variables.
 
 The diffusion objective and denoiser are otherwise unchanged. Upstream data
 loaders, evaluation scripts, and environment requirements are not used.

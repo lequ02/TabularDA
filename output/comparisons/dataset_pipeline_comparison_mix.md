@@ -2,14 +2,15 @@
 
 Mix training concatenates all real training rows and 100,000 synthetic rows; the ratio varies by dataset. The original-data row is the same real-only baseline. Development and test partitions remain real held-out data.
 
-Verified source snapshot: October 10, 2026, 11:58 AM Chicago. This report contains 210 distinct completed run records from the selected configurations; selected report coverage does not establish completion of the original 816-run matrix.
+Verified CTGAN/TVAE source snapshot: October 10, 2026, 11:58 AM Chicago; TabDDPM snapshot: October 11, 2026, 11:03 AM Chicago. This report contains 282 distinct completed run records from the selected configurations; selected report coverage does not establish completion of the original 816-run matrix.
 
 Classification scores are percentages; News and Housing display paired, unscaled R² / D² absolute-error scores. Both are higher-is-better, have a maximum of 1, and can be negative. NMAEσ remains in the CSV. Adult and Census KDD show binary F1 / macro F1; Covertype uses macro F1; MNIST uses accuracy. A dash means no evaluated run is recorded. Seed 42 is used unless the column says seed 43. Within Adult and Census KDD, the two seeds share the same prepared train, development, and test split; they are model-seed repeats, not independent holdouts.
 
 Corrected runs are shown for other datasets; News uses the completed fresh log-target rerun. Missing configurations remain marked with a dash; completed zero scores are displayed as 0.0%.
-MNIST12/28 use only `mnist_head_fixed_20261009`; Housing uses only `housing_no_faker_20261009`. News uses only `news_log_v1`; Census KDD uses `census_kdd_weighted_macro_f1_20261005`; remaining datasets use `corrected_v2`. Source paths in the CSV preserve each namespace.
-This mix report has 60/60 completed MNIST configuration records across both datasets and seeds, including the four real-only baselines. Separately, 212/212 full-matrix MNIST fits are verified, including NB/PCA-GMM configurations excluded from these reports. All planned MNIST fits are complete.
-The News rerun has 74 completed downstream runs across seeds 42 and 43. These reports select RF/XGB/DNN and generated-target arms, with all 15 configurations available for each seed and training mode. Every News downstream model is freshly fitted; no pilot or historical raw-target News records are reused. Full-table generators are fitted on log targets; features-only generators are reused only with verified provenance, and all labelers are fitted afresh on real training log targets.
+CTGAN/TVAE sources: MNIST12/28 use only `mnist_head_fixed_20261009`; Housing uses only `housing_no_faker_20261009`. News uses only `news_log_v1`; Census KDD uses `census_kdd_weighted_macro_f1_20261005`; remaining datasets use `corrected_v2`. Source paths in the CSV preserve each namespace.
+This mix report has 60/60 completed CTGAN/TVAE MNIST configuration records across both datasets and seeds, including the four real-only baselines. Separately, 212/212 full-matrix MNIST fits are verified, including NB/PCA-GMM configurations excluded from these reports. All planned MNIST fits are complete.
+TabDDPM snapshot: October 11, 2026, 11:03 AM Chicago. This report includes 72/112 selected TabDDPM records from `tabddpm_500ep_20261010_v1`; the full TabDDPM matrix has 195/346 verified completed records. Unfinished cells remain blank. Covertype seed 42 generation failed; Census KDD has not started at this snapshot. NB/PCA-GMM are excluded from the tables. Fresh real-only baselines appear separately as 'Real-only (TabDDPM run)' and do not replace earlier baselines. TabDDPM uses 500 complete epochs, batch 500, 1,000 diffusion timesteps and 100,000 rows per source. These are unconditional joint/X-only constructions, not a reproduction of native target-conditional TabDDPM. The split IDs and prepared-input hashes match the existing comparisons. TabDDPM News retains log-target training/raw-share evaluation; Census retains weighted BCE/dev macro-F1 selection.
+The CTGAN/TVAE News rerun has 74 completed downstream runs across seeds 42 and 43. These reports select RF/XGB/DNN and generated-target arms, with all 15 configurations available for each seed and training mode. Every News downstream model is freshly fitted; no pilot or historical raw-target News records are reused. Full-table generators are fitted on log targets; features-only generators are reused only with verified provenance, and all labelers are fitted afresh on real training log targets.
 The News rerun trains MSE on log(shares), uses no BatchNorm or LayerNorm, and selects checkpoints by raw-scale real-development MSE. Predictions are transformed back with exp before final metrics are computed in shares. Log training, normalization removal, and full-table generator/labeler changes are combined changes; comparisons with historical runs do not isolate their individual effects.
 Census KDD uses class-weighted BCEWithLogitsLoss (positive weight = actual training negatives / positives) and development macro-F1 checkpoint selection, with threshold 0.5. Both loss and checkpoint selection changed from the earlier evaluation; improvements cannot be attributed to weighting alone. Pending weighted configurations remain missing rather than using earlier unweighted results.
 News and Housing NMAEσ = MAE / σ_y; lower is better. σ_y is the population standard deviation (ddof=0) of the same real held-out test targets used to compute MAE. Both News seeds use σ_y = 9485.506480005333 over 7,929 rows, verified against the prepared test-table hash. The paper reports News R², not NMAEσ, so its reference lines appear only in the News R² panels. No paper reference is supplied for California Housing.
@@ -22,7 +23,7 @@ D² is computed remotely from each run's saved held-out predictions without retr
 
 $$\mathrm{NMAE}_\sigma = \frac{\mathrm{MAE}}{\sigma_y}.$$
 
-In the figure, triangles mark original data; hollow markers mark generated-target benchmarks. Original-data triangles use teal for binary F1, orange for macro F1, green for accuracy/R², and blue for D². CTGAN and TVAE have distinct colors within each metric.
+In the figure, triangles mark real-only baselines; hollow markers mark generated-target benchmarks. Earlier original-data triangles use teal for binary F1, orange for macro F1, green for accuracy/R², and blue for D². TabDDPM real-only triangles use the TabDDPM metric colors. Each generator has distinct colors within each metric.
 Macro F1 averages the F1 scores of both classes. Paper references for binary datasets are shown only under binary F1; no matching paper macro F1 reference is supplied.
 
 ## Adult
@@ -44,6 +45,14 @@ Macro F1 averages the F1 scores of both classes. Paper references for binary dat
 | TVAE X-only features + RF | 64.7% / 77.4% | 65.7% / 78.1% |
 | TVAE X-only features + XGB | 66.5% / 78.4% | 67.2% / 78.8% |
 | TVAE X-only features + DNN | 69.0% / 78.7% | 68.9% / 79.1% |
+| Real-only (TabDDPM run) | 66.9% / 78.9% | 68.0% / 79.4% |
+| TabDDPM, generated target | 62.7% / 76.7% | 65.8% / 78.3% |
+| TabDDPM full features + RF | 63.1% / 76.8% | 65.5% / 78.0% |
+| TabDDPM full features + XGB | 66.5% / 78.4% | 67.8% / 79.0% |
+| TabDDPM full features + DNN | 68.8% / 78.7% | 69.1% / 79.1% |
+| TabDDPM X-only features + RF | 66.5% / 78.7% | 66.9% / 78.8% |
+| TabDDPM X-only features + XGB | 67.2% / 78.8% | 68.0% / 79.1% |
+| TabDDPM X-only features + DNN | 68.7% / 78.9% | 68.8% / 78.7% |
 | Paper CTGAN (reference) | 60.1% / — | 60.1% / — |
 | Paper TVAE (reference) | 62.6% / — | 62.6% / — |
 | Paper Real (reference) | 66.9% / — | 66.9% / — |
@@ -67,6 +76,14 @@ Macro F1 averages the F1 scores of both classes. Paper references for binary dat
 | TVAE X-only features + RF | 53.9% | 54.6% |
 | TVAE X-only features + XGB | 54.6% | 56.6% |
 | TVAE X-only features + DNN | 73.1% | 73.2% |
+| Real-only (TabDDPM run) | 47.9% | — |
+| TabDDPM, generated target | — | — |
+| TabDDPM full features + RF | — | — |
+| TabDDPM full features + XGB | — | — |
+| TabDDPM full features + DNN | — | — |
+| TabDDPM X-only features + RF | — | — |
+| TabDDPM X-only features + XGB | — | — |
+| TabDDPM X-only features + DNN | — | — |
 | Paper CTGAN (reference) | 32.4% | 32.4% |
 | Paper TVAE (reference) | 43.3% | 43.3% |
 | Paper Real (reference) | 65.2% | 65.2% |
@@ -90,6 +107,14 @@ Macro F1 averages the F1 scores of both classes. Paper references for binary dat
 | TVAE X-only features + RF | 94.1% | 93.8% |
 | TVAE X-only features + XGB | 94.9% | 94.7% |
 | TVAE X-only features + DNN | 94.7% | 94.6% |
+| Real-only (TabDDPM run) | 95.7% | — |
+| TabDDPM, generated target | 87.1% | — |
+| TabDDPM full features + RF | 80.4% | — |
+| TabDDPM full features + XGB | 91.9% | — |
+| TabDDPM full features + DNN | 37.2% | — |
+| TabDDPM X-only features + RF | 91.5% | — |
+| TabDDPM X-only features + XGB | 92.0% | — |
+| TabDDPM X-only features + DNN | 55.3% | — |
 | Paper CTGAN (reference) | 39.4% | 39.4% |
 | Paper TVAE (reference) | 79.3% | 79.3% |
 | Paper Real (reference) | 88.6% | 88.6% |
@@ -113,6 +138,14 @@ Macro F1 averages the F1 scores of both classes. Paper references for binary dat
 | TVAE X-only features + RF | 95.9% | 96.0% |
 | TVAE X-only features + XGB | 96.9% | 96.9% |
 | TVAE X-only features + DNN | 96.8% | 96.8% |
+| Real-only (TabDDPM run) | 98.0% | 98.0% |
+| TabDDPM, generated target | 89.2% | 85.6% |
+| TabDDPM full features + RF | 92.1% | 94.2% |
+| TabDDPM full features + XGB | 93.1% | 92.4% |
+| TabDDPM full features + DNN | 10.3% | 80.8% |
+| TabDDPM X-only features + RF | 93.6% | 77.9% |
+| TabDDPM X-only features + XGB | 93.7% | 34.4% |
+| TabDDPM X-only features + DNN | 62.6% | 10.2% |
 | Paper CTGAN (reference) | 37.1% | 37.1% |
 | Paper TVAE (reference) | 79.4% | 79.4% |
 | Paper Real (reference) | 91.6% | 91.6% |
@@ -136,6 +169,14 @@ Macro F1 averages the F1 scores of both classes. Paper references for binary dat
 | TVAE X-only features + RF | 55.2% / 75.9% | 57.1% / 77.2% |
 | TVAE X-only features + XGB | 57.4% / 77.3% | 58.0% / 77.6% |
 | TVAE X-only features + DNN | 57.5% / 77.4% | 57.2% / 77.2% |
+| Real-only (TabDDPM run) | — | — |
+| TabDDPM, generated target | — | — |
+| TabDDPM full features + RF | — | — |
+| TabDDPM full features + XGB | — | — |
+| TabDDPM full features + DNN | — | — |
+| TabDDPM X-only features + RF | — | — |
+| TabDDPM X-only features + XGB | — | — |
+| TabDDPM X-only features + DNN | — | — |
 | Paper CTGAN (reference) | 39.1% / — | 39.1% / — |
 | Paper TVAE (reference) | 37.7% / — | 37.7% / — |
 | Paper Real (reference) | 49.4% / — | 49.4% / — |
@@ -159,6 +200,14 @@ Macro F1 averages the F1 scores of both classes. Paper references for binary dat
 | TVAE X-only features + RF | 0.002 / -0.002 | -0.001 / 0.006 |
 | TVAE X-only features + XGB | -0.000 / -0.002 | -0.001 / 0.019 |
 | TVAE X-only features + DNN | 0.004 / -0.001 | -0.001 / 0.020 |
+| Real-only (TabDDPM run) | 0.005 / -0.086 | -0.063 / -0.003 |
+| TabDDPM, generated target | 0.002 / -0.129 | 0.003 / -0.018 |
+| TabDDPM full features + RF | -0.001 / -0.004 | -0.002 / 0.011 |
+| TabDDPM full features + XGB | 0.003 / -0.024 | -0.001 / 0.011 |
+| TabDDPM full features + DNN | -0.018 / -0.030 | 0.001 / 0.013 |
+| TabDDPM X-only features + RF | -0.002 / 0.003 | -0.002 / 0.015 |
+| TabDDPM X-only features + XGB | -0.001 / -0.005 | -0.001 / -0.011 |
+| TabDDPM X-only features + DNN | -0.002 / -0.036 | — |
 | Paper CTGAN (reference) | -0.430 / — | -0.430 / — |
 | Paper TVAE (reference) | -0.200 / — | -0.200 / — |
 | Paper Real (reference) | 0.140 / — | 0.140 / — |
@@ -182,6 +231,14 @@ Macro F1 averages the F1 scores of both classes. Paper references for binary dat
 | TVAE X-only features + RF | 0.759 / 0.553 | 0.762 / 0.558 |
 | TVAE X-only features + XGB | 0.801 / 0.600 | 0.799 / 0.612 |
 | TVAE X-only features + DNN | 0.789 / 0.604 | 0.786 / 0.597 |
+| Real-only (TabDDPM run) | 0.525 / 0.296 | 0.500 / 0.268 |
+| TabDDPM, generated target | 0.800 / 0.597 | 0.774 / 0.548 |
+| TabDDPM full features + RF | 0.795 / 0.598 | 0.783 / 0.566 |
+| TabDDPM full features + XGB | 0.829 / 0.638 | 0.804 / 0.587 |
+| TabDDPM full features + DNN | 0.802 / 0.606 | 0.783 / 0.572 |
+| TabDDPM X-only features + RF | 0.791 / 0.593 | 0.782 / 0.563 |
+| TabDDPM X-only features + XGB | 0.820 / 0.621 | 0.811 / 0.597 |
+| TabDDPM X-only features + DNN | 0.799 / 0.602 | 0.792 / 0.584 |
 | Paper CTGAN (reference) | — | — |
 | Paper TVAE (reference) | — | — |
 | Paper Real (reference) | — | — |

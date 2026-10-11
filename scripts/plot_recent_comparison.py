@@ -4,6 +4,7 @@ import argparse
 import csv
 import hashlib
 import json
+import math
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -20,6 +21,7 @@ DEST = ROOT / "output" / "comparisons"
 NEWS_SCOPE = "news_log_v1"
 MNIST_SCOPE = "mnist_head_fixed_20261009"
 HOUSING_SCOPE = "housing_no_faker_20261009"
+TABDDPM_SCOPE = "tabddpm_500ep_20261010_v1"
 ROWS = [
     ("Original data only", "real_original"),
     ("CTGAN, generated target", "ctgan_full_generated_synthetic"),
@@ -36,6 +38,14 @@ ROWS = [
     ("TVAE X-only features + RF", "tvae_xonly_rf_synthetic"),
     ("TVAE X-only features + XGB", "tvae_xonly_xgb_synthetic"),
     ("TVAE X-only features + DNN", "tvae_xonly_dnn_synthetic"),
+    ("Real-only (TabDDPM run)", "tabddpm_real_original"),
+    ("TabDDPM, generated target", "tabddpm_full_generated_synthetic"),
+    ("TabDDPM full features + RF", "tabddpm_full_rf_synthetic"),
+    ("TabDDPM full features + XGB", "tabddpm_full_xgb_synthetic"),
+    ("TabDDPM full features + DNN", "tabddpm_full_dnn_synthetic"),
+    ("TabDDPM X-only features + RF", "tabddpm_xonly_rf_synthetic"),
+    ("TabDDPM X-only features + XGB", "tabddpm_xonly_xgb_synthetic"),
+    ("TabDDPM X-only features + DNN", "tabddpm_xonly_dnn_synthetic"),
 ]
 PANELS = {
     "adult_corrected": {
@@ -120,19 +130,21 @@ for dataset, title in (("news", "News"), ("california_housing", "Housing")):
         }
 UNSCALED_METRICS = {"r2", "nmae_sigma", "d2_absolute_error"}
 METRIC_COLORS = {
-    "f1_binary": {"ctgan": "#087f8c", "tvae": "#6d28d9"},
-    "f1_macro": {"ctgan": "#b45309", "tvae": "#be185d"},
-    "accuracy": {"ctgan": "#15803d", "tvae": "#65a30d"},
-    "r2": {"ctgan": "#15803d", "tvae": "#65a30d"},
-    "nmae_sigma": {"ctgan": "#0369a1", "tvae": "#7c3aed"},
-    "d2_absolute_error": {"ctgan": "#0369a1", "tvae": "#7c3aed"},
+    "f1_binary": {"ctgan": "#087f8c", "tvae": "#6d28d9", "tabddpm": "#be123c"},
+    "f1_macro": {"ctgan": "#b45309", "tvae": "#be185d", "tabddpm": "#0e7490"},
+    "accuracy": {"ctgan": "#15803d", "tvae": "#65a30d", "tabddpm": "#c2410c"},
+    "r2": {"ctgan": "#15803d", "tvae": "#65a30d", "tabddpm": "#c2410c"},
+    "nmae_sigma": {"ctgan": "#0369a1", "tvae": "#7c3aed", "tabddpm": "#db2777"},
+    "d2_absolute_error": {"ctgan": "#0369a1", "tvae": "#7c3aed", "tabddpm": "#db2777"},
 }
 
 
 def run_path(info, suffix):
     dataset = info["dataset"]
     seed = info.get("seed", 42)
-    return (ROOT / "output" / info["scope"] / dataset / "acc"
+    scope = TABDDPM_SCOPE if suffix.startswith("tabddpm_") else info["scope"]
+    suffix = "real_original" if suffix == "tabddpm_real_original" else suffix
+    return (ROOT / "output" / scope / dataset / "acc"
             / f"{dataset}_seed{seed}_{suffix}.run.json")
 
 
@@ -142,11 +154,18 @@ def read_run(info, suffix):
     path = run_path(info, suffix)
     with path.open(encoding="utf-8") as source:
         record = json.load(source)
-    expected_mode = "original" if suffix == "real_original" else suffix.rsplit("_", 1)[1]
+    tabddpm = suffix.startswith("tabddpm_")
+    expected_mode = "original" if suffix.endswith("real_original") else suffix.rsplit("_", 1)[1]
     assert record["selected_dev_epoch"] is not None, path
     assert (record["dataset"], record["seed"], record["train_option"],
             record["selection_metric"]) == (dataset, seed, expected_mode, info.get("selection_metric", "loss"))
-    if dataset in {"mnist12", "mnist28"}:
+    if tabddpm:
+        evidence = json.loads((ROOT / "audit/comparison_tabddpm_snapshot.json").read_text())
+        sources = {item["path"]: item["sha256"] for item in evidence["selected_records"]}
+        assert evidence["namespace"] == TABDDPM_SCOPE
+        assert record["source_sha256"] == evidence["source_sha256"]
+        assert hashlib.sha256(path.read_bytes()).hexdigest() == sources[path.relative_to(ROOT).as_posix()]
+    if dataset in {"mnist12", "mnist28"} and not tabddpm:
         evidence = json.loads((ROOT / "audit/comparison_rerun_verification_latest.json").read_text())
         assert info["scope"] == MNIST_SCOPE
         assert record["source_sha256"] == evidence["mnist"]["source_snapshot"]["source_sha256"]
@@ -158,10 +177,14 @@ def read_run(info, suffix):
         assert transform["selection"] == "raw_share_mse" and transform["metric_units"] == "shares"
     if dataset == "census_kdd":
         protocol = record["evaluation_protocol"]
-        assert protocol["output_namespace"] == info["scope"]
+        if tabddpm:
+            assert protocol["name"] == "census-weighted"
+        else:
+            assert protocol["output_namespace"] == info["scope"]
+            assert protocol["selection_metric"] == "f1_macro"
         assert protocol["objective"] == "BCEWithLogitsLoss"
-        assert protocol["selection_metric"] == "f1_macro" and protocol["threshold"] == 0.5
-        weighted = record["pilot_protocol"]
+        assert record["selection_metric"] == "f1_macro" and protocol["threshold"] == 0.5
+        weighted = protocol if tabddpm else record["pilot_protocol"]
         counts = weighted["training_label_counts"]
         assert abs(weighted["pos_weight"] - counts["0"] / counts["1"]) < 1e-12
     manifest = record["split_manifest"]
@@ -172,12 +195,19 @@ def read_run(info, suffix):
         assert provenance["training_rows"] == train_file["rows"]
         if "_full_" in suffix:
             assert provenance["training_columns"] == train_file["columns"]
-            if dataset not in {"california_housing", "news"}:
+            if dataset not in {"california_housing", "news"} and not tabddpm:
                 assert provenance["fit_table_sha256"] == train_file["sha256"]
         else:
             assert "_xonly_" in suffix
             assert provenance["training_columns"] == train_file["columns"][:-1]
-        if dataset == "news":
+        if tabddpm:
+            verified = evidence["generators"][record["generator_provenance_path"]]
+            assert provenance == verified["provenance"]
+            params = provenance["parameters"]
+            assert params["epochs"] == 500 and params["batch_size"] == 500 and params["device"] == "cuda"
+            assert params["steps"] == params["epochs"] * params["updates_per_epoch"]
+            assert params["is_y_cond"] is False and provenance["sample_size"] == 100000
+        if dataset == "news" and not tabddpm:
             evidence = json.loads((ROOT / "audit/comparison_news_log_fit_table_hashes.json").read_text())
             assert evidence["namespace"] == NEWS_SCOPE
             table = evidence["tables"][f"news_seed{seed}"]
@@ -186,7 +216,7 @@ def read_run(info, suffix):
             generator = "tvae" if suffix.startswith("tvae_") else "ctgan"
             assert provenance == fit["generators"][generator]["provenance"]
             assert provenance["fit_table_sha256"] == fit["sha256"]
-        if dataset == "california_housing":
+        if dataset == "california_housing" and not tabddpm:
             evidence = json.loads((ROOT / "audit/comparison_housing_fit_table_hashes.json").read_text())
             assert evidence["namespace"] == info["scope"] == HOUSING_SCOPE
             table = evidence["tables"][f"california_housing_seed{seed}"]
@@ -240,7 +270,7 @@ def is_available(info, suffix):
 
 def main(train_option="synthetic"):
     rows = [(label, suffix.removesuffix("_synthetic") + "_mix"
-             if train_option == "mix" and suffix != "real_original" else suffix)
+             if train_option == "mix" and not suffix.endswith("real_original") else suffix)
             for label, suffix in ROWS]
     basename = "dataset_pipeline_comparison" + ("_mix" if train_option == "mix" else "")
     DEST.mkdir(parents=True, exist_ok=True)
@@ -315,13 +345,19 @@ def main(train_option="synthetic"):
     assert snapshot["mnist_source_scope"] == MNIST_SCOPE
     assert snapshot["housing_source_scope"] == HOUSING_SCOPE
     mnist_completed = len({path for paths in record_paths.values() for panel, path in paths.items()
-                           if PANELS[panel]["dataset"] in {"mnist12", "mnist28"}})
+                           if PANELS[panel]["dataset"] in {"mnist12", "mnist28"}
+                           and path.startswith(f"output/{MNIST_SCOPE}/")})
     mnist_verification = json.loads((ROOT / "audit/comparison_rerun_verification_latest.json").read_text())["mnist"]
+    tabddpm_snapshot = json.loads((ROOT / "audit/comparison_tabddpm_snapshot.json").read_text())
+    tabddpm_completed = len({path for paths in record_paths.values() for path in paths.values()
+                             if path.startswith(f"output/{TABDDPM_SCOPE}/")})
+    tabddpm_checked_at = datetime.fromisoformat(tabddpm_snapshot["checked_at_chicago"])
     checked_at = datetime.fromisoformat(snapshot["checked_at"]).astimezone(ZoneInfo("America/Chicago"))
     table_lines = [
         "# Mix pipeline comparison" if train_option == "mix" else "# Synthetic-data pipeline comparison",
         "",
-        f"Verified source snapshot: {checked_at.strftime('%B %d, %Y, %I:%M %p')} Chicago. "
+        f"Verified CTGAN/TVAE source snapshot: {checked_at.strftime('%B %d, %Y, %I:%M %p')} Chicago; "
+        f"TabDDPM snapshot: {tabddpm_checked_at.strftime('%B %d, %Y, %I:%M %p')} Chicago. "
         f"This report contains {completed} distinct completed run records from the selected configurations; "
         "selected report coverage does not establish completion of the original 816-run matrix.",
         "",
@@ -336,17 +372,27 @@ def main(train_option="synthetic"):
         "Corrected runs are shown for other datasets; News uses the completed fresh log-target rerun. "
         "Missing configurations remain marked with a dash; "
         "completed zero scores are displayed as 0.0%.",
-        f"MNIST12/28 use only `{MNIST_SCOPE}`; Housing uses only `{HOUSING_SCOPE}`. "
+        f"CTGAN/TVAE sources: MNIST12/28 use only `{MNIST_SCOPE}`; Housing uses only `{HOUSING_SCOPE}`. "
         f"News uses only `{NEWS_SCOPE}`; Census KDD uses `census_kdd_weighted_macro_f1_20261005`; "
         "remaining datasets use `corrected_v2`. "
         "Source paths in the CSV preserve each namespace.",
-        f"This {train_option} report has {mnist_completed}/60 completed MNIST configuration records "
+        f"This {train_option} report has {mnist_completed}/60 completed CTGAN/TVAE MNIST configuration records "
         "across both datasets and seeds, including the four real-only baselines. "
         f"Separately, {mnist_verification['verified_completed']}/{mnist_verification['planned_total']} "
         "full-matrix MNIST fits are verified, including NB/PCA-GMM configurations excluded from these reports. "
         + ("All planned MNIST fits are complete." if mnist_verification["verified_completed"] == mnist_verification["planned_total"]
            else "Remaining full-matrix configurations are pending."),
-        "The News rerun has 74 completed downstream runs across seeds 42 and 43. These reports select "
+        f"TabDDPM snapshot: {tabddpm_checked_at.strftime('%B %d, %Y, %I:%M %p')} Chicago. "
+        f"This report includes {tabddpm_completed}/112 selected TabDDPM records from `{TABDDPM_SCOPE}`; "
+        f"the full TabDDPM matrix has {tabddpm_snapshot['verified_completed']}/346 verified completed records. "
+        "Unfinished cells remain blank. Covertype seed 42 generation failed; Census KDD has not started at this snapshot. "
+        "NB/PCA-GMM are excluded from the tables. Fresh real-only baselines appear separately as "
+        "'Real-only (TabDDPM run)' and do not replace earlier baselines. "
+        "TabDDPM uses 500 complete epochs, batch 500, 1,000 diffusion timesteps and 100,000 rows per source. "
+        "These are unconditional joint/X-only constructions, not a reproduction of native target-conditional TabDDPM. "
+        "The split IDs and prepared-input hashes match the existing comparisons. "
+        "TabDDPM News retains log-target training/raw-share evaluation; Census retains weighted BCE/dev macro-F1 selection.",
+        "The CTGAN/TVAE News rerun has 74 completed downstream runs across seeds 42 and 43. These reports select "
         "RF/XGB/DNN and generated-target arms, with all 15 configurations available for each seed and "
         "training mode. Every News downstream model is freshly fitted; no pilot or historical raw-target "
         "News records are reused. Full-table generators are fitted on log targets; features-only generators "
@@ -392,9 +438,9 @@ def main(train_option="synthetic"):
         "row count, split and target-table/prediction/run-record hashes. Original records and NMAEσ are "
         "preserved. The builder reads and verifies sidecars; it does not recompute D² from test data.",
         "", r"$$\mathrm{NMAE}_\sigma = \frac{\mathrm{MAE}}{\sigma_y}.$$", "",
-        "In the figure, triangles mark original data; hollow markers mark generated-target benchmarks. "
-        "Original-data triangles use teal for binary F1, orange for macro F1, green for accuracy/R², and blue for D². "
-        "CTGAN and TVAE have distinct colors within each metric.",
+        "In the figure, triangles mark real-only baselines; hollow markers mark generated-target benchmarks. "
+        "Earlier original-data triangles use teal for binary F1, orange for macro F1, green for accuracy/R², and blue for D². "
+        "TabDDPM real-only triangles use the TabDDPM metric colors. Each generator has distinct colors within each metric.",
         "Macro F1 averages the F1 scores of both classes. Paper references for binary datasets "
         "are shown only under binary F1; no matching paper macro F1 reference is supplied.",
         "",
@@ -454,7 +500,7 @@ def main(train_option="synthetic"):
     plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 10})
     plot_panels = {p: info for p, info in PANELS.items() if info["metric"] != "nmae_sigma"}
     nrows = (len(plot_panels) + 1) // 2
-    fig, axes = plt.subplots(nrows, 2, figsize=(18.5, 5.5 * nrows), sharey="row")
+    fig, axes = plt.subplots(nrows, 2, figsize=(18.5, 5.5 * nrows * len(rows) / 15), sharey="row")
     positions = list(range(len(rows)))
     pair_limits = {}
     for info in plot_panels.values():
@@ -486,6 +532,9 @@ def main(train_option="synthetic"):
             ax.set_xlim(scale.inverted().transform((lower - margin, upper + margin)))
             if info["dataset"] == "news":
                 ticks = [-0.1, -0.01, -0.001, 0, 0.001, 0.01, 0.1]
+                for power in range(max(0, math.ceil(math.log10(max(abs(limits[0]), abs(limits[1]))))) + 1):
+                    ticks.extend(tick for tick in (-10.0 ** power, 10.0 ** power) if limits[0] <= tick <= limits[1])
+                ticks.sort()
                 ax.set_xticks(ticks, [f"{tick:g}" for tick in ticks])
         ax.set_ylim(-1.3, len(rows) - 0.5)
         ax.invert_yaxis()
@@ -509,7 +558,7 @@ def main(train_option="synthetic"):
         if not info["paper"] and info["dataset"] != "california_housing":
             ax.text(0, 1.02, "Paper references not reported", transform=ax.transAxes,
                     color="#64748b", fontsize=9, va="bottom")
-        for divider in (0.5, 2.5, 5.5, 8.5, 11.5):
+        for divider in (0.5, 2.5, 5.5, 8.5, 11.5, 14.5, 15.5, 16.5, 19.5):
             ax.axhline(divider, color="#e2e8f0", linewidth=0.8)
         offset = 0.02 * (limits[1] - limits[0])
         for y, (label, suffix) in enumerate(rows):
@@ -518,7 +567,8 @@ def main(train_option="synthetic"):
                 ax.text(0.02, y, "Not completed", transform=ax.get_yaxis_transform(), ha="left", va="center",
                         color="#94a3b8", style="italic", fontsize=9.5)
                 continue
-            generator = "tvae" if suffix.startswith("tvae_") else "ctgan"
+            generator = suffix.split("_", 1)[0] if suffix.startswith(("ctgan_", "tvae_", "tabddpm_")) else "ctgan"
+            real_only = suffix.endswith("real_original")
             benchmark = "_full_generated_" in suffix
             points = [(value, y - pair_offset if paired else y,
                        METRIC_COLORS[info["metric"]][generator],
@@ -529,23 +579,23 @@ def main(train_option="synthetic"):
                 points.append((d2_values[label][panel], y + pair_offset,
                                METRIC_COLORS["d2_absolute_error"][generator], "v"))
             for score, position, color, marker in points:
-                ax.scatter(score, position, s=75 if y == 0 else 50,
+                ax.scatter(score, position, s=75 if real_only else 50,
                            facecolors="none" if benchmark else color,
-                           marker="^" if y == 0 else marker, edgecolor=color, linewidth=1.2, zorder=3)
+                           marker="^" if real_only else marker, edgecolor=color, linewidth=1.2, zorder=3)
                 if compressed_r2:
                     fraction = ax.transAxes.inverted().transform(ax.transData.transform((score, position)))[0]
                     place_left = fraction > 0.90 or score < max(point[0] for point in points)
                     ax.annotate(f"{score:.3f}", (score, position),
                                 xytext=(-5 if place_left else 5, 0), textcoords="offset points",
                                 va="center", ha="right" if place_left else "left", color=color,
-                                fontsize=7.5, fontweight="bold" if y == 0 else "normal")
+                                fontsize=7.5, fontweight="bold" if real_only else "normal")
                 else:
                     place_left = score > limits[1] - 4 * offset
                     ax.text(score - offset if place_left else score + offset, position,
                             f"{score:.3f}" if info["metric"] in UNSCALED_METRICS else f"{score:.1f}%", va="center",
                             ha="right" if place_left else "left", color=color,
                             fontsize=7.5 if info["metric"] == "r2" else (8 if paired else 9.5),
-                            fontweight="bold" if y == 0 else "normal")
+                            fontweight="bold" if real_only else "normal")
         if index % 2 == 0 or all(values[label][list(plot_panels)[index - 1]] is None
                                 for label, _ in rows):
             ax.set_yticks(positions, [row[0] for row in rows])
@@ -567,12 +617,12 @@ def main(train_option="synthetic"):
                                                     ("f1_macro", "D", "macro F1"),
                                                     ("accuracy", "s", "accuracy / R²"),
                                                     ("d2_absolute_error", "v", "D² absolute error"))
-                      for generator in ("ctgan", "tvae")]
+                      for generator in ("ctgan", "tvae", "tabddpm")]
     metric_handles.extend([Line2D([], [], marker="^", color="#64748b", linestyle="none", label="Original data"),
                            Line2D([], [], marker="o", markerfacecolor="none", color="#64748b",
                                   linestyle="none", label="Generated-target benchmark")])
     fig.legend(handles=metric_handles, loc="upper right", bbox_to_anchor=(0.979, 0.955),
-               frameon=False, ncol=4, fontsize=9)
+               frameon=False, ncol=5, fontsize=9)
     fig.suptitle("Mix pipelines on held-out real test sets" if train_option == "mix"
                  else "Synthetic-data pipelines on held-out real test sets", x=0.047,
                  y=0.985, ha="left", fontsize=17, fontweight="bold")
