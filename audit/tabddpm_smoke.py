@@ -24,29 +24,36 @@ from tabddpm_core.utils import index_to_log_onehot
 
 
 def check_categorical_posterior(device):
-    model = TabDDPM(steps=2, device=device)
-    model.numerical = []
-    model.cardinalities = [2] * 44 + [7]
-    diffusion = model._diffusion()
-    original = torch.zeros((45, 45), dtype=torch.long, device=device)
-    original[:, [0, 4]] = 1  # One wilderness area and one soil type.
-    observed = original.clone()
-    observed[:, -1] = 1  # Valid, rare target corruption at t=0.
-    for row in range(1, 45):
-        observed[row, row - 1] = 1 - observed[row, row - 1]
-    start = index_to_log_onehot(original, model.cardinalities)
-    noisy = index_to_log_onehot(observed, model.cardinalities)
-    t = torch.zeros(len(original), dtype=torch.long, device=device)
-    posterior = diffusion.q_posterior(start, noisy, t)
-    assert torch.isfinite(posterior).all()
-    for group in diffusion.slices_for_classes:
-        torch.testing.assert_close(posterior[:, group].exp().sum(1),
-                                   torch.ones(len(original), device=device), atol=1e-6, rtol=0)
-    logits = ((start.exp() * 2 - 1) * 8).requires_grad_(True)
-    loss = diffusion.compute_Lt(logits, start, noisy, t, {}).mean()
-    assert torch.isfinite(loss)
-    loss.backward()
-    assert torch.isfinite(logits.grad).all()
+    schemas = (
+        ([2] * 44 + [7], 44),  # Covertype target.
+        ([9, 17, 3, 7, 24, 15, 5, 10, 2, 3, 6, 8, 6, 6, 50, 38, 8,
+          3, 5, 42, 42, 42, 5, 3, 2], 19),  # Census KDD PEFNTVTY.
+    )
+    for cardinalities, corrupted_feature in schemas:
+        model = TabDDPM(steps=2, device=device)
+        model.numerical = []
+        model.cardinalities = cardinalities
+        diffusion = model._diffusion()
+        n_features = len(cardinalities)
+        original = torch.zeros((n_features, n_features), dtype=torch.long, device=device)
+        original[:, [0, 4]] = 1
+        observed = original.clone()
+        observed[:, corrupted_feature] = 1  # Valid, rare corruption at t=0.
+        for row in range(1, n_features):
+            observed[row, row - 1] = 1 - observed[row, row - 1]
+        start = index_to_log_onehot(original, cardinalities)
+        noisy = index_to_log_onehot(observed, cardinalities)
+        t = torch.zeros(len(original), dtype=torch.long, device=device)
+        posterior = diffusion.q_posterior(start, noisy, t)
+        assert torch.isfinite(posterior).all()
+        for group in diffusion.slices_for_classes:
+            torch.testing.assert_close(posterior[:, group].exp().sum(1),
+                                       torch.ones(len(original), device=device), atol=1e-6, rtol=0)
+        logits = ((start.exp() * 2 - 1) * 8).requires_grad_(True)
+        loss = diffusion.compute_Lt(logits, start, noisy, t, {}).mean()
+        assert torch.isfinite(loss)
+        loss.backward()
+        assert torch.isfinite(logits.grad).all()
 
 
 def main(device='cpu'):
