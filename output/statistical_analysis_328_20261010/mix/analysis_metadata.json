@@ -1,0 +1,94 @@
+{
+  "training_rows": "all real training rows plus 100000 synthetic rows",
+  "factorial_rows": 120,
+  "generated_baselines": 20,
+  "dataset_levels": [
+    "adult",
+    "census_kdd",
+    "covertype",
+    "mnist12",
+    "mnist28"
+  ],
+  "generator_levels": [
+    "ctgan",
+    "tvae"
+  ],
+  "has_y_levels": [
+    0,
+    1
+  ],
+  "labeler_levels": [
+    "rf",
+    "xgb",
+    "dnn"
+  ],
+  "seed_levels": [
+    42,
+    43
+  ],
+  "primary_formula": "macro_F1 ~ dataset + generator * has_y * labeler * seed",
+  "models": [
+    {
+      "name": "factorial",
+      "formula": "macro_F1 ~ C(dataset, Sum) + C(generator, Sum)*C(has_y, Sum)*C(labeler, Sum)*C(seed, Sum)",
+      "n": 120,
+      "rank": 28,
+      "columns": 28,
+      "df_model": 27.0,
+      "df_resid": 92.0,
+      "r_squared": 0.9307611374453129,
+      "adjusted_r_squared": 0.9104410364781764,
+      "shapiro_p": 3.3016856853309675e-07
+    },
+    {
+      "name": "seed_block",
+      "formula": "macro_F1 ~ C(dataset, Sum) + C(seed, Sum) + C(generator, Sum)*C(has_y, Sum)*C(labeler, Sum)",
+      "n": 120,
+      "rank": 17,
+      "columns": 17,
+      "df_model": 16.0,
+      "df_resid": 103.0,
+      "r_squared": 0.9298945361436971,
+      "adjusted_r_squared": 0.9190043670009704,
+      "shapiro_p": 1.119046856072435e-07
+    },
+    {
+      "name": "dataset_interaction",
+      "formula": "macro_F1 ~ C(dataset, Sum)*(C(has_y, Sum)*C(labeler, Sum)) + C(generator, Sum)*C(has_y, Sum)*C(labeler, Sum) + C(seed, Sum)",
+      "n": 120,
+      "rank": 37,
+      "columns": 37,
+      "df_model": 36.0,
+      "df_resid": 83.0,
+      "r_squared": 0.9926101476058513,
+      "adjusted_r_squared": 0.9894049104228471,
+      "shapiro_p": 4.183830041626482e-10
+    }
+  ],
+  "joint_tests": [
+    {
+      "test": "seed_interactions",
+      "restricted_formula": "macro_F1 ~ C(dataset, Sum) + C(seed, Sum) + C(generator, Sum)*C(has_y, Sum)*C(labeler, Sum)",
+      "full_formula": "macro_F1 ~ C(dataset, Sum) + C(generator, Sum)*C(has_y, Sum)*C(labeler, Sum)*C(seed, Sum)",
+      "df_num": 11.0,
+      "df_den": 92.0,
+      "F": 0.1046802025848344,
+      "p": 0.9998738630367298
+    },
+    {
+      "test": "dataset_interactions",
+      "restricted_formula": "macro_F1 ~ C(dataset, Sum) + C(seed, Sum) + C(generator, Sum)*C(has_y, Sum)*C(labeler, Sum)",
+      "full_formula": "macro_F1 ~ C(dataset, Sum)*(C(has_y, Sum)*C(labeler, Sum)) + C(generator, Sum)*C(has_y, Sum)*C(labeler, Sum) + C(seed, Sum)",
+      "df_num": 20.0,
+      "df_den": 83.0,
+      "F": 35.21988988224231,
+      "p": 2.927550467197432e-32
+    }
+  ],
+  "anova_type": 2,
+  "coding": "Categorical factors; sum-to-zero contrasts. Complete balanced observed grid.",
+  "families": "ANOVA: nominal p; factorial marginal effects: Holm over 3; planned dataset contrasts: Holm over 4; method comparisons: Holm over 12. Separate families within each training analysis.",
+  "inference": "ANOVA/model intervals assume independent homoskedastic residuals and are exploratory. Shared heldout rows and dataset-specific treatment effects limit those assumptions. Dataset paired inference uses 5 task means, not 120 independent tasks.",
+  "removed": "No combined treatment factor or random-intercept mixed model. No repeated-measures appendix.",
+  "seed": "42 and 43 are categorical fixed levels. Seed interactions compare these two runs, not a population of possible seeds."
+}

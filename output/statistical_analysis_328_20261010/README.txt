@@ -1,17 +1,24 @@
-The report uses the original 328 project's research questions and frozen real-data
-results. Each section begins with a question, method and finding. Appendix A explains
-the supporting repeated-measures check; Appendix B holds model diagnostics.
-
-Bold ANOVA rows use p < .05. *** p < .001; ** p < .01; * p < .05; . p < .10.
-Each table states whether its symbols use nominal or adjusted p-values.
-
-Open the HTML or PDF; the Rmd is editable and contains an optional equivalent R refit
-specification. The numerical analysis ran remotely in Python; optional R code was not
-executed. This revision changes presentation only and preserves all statistical CSVs.
-
-Remote analysis: /home/thuy/Research/minh_data_synth/TabularDA/.cache/statistical_328_20261010
-The exact analysis source and dependencies are included. Inspect ongoing jobs before
-any remote rerun. Use /home/thuy/miniconda3/envs/env; never run experiments locally.
-
-406 selected configurations and 116 D2 sidecars verified; broader matrix completion
-is not claimed. Original source snapshot: October 10, 2026, 1:08:42 a.m. Chicago.
+There are TWO analyses: synthetic-only and mix, each with its own factorial fit.
+The combined real_data_328_analysis PDF/HTML contains both; it is not a third analysis.
+Primary equation, with categorical seed:
+macro_F1 ~ dataset + generator * has_y * labeler * seed
+This complete grid contains RF/XGB/DNN relabeled runs only: 120 scores per analysis.
+Twenty generated-target scores are explicit matched baseline comparisons. Real-only
+scores are references. No nonexistent generated-target/has_y=0 cell is estimated.
+No composite treatment factor is used. Current tables are only in synthetic/ and mix/.
+The former mixed model and repeated-measures appendix are removed from these reports.
+Original 328 template structure: ANOVA, model checks, estimated means and effect contrasts.
+Numerical fits ran remotely in Python; optional R code has not been executed.
+Bold and stars use the p-value stated for each table. Confidence intervals are unadjusted.
+Frozen input files preserve the historical schema verbatim as evidence, not model factors.
+R2 and D2 have separate exploratory ANOVAs on 48 relabeled scores per training analysis:
+outcome ~ dataset + generator * has_y * labeler * seed (rank 25, residual df 23).
+Within each regression task: outcome ~ seed + generator * has_y * labeler
+(rank 13, residual df 11). A within-task full four-factor fit would have zero residual df.
+Regression ANOVA and model contrast p-values are nominal, not Holm-adjusted.
+Generated-target improvements are descriptive comparisons outside those ANOVAs.
+Only News and Housing are available; these tests do not establish effects across new tasks.
+All 406 records and 116 D2 sidecars remain unchanged; see latest_source_verification.json.
+Remote cache: /home/thuy/Research/minh_data_synth/TabularDA/.cache/statistical_328_explicit_20261010
+Regression cache: /home/thuy/Research/minh_data_synth/TabularDA/.cache/statistical_328_regression_20261010
+Never run experiments locally. Prior deliverables are preserved in the audit backup.

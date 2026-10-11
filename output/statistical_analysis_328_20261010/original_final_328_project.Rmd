@@ -1,0 +1,949 @@
+---
+title: "Statistical Analysis for Research on Synthesis Methods for Structured Data"
+author: "Minh Le"
+date: "2025-04-26"
+output:
+  pdf_document: default
+  html_document:
+    toc: true
+    toc_depth: 3  # Optional: specifies how many levels of headers to include (e.g., H1, H2, H3)
+    #toc_float: false # Optional: makes the TOC float on the side, always visible
+    # Further toc_float customization (optional):
+    toc_float: 
+      collapsed: true  # Set to true if you want the TOC to be initially collapsed
+      smooth_scroll: true # Set to false to disable smooth scrolling animation
+    number_sections: true # Optional: adds numbering to your sections (e.g., 1. Introduction, 1.1. Subsection)
+---
+
+```{r}
+load_libraries <- function() 
+  {
+    library(emmeans)
+    library(car)
+    library(lme4)
+    library(lmerTest)
+    library(ggplot2)
+    library(dplyr)
+    library(MASS)
+  }
+
+load_libraries()
+```
+
+```{r}
+load_data <- function(csv_path) {
+  df = read.csv(csv_path)
+  df$has_y = as.factor(df$has_y)
+  df$tvae = as.factor(df$tvae)
+  df$method = as.factor(df$method)
+  df$approach = as.factor(df$approach)
+  df$dataset = as.factor(df$dataset)
+  df$y_synth = as.factor(df$y_synth)
+
+  return (df)
+}
+```
+
+```{r}
+summary_table <- function(df, exclude_list_for = c("method", "macro_max")) {
+  # Check if the input is a dataframe
+  if (!is.data.frame(df)) {
+    stop("Input must be a data frame.")
+  }
+
+  # Get column names
+  col_names <- names(df)
+
+  # Apply the 'unique' function to each column and get the list of unique values
+  unique_values_list <- lapply(df, unique)
+
+  # Calculate the count of unique values for each column
+  unique_counts <- sapply(unique_values_list, length)
+
+  # Convert the list of unique values to a character string representation
+  # Conditionally exclude the list for specified columns
+  unique_values_strings <- sapply(col_names, function(col_name) {
+    # Check if the current column name is in the exclusion list
+    if (col_name %in% exclude_list_for) {
+      # Return an empty string or a placeholder if the list should be excluded
+      return("[List Excluded]") # Or use "" or NA_character_ if preferred
+    } else {
+      # Otherwise, get the unique values for this column
+      vals <- unique_values_list[[col_name]]
+      # Sort values for consistency. This might error if types can't be compared.
+      vals_sorted <- sort(vals)
+      # Paste the sorted values into a single string
+      paste(as.character(vals_sorted), collapse = ", ")
+    }
+  })
+
+
+  # Create the summary dataframe
+  summary_df <- data.frame(
+    ColumnName = col_names,
+    UniqueCount = unique_counts,
+    UniqueValues = unique_values_strings,
+    row.names = NULL # Optional: removes row names
+  )
+
+  # Return the resulting table
+  return(summary_df)
+}
+```
+
+
+# 1. Introduction
+Generating high-fidelity synthetic tabular data is challenging due to complex data distributions (multimodal, imbalanced) and mixed data types (discrete/continuous). While generative models like CTGAN & TVAE have advanced the field, a gap remains between synthetic and real data quality. We propose a decoupled method, improving synthetic data realism by 11% compared to SOTA models.
+
+
+# 2. Data Preparation and Exploration
+
+```{R}
+df_nog = load_data('April29_macro_max_mfa_no_gauss.csv')
+head(df_nog)
+summary_table(df_nog)
+
+
+# --- Step 1: Reorder y_synth factor levels ---
+desired_order <- c("ctgan", "tvae", "categorical", "pca_gmm", "rf", "xgb")
+df_nog$y_synth <- factor(df_nog$y_synth, levels = desired_order)
+```
+df_nog is data frame containing F1-macro scores without Gaussian y_synth methods.
+
+y_synth and approach have perfect collinearity  Approach is "old" when y_synth is "tvae" or "ctgan"; approach is "new" otherwise.
+
+
+This is an unbalanced experiment. Each 'method' is a unique viable/possible combinations of the factors "y_synth", "has_y", and "tvae". 
+Because the count(method)=18 < 6*2*2=24, this is an unbalanced experiment. For example, the combination of (y_synth=ctgan, has_y=0, tvae=1) does not exits.
+
+```{r}
+df_nog %>% ggplot(aes(x=y_synth, y=macro_max, color=tvae, group=tvae)) + 
+  geom_point() +
+  facet_wrap(~has_y) +
+  stat_summary(fun=mean, geom='line')
+
+```
+
+```{r}
+df_nog %>% ggplot(aes(x=y_synth, y=macro_max, color=dataset, group=dataset)) + 
+  geom_point() +
+  facet_wrap(~has_y+tvae, labeller=label_both) +
+  stat_summary(fun=mean, geom='line')
+
+```
+
+
+# 3. Initial Model Fitting (Full Interaction) 
+### Model 1: Full Interaction Model (All Interactions)
+```{r}
+full_model <- function(df_nog) {
+    # Includes main effects and ALL possible interactions (two-way, three-way, etc.).
+    cat("--- Model 1: Full Interaction Model ---\n")
+    # The formula `A * B * ...` expands to main effects + all possible interactions.
+    model_full_interactions <- lm(macro_max ~ has_y * tvae * dataset * y_synth, data = df_nog) # not include 'approach' because of collinearity 
+    cat("--- Summary for Full Interaction Model ---\n")
+    # Summary might show NAs for coefficients if the model is over-specified for the data.
+    cat("Hidden because it's too long\n")
+    #summary(model_full_interactions)
+    
+    cat("\n--- ANOVA Table for Full Interaction Model ---\n")
+    print(anova(model_full_interactions))
+    # library(car)
+    # Anova(model_full_interactions, type="III")
+    cat("\n")
+    
+    #return(model_full_interactions)
+    invisible(model_full_interactions) # Return invisibly if called like: new_model <- full_model(df)
+
+}
+
+full_model(df_nog)
+```
+The full interaction model is too complicated and there is not enough data points for residuals. So, we use a simpler and better designed model
+
+
+
+# 4. Addressing Model Complexity (Blocking Approach)
+### Model 2: Dataset as a blocking factor
+```{r}
+
+full_model_blocking <- function(df_nog) {
+    # Includes main effects and ALL possible interactions (two-way, three-way, etc.).
+    cat("--- Model 2: Blocking ---\n")
+    # The formula `A * B * ...` expands to main effects + all possible interactions.
+    model_block <- lm(macro_max ~ dataset+ has_y * tvae * y_synth, data = df_nog) # not include 'approach' because of collinearity 
+    cat("--- Summary for Full Interaction Model ---\n")
+    # Summary might show NAs for coefficients if the model is over-specified for the data.
+    print(summary(model_block))
+    
+    cat("\n--- ANOVA Table (type I) for Blocking Model ---\n")
+    print(anova(model_block)) # type I (sequential) ANOVA
+    
+    # Check for aliased coefficients directly
+    cat("\n--- Alias check for User Blocking Model ---\n")
+    print(alias(model_block))
+    cat("Cannot compute Type III ANOVA due to collinearity/aliases")
+    
+    # commented out because NA in ANOVA type III will return error with NA in model_block
+    #library(car)
+    #Anova(model_block, type="III")
+    #cat("\n")
+    
+    invisible(model_block) # Return invisibly if called like: new_model <- full_model(df)
+}
+
+full_model_blocking(df_nog)
+```
+The table shows the linear dependencies (aliasing) among the coefficients.
+Specifically:
+
+has_y1:y_synthctgan, has_y1:y_synthtvae, tvae1:y_synthctgan, tvae1:y_synthtvae: These two-way interaction terms involving the ctgan and tvae levels of y_synth are aliased. They are linearly dependent on their corresponding main effects (y_synthctgan, y_synthtvae, tvae1). For example, when it is y_synthctgan, we automatically know it is also has_y1 because has_y0 does not exist for y_synthctgan.
+
+has_y1:tvae1:y_synthctgan, has_y1:tvae1:y_synthtvae: Similarly, the three-way interaction terms involving ctgan and tvae are aliased, depending on lower-order terms like the two-way interaction has_y1:tvae1 and the main effect y_synthtvae.
+
+This aliasing is a direct consequence of your unbalanced experimental design and missing factor combinations.
+
+Because there is collinearity even with 2-way interactions, the factors "has_y", "tvae", "y_synth" cannot have any interactions with each other
+
+The column method is a combination of has_y, tvae, and y_synth
+
+```{r}
+full_model_blocking_method <- function(df_nog) {
+    # Includes main effects and ALL possible interactions (two-way, three-way, etc.).
+    cat("--- Model 2: Blocking ---\n")
+    # The formula `A * B * ...` expands to main effects + all possible interactions.
+    model_block <- lm(macro_max ~ dataset + method, data = df_nog)
+    cat("--- Summary for Full Interaction Model ---\n")
+    # Summary might show NAs for coefficients if the model is over-specified for the data.
+    print(summary(model_block))
+    
+    cat("\n--- ANOVA Table (type I) for Blocking Model ---\n")
+    print(anova(model_block)) # type I (sequential) ANOVA
+    
+    # Check for aliased coefficients directly
+    cat("\n--- Alias check for User Blocking Model ---\n")
+    print(alias(model_block))
+
+    print(Anova(model_block, type="III"))
+    #cat("\n")
+    
+    invisible(model_block) # Return invisibly if called like: new_model <- full_model(df)
+}
+
+full_model_blocking_method(df_nog)
+```
+
+We can see that both method and dataset are statistically significant. However, we don't know which component from method (i.e: has_y, y_synth, tvae) contributes how much to that significance. 
+Therefore, we fit a model with dataset interacting with one of the above method (because of colliniarity, interaction of the three above can't be estimated).
+
+# 5. Investigating Key Interactions (Dataset * y_synth)
+### Model 3: y_synth*dataset 
+```{r}
+one_inter <- function(df_nog) {
+    # --- Fit the Original Model ---
+    cat("--- Model 3: y_synth interact w/ dataset, has_y & tvae are main effects ---\n")
+    # The formula `A * B * ...` expands to main effects + all possible interactions.
+    mod3 <- lm(macro_max ~ y_synth * dataset + has_y + tvae, data = df_nog) # not include 'approach' because of collinearity
+    cat("\n--- Summary for Original Model ---\n")
+    print(summary(mod3))
+    cat("\n--- ANOVA Table (Type I) for Original Model ---\n")
+    print(anova(mod3))
+    cat("\n--- ANOVA Table (Type III) for Original Model ---\n")
+    print(Anova(mod3, type="III"))
+    cat("\n--- Diagnostic Plots for Original Model ---\n")
+    # Plotting diagnostics for the original model
+    par(mfrow = c(2, 2)) # Arrange plots in a 2x2 grid
+    plot(mod3)
+    par(mfrow = c(1, 1)) # Reset plotting layout
+    
+    invisible(mod3)
+}
+
+model_one_inter = one_inter(df_nog)
+```
+
+There is some non-normal distribution of the residuals --> do Box-Cox
+
+### Box-Cox
+```{R}
+one_inter_boxcox <- function(df_nog, mod3) {
+    # --- Perform Box-Cox Transformation Analysis ---
+    cat("\n\n--- Performing Box-Cox Analysis ---\n")
+    # The boxcox function plots log-likelihood vs lambda and returns the values
+    # It requires the MASS package
+    bc_results <- boxcox(mod3, plotit = TRUE) # plotit=TRUE is default
+
+    # Find the lambda that maximizes the log-likelihood
+    optimal_lambda <- bc_results$x[which.max(bc_results$y)]
+    cat(paste("\nOptimal lambda found by boxcox:", optimal_lambda, "\n"))
+
+    # --- Apply Transformation and Refit Model ---
+    lambda_to_apply <- optimal_lambda
+    cat(paste("Applying transformation with lambda =", lambda_to_apply, "\n"))
+
+    # Create the transformed response variable
+    if (abs(lambda_to_apply) < 1e-6) { # Check if lambda is effectively zero
+        df_nog$macro_max_transformed <- log(df_nog$macro_max)
+        transform_desc <- "log(macro_max)"
+        cat("Lambda is close to 0. Using log transformation.\n")
+    } else {
+        df_nog$macro_max_transformed <- (df_nog$macro_max^lambda_to_apply - 1) / lambda_to_apply
+        transform_desc <- paste0("(macro_max^", round(lambda_to_apply, 3), " - 1) / ", round(lambda_to_apply, 3))
+        cat(paste("Using Box-Cox transformation with lambda =", lambda_to_apply, "\n"))
+    }
+
+    # --- Fit the Model with Transformed Response ---
+    cat("\n--- Fitting Model with Transformed Response ---\n")
+    # Create the formula string dynamically for clarity
+    formula_transformed_str <- paste(transform_desc, "~ y_synth * dataset + has_y + tvae")
+    cat("Formula:", formula_transformed_str, "\n")
+
+    # Fit the new model
+    # Use reformulate to handle the response string properly
+    mod3_transformed <- lm(reformulate(termlabels = c("y_synth * dataset", "has_y", "tvae"),
+                                       response = "macro_max_transformed"),
+                           data = df_nog)
+
+    cat("\n--- Summary for Transformed Model ---\n")
+    print(summary(mod3_transformed))
+    cat("\n--- ANOVA Table (Type I) for Transformed Model ---\n")
+    print(anova(mod3_transformed))
+    cat("\n--- ANOVA Table (Type III) for Transformed Model ---\n")
+    # Use car::Anova for Type III SS
+    print(Anova(mod3_transformed, type="III"))
+    cat("\n--- Diagnostic Plots for Transformed Model ---\n")
+    # Check the diagnostic plots for the *new* model
+    par(mfrow = c(2, 2)) # Arrange plots in a 2x2 grid
+    plot(mod3_transformed)
+    par(mfrow = c(1, 1)) # Reset plotting layout
+    cat("\n")
+
+    # Return the transformed model (optional)
+    # return(list(original_model=mod3, transformed_model=mod3_transformed, lambda=lambda_to_apply))
+    invisible(mod3_transformed) # Return invisibly if called like: new_model <- one_inter_boxcox(df)
+}
+
+model_bc <- one_inter_boxcox(df_nog, model_one_inter)
+```
+
+
+Box-Cox only barely improve the results by reducing residual skewness --> Use pre-BoxCox model
+
+# 6. Mixed-Effects Modeling (LMER)
+
+### Justification for Using LMER
+While the previous linear models (LM) helped explore interactions and main effects, they treat all factors as fixed. However, our data has a structure where observations might not be fully independent. Specifically, F1 scores are likely correlated within the same dataset because different methods are applied to it. Furthermore, we might consider y_synth (the synthesizer for the target variable) and tvae (whether TVAE was used for feature synthesis) as sources of random variation, representing a sample from a larger population of possible datasets or synthesis configurations.
+
+A Linear Mixed-Effects Regression (LMER) model is well-suited for this situation. LMER allows us to:
+
+1. Model Non-Independence: Explicitly account for the correlation of scores within the same dataset (or other grouping factors) by treating dataset as a random effect. This leads to more accurate standard errors and p-values for our fixed effects.
+
+2. Estimate Variance Components: Quantify how much of the total variation in F1-macro scores is attributable to differences between datasets, between y_synth methods (if treated as random), or between tvae usage, versus the residual (unexplained) variation.
+
+3. Generalize Findings: By treating factors like dataset or y_synth as random effects, we aim to make inferences about the broader population from which these levels were sampled (e.g., performance across various potential datasets or synthesis methods), rather than just the specific ones included in this study.
+
+Therefore, we transition to LMER to appropriately model the data structure and draw more robust conclusions about the fixed effects of interest while accounting for random variability.
+
+### Goals:
+1. We want to see if the new > old (for approach), with dataset, tvae, & y_synth as a random effect. Meaning, the new approach is better for potentially any dataset, any X_synthesizer, and any y_synthesizer.
+
+2. We want to see if including y when training the X_synthesizer is better than not including y. I.e, has_y = 1 > has_y=0
+
+
+### Intial LMER fit
+```{r}
+# --- Define and Fit Initial LMER Model ---
+# Objective: Test the fixed effects of 'approach', 'has_y', and their interaction.
+# Random Effects: Allow the baseline F1 score (intercept) to vary randomly across
+#                 levels of 'dataset', 'tvae', and 'y_synth'.
+initial_lmer_fit <- function(df_nog) {
+  fit <- lmer(
+    macro_max ~ approach * has_y +  # Fixed effects including interaction
+      (1 | dataset) +               # Random intercept for dataset
+      (1 | tvae) +                  # Random intercept for tvae usage
+      (1 | y_synth),                # Random intercept for y_synth method
+    data = df_nog,
+    REML = FALSE                    # Use ML for potential model comparisons
+  )
+
+  # Display model summary
+  print(summary(fit))
+
+  # Display ANOVA table (Satterthwaite)
+  cat("\n--- ANOVA Table (Satterthwaite's method) for Initial LMER ---\n")
+  print(anova(fit))
+
+  # Display ANOVA table (Type III Wald Chi-square)
+  cat("\n--- ANOVA Table (Type III Wald Chi-square) for Initial LMER ---\n")
+  print(Anova(fit, type = "III"))
+  
+  print(confint(fit))
+
+  invisible(fit) # Return the fitted model object
+}
+
+# Fit the initial LMER model
+fit_initial <- initial_lmer_fit(df_nog)
+```
+
+Significance of Random Effects: The confidence intervals for the standard deviations (SD) of the random intercepts for dataset and y_synth (when included) do not contain zero. This indicates that there is statistically significant variation in the baseline F1-macro score across different datasets and across different y-synthesis methods. In other words, the choice of dataset and the choice of y-synthesizer both contribute meaningfully to the overall variability in the results.
+
+Generalizability: Because significant random variation exists between datasets and y-synthesizers, we can infer that our findings about the fixed effects (like the comparison between approaches) are likely to generalize beyond the specific datasets and synthesizers used in this study to the broader populations they represent.
+
+Interpretation of Initial LMER: The output from this model (specifically the summary and ANOVA tables) likely shows issues such as a "singular fit" warning (due to zero variance estimated for tvae as a random effect) and potentially non-estimable interaction effects (approach:has_y). This occurs because approach and has_y are perfectly correlated for the 'old' approach (which always has has_y=1). This correlation makes it impossible for the model to uniquely estimate the separate effects of approach and has_y and their interaction. This motivates the creation of the combined appr_has_y factor.
+
+
+### Testing Combined appr_has_y Factor
+To address the correlation issue, we create a single 3-level factor appr_has_y combining the approach and has_y information. This LMER model examines the fixed effect of this combined factor, while initially treating dataset, tvae, and y_synth as random intercepts.
+
+```{r}
+
+merge_features <- function(df_nog, verbose= FALSE)
+{
+    # 3. Create the new 3-level factor 'appr_has_y'
+    df_nog <- df_nog %>%
+      mutate(
+        appr_has_y = case_when(
+          approach == "old" ~ "old_appr_has_y",
+          approach == "new" & has_y == "0" ~ "new_appr_no_y",
+          approach == "new" & has_y == "1" ~ "new_appr_has_y",
+          TRUE ~ NA_character_ # Fallback for unexpected cases
+        ),
+        # Convert the new column to a factor with specified levels for clarity in model output
+        appr_has_y = factor(appr_has_y, 
+                                      levels = c("old_appr_has_y", "new_appr_no_y", "new_appr_has_y"))
+      )
+    if (verbose) {
+      # Verify the new factor
+      cat("Table of the new 'appr_has_y' factor:\n")
+      print(table(df_nog$appr_has_y, useNA = "ifany"))
+      cat("\nFirst few rows with the new factor:\n")
+      print(head(select(df_nog, approach, has_y, appr_has_y)))
+      cat("\n")
+    }
+      invisible(df_nog)
+}
+```
+
+```{r}
+lmer_contr1 <- function(df_nog)
+  {
+    fit_new <- lmer(
+      macro_max ~ appr_has_y
+                + (1 | tvae + dataset + y_synth ),
+      data = df_nog,
+      REML = FALSE   # use ML if you plan likelihood‐ratio tests
+    )
+    
+    # 4. inspect
+    summary(fit_new)
+    
+    # 5. get ANOVA table for the fixed effects
+    print(anova(fit_new))       # from lmerTest, gives you p‐values
+    
+    # 6. if you want Type III F‐tests (for an unbalanced design)
+    print(Anova(fit_new, type = "III"))
+    
+    return (fit_new)
+  }
+  
+
+
+df_nog <- merge_features(df_nog)
+fit2 <- lmer_contr1(df_nog)
+```
+
+The effect of appr_has_y is not significant. This might be due to the fact that y_synth is considered a random factor in the model above. Because approach and y_synth is correlated (approach is a collapsed version of y_synth), if we account the variation in F1 as due to random variation in y_synth, the effect of approach is therefore insignificant.
+
+We try getting rid of y_synth in the model.
+
+```{r}
+
+lmer_contr2 <- function (df_nog)
+  {
+  
+    fit_new <- lmer(
+      macro_max ~ appr_has_y
+                + (1 | dataset + tvae), # get rid of y_synth as a random factor
+      data = df_nog,
+      REML = FALSE   # use ML if you plan likelihood‐ratio tests
+    )
+    
+    # 4. inspect
+    summary(fit_new)
+    
+    # 5. get ANOVA table for the fixed effects
+    print(anova(fit_new))       # from lmerTest, gives you p‐values
+    
+    # 6. if you want Type III F‐tests (for an unbalanced design)
+    print(Anova(fit_new, type = "III"))
+    
+    invisible(fit_new)
+  }
+
+fit_new <- lmer_contr2(df_nog)
+```
+
+# 7. Contrast Analysis
+
+## contrast between old vs. new Aprroach
+```{r}
+has_y_and_appr_contr <- function(fit_new)
+  {  
+    # 8. Define and test contrasts using emmeans
+    cat("Contrast analysis using emmeans:\n")
+    
+    # First, get the estimated marginal means for the factor
+    emm_fit <- emmeans(fit_new, ~ appr_has_y)
+    cat("Estimated Marginal Means for approach_has_y_combo:\n")
+    print(emm_fit)
+    cat("\n")
+    
+    
+    # Define the contrasts
+    # Contrast 1: has_y vs. no_y (within new approach)
+    # Compares 'new_approach_has_y' vs 'new_approach_no_y'
+    # Levels are: "old_approach", "new_approach_no_y", "new_approach_has_y"
+    contrast_has_vs_no_y <- c(0, -1, 1) 
+    
+    # Contrast 2: new_approach vs. old_approach
+    # Compares ('new_approach_no_y' + 'new_approach_has_y')/2 vs 'old_approach'
+    contrast_new_vs_old <- c(-1, 0.5, 0.5)
+    
+    
+    # Contrast 3: has_y vs. no_y (regardless of new or old approach)
+    contrast_has_vs_no_y2 <- c(1, -2, 1)
+    
+    # Combine contrasts into a list
+    custom_contrasts <- list(
+      new_hasY_vs_new_noY = contrast_has_vs_no_y,
+      newApproach_vs_oldApproach = contrast_new_vs_old,
+      hasY_vs_no_Y = contrast_has_vs_no_y2
+    )
+    
+    # Test the contrasts
+    contrast_results <- contrast(emm_fit, method = custom_contrasts, adjust = "tukey") # adjust p-values if needed
+    
+    cat("Results of custom contrasts:\n")
+    print(contrast_results)
+    cat("\n")
+    
+    # You can also get pairwise comparisons if desired
+    cat("Pairwise comparisons for approach_has_y_combo (for reference):\n")
+    print(pairs(emm_fit, adjust = "tukey"))
+    cat("\n")
+
+  }
+
+has_y_and_appr_contr(fit_new)
+```
+
+
+Relative F1 increase from newApproach compared to oldApproach = 0.075/0.677 ~ 11%
+
+### Double check LMER result by doing contrast on the lm one-inter model (model 3)
+#### contrast old vs. new Aprroach, regardless of has_y
+```{r}
+# --- Perform the Contrast on y_synth ---
+# We will compare the average of 'ctgan'/'tvae' vs the average of the others
+
+
+contr_ysynth <- function(model_simplified) {
+  library(emmeans)
+  cat("\n--- Contrast approach_old vs. approach_new ---\n")
+  cat("Compare the average of 'ctgan'/'tvae' vs the average of the others")
+# Check if the model is usable for emmeans (should be if summary is okay)
+if (inherits(try(emmeans(model_simplified, specs = "y_synth"), silent = TRUE), "try-error")) {
+    cat("\nError: The simplified model still has issues preventing emmeans calculation.\n")
+    cat("Further model simplification might be needed, or check data structure again.\n")
+} else {
+
+    # Calculate estimated marginal means for y_synth, averaged over dataset, has_y, tvae
+    emm_ysynth <- emmeans(model_simplified, specs = "y_synth")
+
+    cat("\n--- Estimated Marginal Means for y_synth ---\n")
+    print(emm_ysynth)
+
+    # Define the contrast weights:
+    # 'Old' methods: ctgan, tvae (2 methods) -> weight +1/2 each
+    # 'New' methods: categorical, pca_gmm, rf, xgb (4 methods) -> weight -1/4 each
+    # IMPORTANT: The order MUST match the output of print(emm_ysynth)
+    # Assuming standard alphabetical order: categorical, ctgan, pca_gmm, rf, tvae, xgb
+    contrast_weights <- list(
+        old_vs_new_synth_methods = c(
+             1/2,  # ctgan (old)
+             1/2,  # tvae (old)
+            -1/4,  # categorical (new)
+            -1/4,  # pca_gmm (new)
+            -1/4,  # rf (new)
+            -1/4   # xgb (new)
+        )
+    )
+
+    # Apply the contrast
+    contrast_result <- contrast(emm_ysynth, method = contrast_weights)
+
+    cat("\n--- Contrast Result (Old Synth Methods vs. New Synth Methods) ---\n")
+    print(contrast_result)
+
+    cat("\n--- Interpretation ---\n")
+    cat("The 'estimate' shows the difference between the average estimated marginal mean\n")
+    cat("of the 'old' y_synth methods (ctgan, tvae) and the average of the 'new'\n")
+    cat("y_synth methods (categorical, pca_gmm, rf, xgb), after adjusting for\n")
+    cat("dataset, has_y, and tvae effects as specified in the model.\n")
+    #cat("A positive estimate means the 'old' methods average was higher, negative means lower.\n")
+    #cat("The p-value tests if this difference is statistically significant (usually p < 0.05).\n")
+  }
+}
+
+
+contr_ysynth(model_one_inter)
+```
+
+
+#### contrast old vs. new Aprroach, conditioned on has_Y
+```{r}
+contr_ysynth_conditioned <- function(model_simplified) {
+# Perform Contrast on y_synth, Conditioned on has_y ---
+  cat("\n--- Conditional Contrast approach_old vs. approach_new ---\n")
+  cat("Compare the average of 'ctgan'/'tvae' vs the average of the others, conditioned on has_y")
+  
+# Check if the model is usable for emmeans
+if (inherits(try(emmeans(model_simplified, specs = ~ y_synth | has_y), silent = TRUE), "try-error")) {
+    cat("\nError: The simplified model has issues preventing emmeans calculation.\n")
+    cat("Review model summary and data structure.\n")
+} else {
+
+    # Calculate EMMs for y_synth, separately for each level of has_y
+    emm_ysynth_by_hasy <- emmeans(model_simplified, specs = ~ y_synth | has_y)
+
+    cat("\n--- Estimated Marginal Means for y_synth by has_y ---\n")
+    # Carefully check this output. You might see NA/nonEst for ctgan/tvae when has_y=0
+    print(emm_ysynth_by_hasy)
+
+    # Define the contrast weights (same definition as before)
+    # 'Old' methods: ctgan, tvae (+1/2 each)
+    # 'New' methods: categorical, pca_gmm, rf, xgb (-1/4 each)
+    # We rely on the `print(emm_ysynth_by_hasy)` output to confirm the order
+    # of y_synth levels within each has_y group (usually alphabetical)
+    contrast_weights <- list(
+        old_vs_new_synth_methods = c(
+             1/2,  # ctgan (old)
+             1/2,  # tvae (old)
+            -1/4,  # categorical (new)
+            -1/4,  # pca_gmm (new)
+            -1/4,  # rf (new)
+            -1/4   # xgb (new)
+        )
+    )
+
+    # Apply the contrast. emmeans will apply it within each level of has_y
+    contrast_result_by_hasy <- contrast(emm_ysynth_by_hasy, method = contrast_weights)
+
+    cat("\n--- Contrast Result (Old vs New Synth Methods) by has_y Level ---\n")
+    print(contrast_result_by_hasy)
+
+    cat("\n--- Interpretation ---\n")
+    cat("The output table now shows the contrast calculated separately for each level of 'has_y'.\n")
+    cat(" - For has_y = 0: Expect 'nonEst' or NA for the estimate. This is because\n")
+    cat("   the 'old' methods (ctgan, tvae) did not exist in the data when has_y was 0,\n")
+    cat("   so the comparison cannot be estimated for this group.\n")
+    cat(" - For has_y = 1: The 'estimate' shows the difference between the average EMM\n")
+    cat("   of 'old' methods (ctgan, tvae) and the average EMM of 'new' methods\n")
+    cat("   (categorical, pca_gmm, rf, xgb), specifically for observations where has_y was 1\n")
+    #cat("   (after adjusting for dataset and tvae effects).\n")
+    #cat("   The p-value indicates if this difference is statistically significant for the has_y=1 group.\n")
+  }
+}
+
+contr_ysynth_conditioned(model_one_inter)
+```
+Even though we expect nonEst for the contrast of has_y=0 because the data isn't available (also because it is not a valid configuration: approach_old must be has_y=1), we still have a contrast estimate. 
+This is because:
+In the model (model_one_inter = lm(formula = macro_max ~ y_synth * dataset + has_y + tvae, data = df_nog)), "has_y" is included as a main effect. It is not interacted with "y_synth".
+
+Because has_y is only a main effect, the model assumes that the effect of changing has_y from '1' to '0' is additive and constant across all levels of y_synth.
+
+The model estimates the main effect of y_synth = 'ctgan' primarily from the data where has_y = 1 (since that's where ctgan exists).
+It then estimates the main effect of has_y (the difference between has_y=0 and has_y=1).
+
+To get the EMM for (y_synth = 'ctgan', has_y = 0), it effectively takes the estimated performance of ctgan (learned from has_y = 1 data) and adjusts it by the main effect of has_y to predict what it would have been if has_y were 0.
+
+This is a form of model-based extrapolation. The EMM is mathematically calculable from the model's coefficients.
+
+Because the estimation for has_y=0 is an extrapolation from has_y=1, it explains why the 2 values are exactly the same. 
+
+However, only the estimation for has_y=1 is valid (because the other configuration is not viable)
+
+
+### mini-Conclusion
+
+The contrast performed on the lm model with 1 interaction effect shows that:
+The new approach is statistically better than the old approach by 7.36% across 6 datasets, 2 X synthesizers, regardless of whether y was included in training the X_synthesizer
+
+The LMER model shows that the contrast of newApproach_vs_oldApproach = 0.07516 when (dataset & tvae) are considered random effects. 
+
+These 2 models are consistent with each other and reaffirms the conclusion that the new approach is better than the old approach.
+
+
+
+## Contrast for has_y vs. no_y
+
+```{r}
+
+contr_hasy <- function(model_simplified){
+  # Perform Contrast on has_y, Conditioned on tvae ---
+  cat("\n--- Conditional Contrast has_y vs. no_y ---\n")
+  cat("Compare the average of has_y vs no_y, conditioned on X_synth")
+    
+  # Check if the model is usable for emmeans
+  if (inherits(try(emmeans(model_simplified, specs =  ~ has_y | tvae), silent = TRUE), "try-error")) {
+      cat("\nError: The simplified model has issues preventing emmeans calculation.\n")
+      cat("Review model summary and data structure.\n")
+  } else {
+
+      # Calculate EMMs for has_y, separately for each level of tvae
+      emm_ysynth_by_hasy <- emmeans(model_simplified, specs = ~ has_y | tvae)
+  
+      cat("\n--- Estimated Marginal Means for has_y by tvae ---\n")
+      # Carefully check this output. You might see NA/nonEst for ctgan/tvae when has_y=0
+      print(emm_ysynth_by_hasy)
+  
+      # Define the contrast weights (same definition as before)
+  
+      # We rely on the `print(emm_ysynth_by_hasy)` output to confirm the order
+      # of y_synth levels within each has_y group (usually alphabetical)
+      contrast_weights <- list(
+          has.y_vs_no.y = c(
+              1, # has_y = 0
+              -1 # has_y = 1
+          )
+      )
+  
+      # Apply the contrast. emmeans will apply it within each level of has_y
+      contrast_result_by_hasy <- contrast(emm_ysynth_by_hasy, method = contrast_weights)
+  
+      cat("\n--- Contrast Result (With vs Without y in X input) by X_synthesizer Level ---\n")
+      print(contrast_result_by_hasy)
+    }
+}
+
+contr_hasy(model_one_inter)
+```
+
+### mini-Conclusion
+Across 6 datasets, 6 y synthesizers, regardless of X_synthesizer (ctgan or tvae), including y in the X_input increases the result only marginally (0.3%). However, this effect is not statistically significant (p_value=0.5091>0.05).
+
+
+## Bonus: contrast between different groups of y_synth
+Accrording to the data plots at the beginning, there might be significant variations between different y_synth. Here, we exploree (xgb & rf) vs. (ctgan & tvae) vs. (categorical & pca_gmm)
+
+```{R}
+
+contr_rand <- function(df_nog)
+  {
+    fit <- lmer(
+      macro_max ~ y_synth
+                + (1 | dataset + tvae ),
+      data = df_nog,
+      REML = FALSE   # use ML if you plan likelihood‐ratio tests
+    )
+    
+    # 4. inspect
+    summary(fit)
+    confint(fit)
+    
+    # 5. get ANOVA table for the fixed effects
+    print(anova(fit))       # from lmerTest, gives you p‐values
+    
+    # 6. if you want Type III F‐tests (for an unbalanced design)
+    print(Anova(fit, type = "III"))
+    
+    
+    # Contrast
+    
+    contrast_list1 = c(-1,-1, 0,0, 1,1) # (xgb & rf) vs. (ctgan & tvae)
+    contrast_list2 = c(-1,-1, 1,1, 0,0) # (categorical & pca_gmm) vs. (ctgan & tvae)
+    contrast_list3 = c(0,0, -1,-1, 1,1) # (xgb & rf) vs. (categorical & pca_gmm)
+    
+    
+    contrast_xgb_rf_vs_old = contrast(emmeans(fit, ~y_synth),  method=list(contrast_list1))
+    contrast_cat_pca_vs_old = contrast(emmeans(fit, ~y_synth),  method=list(contrast_list2))
+    contrast_xgb_rf_vs_cat_pca = contrast(emmeans(fit, ~y_synth),  method=list(contrast_list3))
+    
+    cat("Contrast for(xgb & rf) vs. (ctgan & tvae)\n")
+    print(contrast_xgb_rf_vs_old)
+    
+    cat("Contrast for(categorical & pca_gmm) vs. (ctgan & tvae)\n")
+    print(contrast_cat_pca_vs_old)
+    
+    cat("Contrast for(xgb & rf) vs. (categorical & pca_gmm)\n")
+    print(contrast_xgb_rf_vs_cat_pca)
+  }
+
+contr_rand(df_nog)
+```
+
+
+# 8. Results Visualization 
+```{r}
+# --- Calculate EMMs ---
+emm_ysynth <- emmeans(model_one_inter, specs = "y_synth")
+
+# --- Prepare data for ggplot ---
+# Convert the emmeans object to a data frame
+emm_df <- as.data.frame(emm_ysynth)
+
+# Create a mapping from the original data
+# Get the unique combinations of y_synth and approach
+synth_approach_mapping <- df_nog %>%
+  distinct(y_synth, approach)
+
+# Print mapping to verify
+# print(synth_approach_mapping)
+
+# Join the approach information onto the emmeans dataframe
+emm_df_merged <- left_join(emm_df, synth_approach_mapping, by = "y_synth")
+
+# --- Create the plot using the 'approach' column ---
+plot_emmeans_approach <- ggplot(emm_df_merged, aes(x = y_synth, y = emmean, color = approach)) + # Use 'approach' for color
+  geom_pointrange(aes(ymin = lower.CL, ymax = upper.CL), size = 0.8, linewidth = 1.2) +
+  scale_color_manual(values = c("old" = "orangered", "new" = "steelblue")) + # Assign colors to 'old' and 'new'
+  labs(
+    title = "Estimated Marginal Means for y_synth Methods by Approach",
+    subtitle = paste("Adjusted for dataset, has_y, and tvae based on model:", deparse(substitute(model_to_use))),
+    x = "Synthesis Method (y_synth)",
+    y = "Estimated Marginal Mean of macro_max",
+    color = "Approach" # Updated legend title
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5, size = 10),
+    legend.position = "bottom"
+  )
+
+# --- Display the plot ---
+print(plot_emmeans_approach)
+
+# --- Optional: Save the plot ---
+# ggsave("emmeans_ysynth_approach_plot.png", plot = plot_emmeans_approach, width = 8, height = 6, dpi = 300)
+```
+
+
+```{r}
+# --- Step 1: Reorder y_synth factor levels ---
+desired_order <- c("ctgan", "tvae", "categorical", "pca_gmm", "rf", "xgb")
+df_nog$y_synth <- factor(df_nog$y_synth, levels = desired_order)
+
+# --- Step 2: Calculate overall mean macro_max for each approach group ---
+approach_means <- df_nog %>%
+  group_by(approach) %>%
+  summarise(mean_macro_max = mean(macro_max, na.rm = TRUE), .groups = 'drop')
+
+# --- Step 3: Prepare data for plotting mean points ---
+synth_approach_mapping <- df_nog %>%
+  distinct(y_synth, approach)
+plot_mean_data <- left_join(synth_approach_mapping, approach_means, by = "approach")
+
+# --- Step 4: Create the Plot ---
+
+# Define colors
+color_old <- "#9575CD"  # Deep Purple 300
+color_new <- "#4DB6AC"  # Teal 300
+color_mean_lines <- "firebrick" # Color for H-lines
+color_arrow <- "red"      # Color for Arrow
+
+plot_final <- ggplot(df_nog, aes(x = y_synth, y = macro_max)) +
+
+  # Boxplots
+  geom_boxplot(aes(fill = approach), outlier.shape = NA, alpha = 0.7) +
+
+  # Jittered Raw Data Points
+  geom_jitter(aes(color = approach), width = 0.25, height = 0, alpha = 0.5, size = 1.5) +
+
+  # Points for Overall Group Means on boxplots
+  geom_point(
+    data = plot_mean_data,
+    aes(x = y_synth, y = mean_macro_max, fill = approach),
+    shape = 21, size = 3.5, color = "black", stroke = 0.8
+   ) +
+
+  # Horizontal lines for overall means
+  geom_hline(
+      yintercept = approach_means$mean_macro_max[approach_means$approach == "old"],
+      color = color_mean_lines, linewidth = 0.8, linetype = "dashed"
+  ) +
+  geom_hline(
+      yintercept = approach_means$mean_macro_max[approach_means$approach == "new"],
+      color = color_mean_lines, linewidth = 0.8, linetype = "dashed"
+  ) +
+
+  # Arrow segment connecting the overall means
+  annotate(
+    "segment",
+    x = 6.2, # Midpoint of 'old' methods (ctgan=1, tvae=2)
+    y = approach_means$mean_macro_max[approach_means$approach == "old"],
+    xend = 6.2, # Midpoint of 'new' methods (cat=3 ... xgb=6 -> (3+6)/2=4.5)
+    yend = approach_means$mean_macro_max[approach_means$approach == "new"],
+    arrow = arrow(type = "closed", length = unit(0.1, "inches")),
+    color = color_arrow, # Use black for arrow
+    linewidth = 1.0
+  ) +
+  
+  # Text label for the arrow
+  annotate(
+    "text",
+    x    = 6.43,
+    y    = (approach_means$mean_macro_max[approach_means$approach == "old"] +
+            approach_means$mean_macro_max[approach_means$approach == "new"]) / 2,
+    label  = "11%",
+    color  = color_arrow,
+    size   = 4,         # adjust to taste
+    fontface = "bold",  # or "italic"
+    vjust  = 0.35       # nudges text a bit above the arrow
+  ) +
+
+  # Color Scales
+  scale_fill_manual(values = c("old" = color_old, "new" = color_new)) +
+  scale_color_manual(values = c("old" = color_old, "new" = color_new)) +
+
+  # Labels and Titles
+  labs(
+    title = "Distribution of F1-macro by y_synthesizer",
+    subtitle = "Grouped by Approach, Showing Overall Means and Difference", # Updated subtitle
+    x = "Synthesis Method (y_synth)",
+    y = "F1-macro",
+    fill = "Approach",
+    color = "Approach"
+  ) +
+
+  # Theme Adjustments
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5, size = 10),
+    legend.position = "bottom"
+  ) +
+  guides(color = guide_legend(override.aes = list(alpha = 1, size=2)))
+
+
+# --- Display the Plot ---
+print(plot_final)
+
+# --- Optional: Save the Plot ---
+# ggsave("final_boxplot_plot.png", plot = plot_final, width = 10, height = 7, dpi = 300)
+
+```
+
+
+
+
+
+# 9. Conclusion
+
+1. The new approach is better than the old approach by 0.075 point of F1-score macro. This is a relative increase of 11%
+
+2. Across 6 datasets, 6 y synthesizers, regardless of X_synthesizer (ctgan or tvae), including y in the X_input increases the result only marginally (0.3%). However, this effect is not statistically significant (p_value=0.5091>0.05).

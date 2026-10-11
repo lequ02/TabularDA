@@ -1,0 +1,204 @@
+{
+  "equation": "delta_pp ~ C(seed, Sum) + (1 | dataset)",
+  "delta_definition": "Within each dataset/seed, mean over generator/has_y/labeler of matched relabeled minus generated macro F1, multiplied by 100.",
+  "estimation": "Random dataset intercept, fixed categorical seed block, restricted maximum likelihood.",
+  "small_sample_inference": "Exact t with D-1 df for the grand mean in this balanced Gaussian model with positive dataset variance. REML SE independently checked against the analytic cluster-mean SE. No asymptotic Wald z test used.",
+  "environment": {
+    "python": "3.10.21",
+    "numpy": "1.26.4",
+    "pandas": "2.2.3",
+    "scipy": "1.15.3",
+    "statsmodels": "0.15.0"
+  },
+  "analyses": {
+    "synthetic": {
+      "observations": [
+        {
+          "dataset": "adult",
+          "seed": 42,
+          "difference": 0.034087908202589105,
+          "delta_pp": 3.4087908202589103
+        },
+        {
+          "dataset": "adult",
+          "seed": 43,
+          "difference": 0.03651937570560844,
+          "delta_pp": 3.651937570560844
+        },
+        {
+          "dataset": "census_kdd",
+          "seed": 42,
+          "difference": 0.04745810460267977,
+          "delta_pp": 4.745810460267977
+        },
+        {
+          "dataset": "census_kdd",
+          "seed": 43,
+          "difference": 0.018103422299418942,
+          "delta_pp": 1.8103422299418943
+        },
+        {
+          "dataset": "covertype",
+          "seed": 42,
+          "difference": 0.12450860914509197,
+          "delta_pp": 12.450860914509198
+        },
+        {
+          "dataset": "covertype",
+          "seed": 43,
+          "difference": 0.11060040715086598,
+          "delta_pp": 11.060040715086599
+        },
+        {
+          "dataset": "mnist12",
+          "seed": 42,
+          "difference": 0.2386045256309179,
+          "delta_pp": 23.86045256309179
+        },
+        {
+          "dataset": "mnist12",
+          "seed": 43,
+          "difference": 0.19292204856805642,
+          "delta_pp": 19.292204856805643
+        },
+        {
+          "dataset": "mnist28",
+          "seed": 42,
+          "difference": 0.21581723783220466,
+          "delta_pp": 21.581723783220465
+        },
+        {
+          "dataset": "mnist28",
+          "seed": 43,
+          "difference": 0.14456789912809329,
+          "delta_pp": 14.45678991280933
+        }
+      ],
+      "n_observations": 10,
+      "n_datasets": 5,
+      "n_seeds": 2,
+      "converged": true,
+      "mean_gain_pp": 11.631895382655253,
+      "REML_se_pp": 3.708937533550257,
+      "analytic_se_pp": 3.708952053646729,
+      "seed43_minus_seed42_pp": -3.155264651228806,
+      "dataset_sd_pp": 8.170222064501273,
+      "residual_sd_pp": 2.0144965117805587,
+      "ICC_after_fixed_seed_block": 0.9426895260763404,
+      "approximate_effective_n_for_common_mean": 5.14750291581437,
+      "small_sample_df": 4,
+      "raw_p_small_sample": 0.03497663483103687,
+      "unadjusted_95_ci_pp": [
+        1.3341936078944698,
+        21.929597157416037
+      ],
+      "original_holm_p_unchanged_by_equivalent_mean_test": 0.1396865949319025,
+      "dataset_partial_pooling": {
+        "adult": 3.7693678326192313,
+        "census_kdd": 3.5245227375728767,
+        "covertype": 11.751805800417708,
+        "mnist12": 21.28295753352829,
+        "mnist28": 17.83082300913821
+      },
+      "balanced_mean_test_equivalence_verified": true
+    },
+    "mix": {
+      "observations": [
+        {
+          "dataset": "adult",
+          "seed": 42,
+          "difference": 0.028812588096118266,
+          "delta_pp": 2.881258809611827
+        },
+        {
+          "dataset": "adult",
+          "seed": 43,
+          "difference": 0.005332976529422642,
+          "delta_pp": 0.5332976529422642
+        },
+        {
+          "dataset": "census_kdd",
+          "seed": 42,
+          "difference": 0.0750943042398225,
+          "delta_pp": 7.509430423982249
+        },
+        {
+          "dataset": "census_kdd",
+          "seed": 43,
+          "difference": 0.020896957637762916,
+          "delta_pp": 2.0896957637762914
+        },
+        {
+          "dataset": "covertype",
+          "seed": 42,
+          "difference": 0.14040472108525523,
+          "delta_pp": 14.040472108525522
+        },
+        {
+          "dataset": "covertype",
+          "seed": 43,
+          "difference": 0.1321961359754113,
+          "delta_pp": 13.21961359754113
+        },
+        {
+          "dataset": "mnist12",
+          "seed": 42,
+          "difference": 0.15493496608588886,
+          "delta_pp": 15.493496608588886
+        },
+        {
+          "dataset": "mnist12",
+          "seed": 43,
+          "difference": 0.08570240463207539,
+          "delta_pp": 8.570240463207538
+        },
+        {
+          "dataset": "mnist28",
+          "seed": 42,
+          "difference": 0.02732649550072805,
+          "delta_pp": 2.732649550072805
+        },
+        {
+          "dataset": "mnist28",
+          "seed": 43,
+          "difference": 0.00658995943895655,
+          "delta_pp": 0.658995943895655
+        }
+      ],
+      "n_observations": 10,
+      "n_datasets": 5,
+      "n_seeds": 2,
+      "converged": true,
+      "mean_gain_pp": 6.7729150922144195,
+      "REML_se_pp": 2.5495634910545717,
+      "analytic_se_pp": 2.5495926542218728,
+      "seed43_minus_seed42_pp": -3.5170928158836823,
+      "dataset_sd_pp": 5.557043709149561,
+      "residual_sd_pp": 1.8007657964943495,
+      "ICC_after_fixed_seed_block": 0.904969941789938,
+      "approximate_effective_n_for_common_mean": 5.249426660561296,
+      "small_sample_df": 4,
+      "raw_p_small_sample": 0.056598354221434284,
+      "unadjusted_95_ci_pp": [
+        -0.30588895284816253,
+        13.851719137277001
+      ],
+      "original_holm_p_unchanged_by_equivalent_mean_test": 0.1997287613314387,
+      "dataset_partial_pooling": {
+        "adult": 1.959990770850336,
+        "census_kdd": 4.898008917901286,
+        "covertype": 13.287957105833826,
+        "mnist12": 11.769511893143319,
+        "mnist28": 1.9491067733433018
+      },
+      "balanced_mean_test_equivalence_verified": true
+    }
+  },
+  "limitations": [
+    "Dataset effects are assumed independent and Gaussian; MNIST12/28 share a task family, so that assumption remains a limitation.",
+    "Seed is an additive fixed block with two levels; this does not estimate a population variance over all seeds.",
+    "The within-dataset residual combines dataset-specific seed variation and other variability remaining in each paired contrast.",
+    "The simple hierarchical contrast model checks the relabeling main contrast; it does not replace the explicit generator/has_y/labeler factorial analysis.",
+    "Existing report files and experimental settings are unchanged."
+  ]
+}
