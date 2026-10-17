@@ -1,0 +1,429 @@
+import sys
+import os
+from pathlib import Path
+import json
+import hashlib
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import GroupShuffleSplit
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from synthesizer import *
+from synthesizer import _save_synthetic_quality
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+# from datasets import load_adult, load_news, load_census, load_covertype
+from commons import create_train_test, handle_missing_values, check_directory, read_train_test_csv, onehot
+from modeling import constants
+
+
+class CreateSyntheticData:
+    def __init__(self, ds_name, load_data_func, target_name, categorical_columns, features_synthesizer='CTGAN',
+                 sample_size_to_synthesize=100_000, missing_values_strategy='drop', test_size=0.2, is_classification=True,
+                 numerical_cols_pca_gmm=None, output_root=None, seed=42, target_transform='raw'):
+        self.ds_name = ds_name
+        self.load_data_func = load_data_func
+        self.target_name = target_name
+        self.categorical_columns = categorical_columns
+        self.sample_size_to_synthesize = sample_size_to_synthesize
+        self.missing_values_strategy = missing_values_strategy
+        self.test_size = test_size
+        self.is_classification = is_classification
+        self.seed = seed
+        self.numerical_cols_pca_gmm = numerical_cols_pca_gmm
+        self.features_synthesizer = features_synthesizer.lower()
+        if target_transform not in {'raw', 'log'} or (target_transform == 'log' and ds_name != 'news'):
+            raise ValueError('Log generator targets are restricted to News')
+        self.target_transform = target_transform
+
+        if self.features_synthesizer == 'ctgan':
+            self.fsyn_name = ''
+        else:
+            self.fsyn_name = self.features_synthesizer+"_" # e.g: 'TVAE' will be 'TVAE_'
+
+        project_root = Path(__file__).resolve().parents[3]
+        corrected_data_root = Path(output_root) if output_root is not None else project_root / 'data' / constants.RUN_NAMESPACE
+        corrected_model_root = project_root / 'sdv trained model' / constants.RUN_NAMESPACE
+        generator = self.features_synthesizer
+        self.paths = {
+            'synthesizer_dir': str(corrected_model_root / ds_name / f'seed_{seed}') + os.sep,
+            'data_dir': str(corrected_data_root / ds_name / f'seed_{seed}') + os.sep,
+            'train_csv': constants.split_name(ds_name, seed, 'train', 'raw'),
+            'dev_csv': constants.split_name(ds_name, seed, 'dev', 'raw'),
+            'test_csv': constants.split_name(ds_name, seed, 'test', 'raw'),
+            'train_csv_onehot': constants.split_name(ds_name, seed, 'train', 'onehot'),
+            'dev_csv_onehot': constants.split_name(ds_name, seed, 'dev', 'onehot'),
+            'test_csv_onehot': constants.split_name(ds_name, seed, 'test', 'onehot'),
+
+            'sdv_only_synthesizer': constants.generator_name(ds_name, seed, 'ctgan', 'full'),
+            'sdv_only_csv': constants.synthetic_name(ds_name, seed, 'ctgan'),
+            'sdv_tvae_only_synthesizer': constants.generator_name(ds_name, seed, 'tvae', 'full'),
+            'sdv_tvae_only_csv': constants.synthetic_name(ds_name, seed, 'tvae'),
+        }
+        for label in ('gaussian', 'categorical', 'pca_gmm', 'rf', 'xgb', 'dnn'):
+            key = f'sdv_{self.fsyn_name}{label}'
+            self.paths[f'{key}_synthesizer'] = constants.generator_name(ds_name, seed, generator, 'xonly')
+            self.paths[f'{key}_csv'] = constants.synthetic_name(ds_name, seed, self.fsyn_name + label)
+
+    def create_synthetic_data(self):
+        """Generate each feature source once, then use the maintained labelers."""
+        if self.features_synthesizer not in {'ctgan', 'tvae'}:
+            raise ValueError("features_synthesizer must be 'ctgan' or 'tvae'")
+        self.ensure_prepared()
+        data_dir = Path(self.paths['data_dir'])
+        generator = self.features_synthesizer
+        if any(data_dir.glob(f'{self.ds_name}_seed{self.seed}_{generator}_*')):
+            raise FileExistsError('Existing synthetic artifacts require explicit validated reuse')
+        x, y, _, categories = self.read_train_data()
+        full_data = pd.concat([x, y], axis=1)
+        full_path = data_dir / constants.synthetic_name(self.ds_name, self.seed, generator)
+        model_root = Path(self.paths['synthesizer_dir'])
+        full_model = model_root / constants.generator_name(self.ds_name, self.seed, generator, 'full')
+        real, full = fit_sample_generator(full_data, categories, self.target_name, generator,
+            self.sample_size_to_synthesize, full_model, self.seed,
+            is_classification=self.is_classification, target_transform=self.target_transform)
+        full.to_csv(full_path, index=False)
+        _save_synthetic_quality(full, real, y, self.target_name, self.sample_size_to_synthesize,
+            str(full_path), self.is_classification, target_transform=self.target_transform)
+        del full, real
+        xonly_model = model_root / constants.generator_name(self.ds_name, self.seed, generator, 'xonly')
+        _, features = fit_sample_generator(x, categories, None, generator,
+            self.sample_size_to_synthesize, xonly_model, self.seed, is_classification=self.is_classification)
+        feature_path = data_dir / f'{self.ds_name}_seed{self.seed}_{generator}_xonly_features_100k.csv'
+        features.to_csv(feature_path, index=False)
+        del features
+        features = pd.read_csv(feature_path)
+        labelers = ['pca_gmm', 'rf', 'xgb', 'dnn']
+        if self.is_classification:
+            labelers = ['gaussianNB', 'categoricalNB'] + labelers
+        dev = self.read_dev_data()
+        for fit, source, model in (('full', full_path, full_model), ('xonly', feature_path, xonly_model)):
+            feature_source = {'path': str(source), 'sha256': file_sha256(source),
+                              'generator_path': str(model), 'generator_sha256': file_sha256(model),
+                              'seed': self.seed, 'rows': self.sample_size_to_synthesize}
+            for labeler in labelers:
+                label = {'gaussianNB': 'gaussian', 'categoricalNB': 'categorical'}.get(labeler, labeler)
+                method = self.fsyn_name + ('compare_' if fit == 'full' else '') + label
+                table = data_dir / constants.synthetic_name(self.ds_name, self.seed, method)
+                synthesize_comparison_from_trained_model(x, y, categories, self.target_name,
+                    sample_size=self.sample_size_to_synthesize, target_synthesizer=labeler,
+                    numerical_columns_pca_gmm=self.numerical_cols_pca_gmm, csv_file_name=str(table),
+                    is_classification=self.is_classification, seed=self.seed, dnn_dev_data=dev,
+                    dataset_name=self.ds_name, target_transform=self.target_transform,
+                    feature_source=feature_source,
+                    full_table_csv=str(full_path) if fit == 'full' else None,
+                    synthetic_features=features if fit == 'xonly' else None)
+
+    def ensure_prepared(self):
+        """Prepare once; reject partial or changed real partitions."""
+        folder = Path(self.paths['data_dir'])
+        manifest_path = folder / 'split_manifest.json'
+        if not manifest_path.exists():
+            if any(folder.glob('*real*.csv')):
+                raise FileExistsError('Partial preparation requires explicit recovery')
+            self.prepare_train_test()
+        manifest = json.loads(manifest_path.read_text())
+        if (manifest['dataset'], manifest['seed'], manifest['split_random_state']) != (self.ds_name, self.seed, 42):
+            raise ValueError('Prepared split manifest does not match the requested dataset, seed, or splitter')
+        ids = [source_id for split in ('train', 'dev', 'test') for source_id in manifest['splits'][split]]
+        if len(ids) != len(set(ids)):
+            raise ValueError('Prepared source partitions overlap')
+        for split in ('train', 'dev', 'test'):
+            for view, key in (('raw', f'{split}_csv'), ('onehot', f'{split}_csv_onehot')):
+                details = manifest['files'][split][view]
+                if details['rows'] != len(manifest['splits'][split]) or file_sha256(folder / self.paths[key]) != details['sha256']:
+                    raise ValueError(f'Prepared {split}/{view} differs from its split manifest')
+        return manifest
+
+    def create_pilot_data(self):
+        self.create_synthetic_data_sdv_only()
+        xtrain, ytrain, _, categorical_columns = self.read_train_data()
+        self.synthesize_data(xtrain, ytrain, categorical_columns, 'sdv_rf', 'rf')
+        self.synthesize_from_trained_model(xtrain, ytrain, categorical_columns, 'sdv_xgb', 'xgb')
+        self.create_synthetic_data_dnn()
+        self.create_comparison_from_trained_model(('rf', 'xgb', 'dnn'))
+
+
+    def create_synthetic_data_sdv_only(self):
+        self.ensure_prepared()
+        # need this line or the xy data will be double one-hot encoded. dont know why
+        xtrain, ytrain, target_name, categorical_columns = self.read_train_data()
+        xytrain = pd.concat([xtrain, ytrain], axis=1)
+        synth_type = 'sdv_only' if self.features_synthesizer == 'ctgan' else 'sdv_tvae_only'
+        self.synthesize_data(xytrain, ytrain, categorical_columns, synth_type, '', features_synthesizer=self.features_synthesizer)
+
+    def create_synthetic_data_sdv_gaussian(self):
+        xtrain, ytrain, target_name, categorical_columns = self.read_train_data()
+        self.synthesize_data(xtrain, ytrain, categorical_columns, f'sdv_{self.fsyn_name}gaussian', 'gaussianNB', features_synthesizer=self.features_synthesizer)
+
+    def create_synthetic_data_sdv_categorical(self):
+        xtrain, ytrain, target_name, categorical_columns = self.read_train_data()
+        self.synthesize_from_trained_model(xtrain, ytrain, categorical_columns, f'sdv_{self.fsyn_name}categorical', 'categoricalNB', features_synthesizer=self.features_synthesizer)
+
+    def create_synthetic_data_pca_gmm(self):
+        xtrain, ytrain, target_name, categorical_columns = self.read_train_data()
+        if self.is_classification:
+            self.synthesize_from_trained_model(xtrain, ytrain, categorical_columns, f'sdv_{self.fsyn_name}pca_gmm', 'pca_gmm', features_synthesizer=self.features_synthesizer)
+        else:
+            self.synthesize_data(xtrain, ytrain, categorical_columns, f'sdv_{self.fsyn_name}pca_gmm', 'pca_gmm', features_synthesizer=self.features_synthesizer)
+
+    def create_synthetic_data_ensemble(self):
+        xtrain, ytrain, target_name, categorical_columns = self.read_train_data()
+        emsemble_methods = ['xgb', 'rf']
+        for method in emsemble_methods:
+            self.synthesize_from_trained_model(xtrain, ytrain, categorical_columns, f'sdv_{self.fsyn_name}{method}', method, features_synthesizer=self.features_synthesizer)
+
+    def create_synthetic_data_dnn(self):
+        xtrain, ytrain, target_name, categorical_columns = self.read_train_data()
+        self.synthesize_from_trained_model(
+            xtrain, ytrain, categorical_columns, f'sdv_{self.fsyn_name}dnn', 'dnn',
+            dnn_dev_data=self.read_dev_data(),
+        )
+
+    def create_synthetic_data_tvae_only(self):
+        self.ensure_prepared()
+        xtrain, ytrain, target_name, categorical_columns = self.read_train_data()
+        xytrain = pd.concat([xtrain, ytrain], axis=1)
+        self.synthesize_data(xytrain, ytrain, categorical_columns, 'sdv_tvae_only', '', features_synthesizer='TVAE')
+
+    def create_comparison_from_trained_model(self, target_synthesizers=None):
+        xtrain, ytrain, target_name, categorical_columns = self.read_train_data()
+        print(f"Creating comparison from trained model for '{self.ds_name}' with features synthesizer: {self.features_synthesizer}")
+        if target_synthesizers is None:
+            target_synthesizers = ['pca_gmm', 'xgb', 'rf', 'dnn']
+            if self.is_classification:
+                target_synthesizers = ['gaussianNB', 'categoricalNB'] + target_synthesizers
+        full_table_name = 'sdv_only_csv' if self.features_synthesizer == 'ctgan' else 'sdv_tvae_only_csv'
+        full_table_csv = self.paths['data_dir'] + self.paths[full_table_name]
+        dnn_dev_data = self.read_dev_data()
+        for target_synthesizer in target_synthesizers:
+            self.synthesize_comparison_from_trained_model(
+                xtrain, ytrain, categorical_columns,
+                f'sdv_{self.fsyn_name}compare_{target_synthesizer}',
+                target_synthesizer,
+                full_table_csv=full_table_csv, dnn_dev_data=dnn_dev_data,
+            )
+
+
+    def prepare_train_test(self):
+        """
+        only for the first time, prepare data, train-test split data, handle missing values, and save to csv
+        after that, read the data from the csv files
+        """
+        x_original, y_original = self.load_data_func()
+        data = pd.concat([x_original, y_original], axis=1)
+        # xtrain, xtest, ytrain, ytest = create_train_test.create_train_test(data, target_name=self.target_name, test_size=test_size, random_state=42, stratify=y_original, categorical_columns=self.categorical_columns)
+        # xtrain, ytrain = handle_missing_values.handle_missing_values(xtrain, ytrain, target_name=self.target_name, strategy=missing_values_strategy)
+        # xtest, ytest = handle_missing_values.handle_missing_values(xtest, ytest, target_name=self.target_name, strategy=missing_values_strategy)
+        splits = self.test_split_and_handle_missing_onehot(data, self.missing_values_strategy, self.test_size)
+        xtrain, xdev, xtest, ytrain, ydev, ytest, xtrain_onehot, xdev_onehot, xtest_onehot = splits
+        self.save_train_dev_test(xtrain, xdev, xtest, ytrain, ydev, ytest,
+                                 xtrain_onehot, xdev_onehot, xtest_onehot)
+        self.save_split_manifest()
+        return xtrain, xdev, xtest, ytrain, ydev, ytest, self.target_name, self.categorical_columns
+
+    def read_data(self):
+        return read_train_test_csv.read_train_test_csv(self.paths['data_dir'] + self.paths['train_csv'], self.paths['data_dir'] + self.paths['test_csv'],
+                                                       target_name=self.target_name, categorical_columns=self.categorical_columns)
+
+    def read_train_data(self):
+        train_data = pd.read_csv(self.paths['data_dir'] + self.paths['train_csv'])
+        xtrain = train_data.drop(columns=[self.target_name])
+        ytrain = train_data[self.target_name]
+        return xtrain, ytrain, self.target_name, self.categorical_columns
+
+    def read_dev_data(self):
+        dev_data = pd.read_csv(self.paths['data_dir'] + self.paths['dev_csv_onehot'])
+        return dev_data.drop(columns=[self.target_name]), dev_data[self.target_name]
+
+    def synthesize_data(self, xtrain, ytrain, categorical_columns, synth_type, target_synthesizer, features_synthesizer='CTGAN'):
+        # xytrain = pd.concat([xtrain, ytrain], axis=1)
+        synthesize_data(xtrain, ytrain, categorical_columns, sample_size=self.sample_size_to_synthesize, target_synthesizer=target_synthesizer,
+                        features_synthesizer=features_synthesizer, numerical_columns_pca_gmm=self.numerical_cols_pca_gmm,
+                        target_name=self.target_name, synthesizer_file_name=self.paths['synthesizer_dir'] + self.paths[f'{synth_type}_synthesizer'],
+                        csv_file_name=self.paths['data_dir'] + self.paths[f'{synth_type}_csv'], verbose=True,
+                        is_classification=self.is_classification, seed=self.seed)
+
+    def synthesize_from_trained_model(self, xtrain, ytrain, categorical_columns, synth_type, target_synthesizer, features_synthesizer='CTGAN', dnn_dev_data=None):
+        synthesize_from_trained_model(xtrain, ytrain, categorical_columns, sample_size=self.sample_size_to_synthesize, target_synthesizer=target_synthesizer,
+                                      numerical_columns_pca_gmm=self.numerical_cols_pca_gmm,
+                                      target_name=self.target_name, synthesizer_file_name=self.paths['synthesizer_dir'] + self.paths[f'{synth_type}_synthesizer'],
+                                      csv_file_name=self.paths['data_dir'] + self.paths[f'{synth_type}_csv'], verbose=True,
+                                      is_classification=self.is_classification, seed=self.seed,
+                                      dnn_dev_data=dnn_dev_data, dataset_name=self.ds_name)
+
+
+    def synthesize_comparison_from_trained_model(self, xtrain, ytrain, categorical_columns, synth_type, target_synthesizer, full_table_csv, dnn_dev_data=None):
+        label = {'gaussianNB': 'gaussian', 'categoricalNB': 'categorical'}.get(target_synthesizer, target_synthesizer)
+        method = ('tvae_' if self.features_synthesizer == 'tvae' else '') + 'compare_' + label
+        csv_file_name = self.paths['data_dir'] + constants.synthetic_name(self.ds_name, self.seed, method)
+
+        synthesize_comparison_from_trained_model(xtrain, ytrain, categorical_columns, sample_size=self.sample_size_to_synthesize, target_synthesizer=target_synthesizer,
+                        numerical_columns_pca_gmm=self.numerical_cols_pca_gmm,
+                        target_name=self.target_name,
+                        csv_file_name=csv_file_name, verbose=True,
+                        is_classification=self.is_classification, seed=self.seed,
+                        full_table_csv=full_table_csv, dnn_dev_data=dnn_dev_data,
+                        dataset_name=self.ds_name)
+
+    def save_to_csv(self, xtrain, ytrain, xtest, ytest, train_csv, test_csv):
+        train_set = pd.concat([xtrain, ytrain], axis=1)
+        test_set = pd.concat([xtest, ytest], axis=1)
+        check_directory.check_directory(train_csv)
+        check_directory.check_directory(test_csv)
+        train_set.to_csv(train_csv, index=False)
+        test_set.to_csv(test_csv, index=False)
+        print(f"Data saved to csv at {train_csv} and {test_csv}")
+
+    def save_train_dev_test(self, xtrain, xdev, xtest, ytrain, ydev, ytest,
+                            xtrain_onehot, xdev_onehot, xtest_onehot):
+        sets = [
+            (xtrain, ytrain, self.paths['train_csv']),
+            (xdev, ydev, self.paths['dev_csv']),
+            (xtest, ytest, self.paths['test_csv']),
+            (xtrain_onehot, ytrain, self.paths['train_csv_onehot']),
+            (xdev_onehot, ydev, self.paths['dev_csv_onehot']),
+            (xtest_onehot, ytest, self.paths['test_csv_onehot']),
+        ]
+        for x, y, filename in sets:
+            path = self.paths['data_dir'] + filename
+            save_set = pd.concat([x, y], axis=1)
+            check_directory.check_directory(path)
+            save_set.to_csv(path, index=False)
+
+    def save_split_manifest(self):
+        split_details = {}
+        files = {
+            'train': (self.paths['train_csv'], self.paths['train_csv_onehot']),
+            'dev': (self.paths['dev_csv'], self.paths['dev_csv_onehot']),
+            'test': (self.paths['test_csv'], self.paths['test_csv_onehot']),
+        }
+        # Keep only row fingerprints, rather than all six full CSV dataframes.
+        fingerprints = {}
+        for split_name, (raw_name, onehot_name) in files.items():
+            split_details[split_name] = {}
+            for view, filename in [('raw', raw_name), ('onehot', onehot_name)]:
+                path = self.paths['data_dir'] + filename
+                file_hash = hashlib.sha256()
+                with open(path, 'rb') as source_file:
+                    for block in iter(lambda: source_file.read(1024 * 1024), b''):
+                        file_hash.update(block)
+                full_hashes, feature_hashes = [], []
+                rows, counts = 0, {}
+                target_min, target_max = float('inf'), float('-inf')
+                for frame in pd.read_csv(path, chunksize=50_000):
+                    rows += len(frame)
+                    full_hashes.append(pd.util.hash_pandas_object(frame, index=False).to_numpy())
+                    feature_hashes.append(pd.util.hash_pandas_object(
+                        frame.drop(columns=[self.target_name]), index=False).to_numpy())
+                    if self.is_classification:
+                        for label, count in frame[self.target_name].value_counts(dropna=False).items():
+                            counts[str(label)] = counts.get(str(label), 0) + int(count)
+                    else:
+                        target_min = min(target_min, float(frame[self.target_name].min()))
+                        target_max = max(target_max, float(frame[self.target_name].max()))
+                fingerprints[(split_name, view)] = (
+                    np.concatenate(full_hashes), np.concatenate(feature_hashes))
+                split_details[split_name][view] = {
+                    'rows': rows,
+                    'columns': [str(column) for column in frame.columns],
+                    'target_counts': (
+                        counts
+                        if self.is_classification else None
+                    ),
+                    'target_range': (
+                        [target_min, target_max]
+                        if not self.is_classification else None
+                    ),
+                    'sha256': file_hash.hexdigest(),
+                }
+        overlaps = {}
+        for view in ('raw', 'onehot'):
+            train_full, train_features = fingerprints[('train', view)]
+            for split_name in ('dev', 'test'):
+                candidate_full, candidate_features = fingerprints[(split_name, view)]
+                overlap = {
+                    'exact_full_rows': int(np.isin(candidate_full, train_full).sum()),
+                    'exact_feature_rows': int(np.isin(candidate_features, train_features).sum()),
+                }
+                overlaps[f'train_vs_{split_name}_{view}'] = overlap
+                if overlap['exact_feature_rows']:
+                    raise ValueError(
+                        f"Exact feature overlap between train and {split_name} in {view} data: "
+                        f"{overlap['exact_feature_rows']} rows"
+                    )
+        manifest = {
+            'dataset': self.ds_name,
+            'seed': self.seed,
+            'split_random_state': 42,
+            'source_row_count': self._source_row_count,
+            'splits': {name: ids.tolist() for name, ids in self._source_ids.items()},
+            'files': split_details,
+            'train_overlap': overlaps,
+        }
+        path = self.paths['data_dir'] + 'split_manifest.json'
+        check_directory.check_directory(path)
+        with open(path, 'w', encoding='utf-8') as file:
+            json.dump(manifest, file, indent=2)
+
+    def test_split_and_handle_missing_onehot(self, data, missing_values_strategy='drop', test_size=0.2):
+        train_source, dev_source, test_source = self.split_source_data(data, test_size)
+        return self.transform_source_splits(train_source, dev_source, test_source, missing_values_strategy)
+
+    def split_source_data(self, data, test_size=None, groups=None):
+        """Partition source rows before any feature preprocessing or generation."""
+        data = data.reset_index(drop=True)
+        self._source_row_count = len(data)
+        row_ids = np.arange(len(data))
+        if groups is None:
+            groups = pd.util.hash_pandas_object(data.drop(columns=[self.target_name]), index=False).to_numpy()
+        groups = np.asarray(groups)
+        requested_test = self.test_size if test_size is None else test_size
+        test_count = int(np.ceil(len(data) * requested_test)) if requested_test <= 1 else int(requested_test)
+        dev_count = max(1, int(round((len(data) - test_count) * 0.1)))
+        test_fraction = test_count / len(data)
+        train_dev_ids, test_ids = next(GroupShuffleSplit(n_splits=1, test_size=test_fraction, random_state=42).split(row_ids, groups=groups))
+        dev_fraction = dev_count / len(train_dev_ids)
+        train_local, dev_local = next(GroupShuffleSplit(n_splits=1, test_size=dev_fraction, random_state=42).split(
+            train_dev_ids, groups=groups[train_dev_ids]))
+        train_ids, dev_ids = train_dev_ids[train_local], train_dev_ids[dev_local]
+        if self.is_classification:
+            # Every evaluated class needs a training example. Move its entire
+            # feature group so rare classes cannot break the no-overlap split.
+            missing = set(data[self.target_name].dropna()) - set(data.iloc[train_ids][self.target_name])
+            for label in sorted(missing):
+                first = np.flatnonzero(data[self.target_name].eq(label).to_numpy())[0]
+                moved = np.flatnonzero(groups == groups[first])
+                train_ids = np.sort(np.concatenate((train_ids, moved)))
+                dev_ids = dev_ids[~np.isin(dev_ids, moved)]
+                test_ids = test_ids[~np.isin(test_ids, moved)]
+        self._source_ids = {'train': train_ids, 'dev': dev_ids, 'test': test_ids}
+        return tuple(data.iloc[ids].reset_index(drop=True) for ids in (train_ids, dev_ids, test_ids))
+
+    def transform_source_splits(self, train_source, dev_source, test_source, missing_values_strategy=None):
+        strategy = missing_values_strategy or self.missing_values_strategy
+        source_frames = [train_source, dev_source, test_source]
+        ids_by_split = [self._source_ids[name] for name in ('train', 'dev', 'test')]
+        prepared = []
+        for frame, ids in zip(source_frames, ids_by_split):
+            y = frame[[self.target_name]].copy()
+            x = frame.drop(columns=[self.target_name]).copy()
+            if strategy == 'drop':
+                keep = x.notna().all(axis=1).to_numpy() & y[self.target_name].notna().to_numpy()
+                x, y, ids = x.loc[keep], y.loc[keep], ids[keep]
+            else:
+                keep = y[self.target_name].notna().to_numpy()
+                x, y, ids = x.loc[keep], y.loc[keep], ids[keep]
+            prepared.append((x, y, ids))
+        xtrain, ytrain, train_ids = prepared[0]
+        xdev, ydev, dev_ids = prepared[1]
+        xtest, ytest, test_ids = prepared[2]
+        xtrain, ytrain, fitted_imputer = handle_missing_values.handle_missing_values(
+            xtrain, ytrain, target_name=self.target_name, strategy=strategy, return_imputer=True)
+        xdev, ydev = handle_missing_values.handle_missing_values(
+            xdev, ydev, target_name=self.target_name, strategy=strategy, fitted_imputer=fitted_imputer)
+        xtest, ytest = handle_missing_values.handle_missing_values(
+            xtest, ytest, target_name=self.target_name, strategy=strategy, fitted_imputer=fitted_imputer)
+        xtrain_onehot, xdev_onehot, xtest_onehot = onehot.onehot_many(
+            xtrain, (xdev, xtest), self.categorical_columns)
+        self._source_ids = {'train': train_ids, 'dev': dev_ids, 'test': test_ids}
+        return xtrain, xdev, xtest, ytrain, ydev, ytest, xtrain_onehot, xdev_onehot, xtest_onehot

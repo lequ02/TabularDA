@@ -1,0 +1,58 @@
+=====Setting up data=====
+Dataset name:adult
+train_option:synthetic
+augment_option:tabddpm_xgb
+mix_ratio:-1
+n_sample:-1
+Training dataset size: 100096 samples
+Validation dataset size: 3840 samples
+
+=====Setting up parameters for training=====
+num_epochs: 100
+learning_rate: 0.001
+patience: 30
+early_stop_criterion: loss
+=====Setting up trainer=====
+input_size: 107
+model: DNN_Adult
+----------------------------------------------------------------
+        Layer (type)               Output Shape         Param #
+================================================================
+            Linear-1                  [-1, 128]          13,824
+       BatchNorm1d-2                  [-1, 128]             256
+              ReLU-3                  [-1, 128]               0
+           Dropout-4                  [-1, 128]               0
+            Linear-5                   [-1, 64]           8,256
+       BatchNorm1d-6                   [-1, 64]             128
+              ReLU-7                   [-1, 64]               0
+           Dropout-8                   [-1, 64]               0
+            Linear-9                   [-1, 32]           2,080
+      BatchNorm1d-10                   [-1, 32]              64
+             ReLU-11                   [-1, 32]               0
+          Dropout-12                   [-1, 32]               0
+           Linear-13                   [-1, 16]             528
+      BatchNorm1d-14                   [-1, 16]              32
+             ReLU-15                   [-1, 16]               0
+          Dropout-16                   [-1, 16]               0
+           Linear-17                    [-1, 1]              17
+          Sigmoid-18                    [-1, 1]               0
+================================================================
+Total params: 25,185
+Trainable params: 25,185
+Non-trainable params: 0
+----------------------------------------------------------------
+Input size (MB): 0.00
+Forward/backward pass size (MB): 0.01
+Params size (MB): 0.10
+Estimated Total Size (MB): 0.10
+----------------------------------------------------------------
+=====Setting up output files=====
+weight_dir, weight_file: /home/thuy/Research/minh_data_synth/TabularDA/output/comparison_devf1_20261015_v1/jobs/output__tabddpm_500ep_20261010_v1__adult__acc__adult_seed43_tabddpm_xonly_xgb_synthetic/recovered/, adult_seed43_tabddpm_xonly_xgb_synthetic.weights.pth
+acc_dir, acc_file: /home/thuy/Research/minh_data_synth/TabularDA/output/comparison_devf1_20261015_v1/jobs/output__tabddpm_500ep_20261010_v1__adult__acc__adult_seed43_tabddpm_xonly_xgb_synthetic/recovered/, adult_seed43_tabddpm_xonly_xgb_synthetic.epochs.csv
+report_file: adult_seed43_tabddpm_xonly_xgb_synthetic.report.txt
+REPLAY epoch=1 history_match=True dev_f1_binary=0.673515981735 elapsed_s=8.61
+REPLAY epoch=2 history_match=True dev_f1_binary=0.683501683502 elapsed_s=8.64
+REPLAY epoch=3 history_match=True dev_f1_binary=0.686891814539 elapsed_s=8.61
+REPLAY epoch=4 history_match=True dev_f1_binary=0.689458689459 elapsed_s=8.59
+REPLAY epoch=5 history_match=True dev_f1_binary=0.695454545455 elapsed_s=8.63
+RESULT {"dataset": "adult", "test_scores": {"accuracy": 0.8531666841718307, "balanced_accuracy": 0.783292701471473, "f1_macro": 0.7918008011152045, "f1_micro": 0.8531666841718307, "f1_weighted": 0.8508397905600878, "f1_binary": 0.6787683823529411, "pr_auc": 0.7548023180054853, "precision_macro": 0.8018495587316994, "precision_micro": 0.8531666841718307, "precision_weighted": 0.8494171383801193, "precision_binary": 0.7107795957651588, "recall_macro": 0.783292701471473, "recall_micro": 0.8531666841718307, "recall_weighted": 0.8531666841718307, "recall_binary": 0.6495162708883025, "roc_auc": 0.902627951832554}}

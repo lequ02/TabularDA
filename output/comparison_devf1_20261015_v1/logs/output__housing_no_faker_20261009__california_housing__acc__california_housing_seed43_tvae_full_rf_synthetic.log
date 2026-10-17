@@ -1,0 +1,56 @@
+=====Setting up data=====
+Dataset name:california_housing
+train_option:synthetic
+augment_option:tvae_compare_rf
+mix_ratio:-1
+n_sample:-1
+Dataset name:california_housing
+Training dataset size: 100096 samples
+Validation dataset size: 1664 samples
+
+=====Setting up parameters for training=====
+num_epochs: 100
+learning_rate: 0.001
+patience: 30
+early_stop_criterion: loss
+=====Setting up metrics for evaluating and plotting=====
+metrics for evaluating: ['mae', 'mse', 'r2']
+metric for plotting: r2
+=====Setting up trainer=====
+input_size: 8
+model: DNN_News
+----------------------------------------------------------------
+        Layer (type)               Output Shape         Param #
+================================================================
+            Linear-1                  [-1, 512]           4,608
+              ReLU-2                  [-1, 512]               0
+       BatchNorm1d-3                  [-1, 512]           1,024
+           Dropout-4                  [-1, 512]               0
+            Linear-5                  [-1, 512]         262,656
+              ReLU-6                  [-1, 512]               0
+       BatchNorm1d-7                  [-1, 512]           1,024
+           Dropout-8                  [-1, 512]               0
+            Linear-9                  [-1, 256]         131,328
+             ReLU-10                  [-1, 256]               0
+      BatchNorm1d-11                  [-1, 256]             512
+          Dropout-12                  [-1, 256]               0
+           Linear-13                  [-1, 128]          32,896
+             ReLU-14                  [-1, 128]               0
+      BatchNorm1d-15                  [-1, 128]             256
+          Dropout-16                  [-1, 128]               0
+           Linear-17                    [-1, 1]             129
+================================================================
+Total params: 434,433
+Trainable params: 434,433
+Non-trainable params: 0
+----------------------------------------------------------------
+Input size (MB): 0.00
+Forward/backward pass size (MB): 0.04
+Params size (MB): 1.66
+Estimated Total Size (MB): 1.70
+----------------------------------------------------------------
+=====Setting up output files=====
+weight_dir, weight_file: /home/thuy/Research/minh_data_synth/TabularDA/output/comparison_devf1_20261015_v1/jobs/output__housing_no_faker_20261009__california_housing__acc__california_housing_seed43_tvae_full_rf_synthetic/recovered/, california_housing_seed43_tvae_full_rf_synthetic.weights.pth
+acc_dir, acc_file: /home/thuy/Research/minh_data_synth/TabularDA/output/comparison_devf1_20261015_v1/jobs/output__housing_no_faker_20261009__california_housing__acc__california_housing_seed43_tvae_full_rf_synthetic/recovered/, california_housing_seed43_tvae_full_rf_synthetic.epochs.csv
+report_file: california_housing_seed43_tvae_full_rf_synthetic.report.txt
+RESULT {"dataset": "california_housing", "test_scores": {"mae": 0.373383104801178, "mse": 0.2952426075935364, "r2": 0.7843748317352086, "d2_absolute_error": 0.5840740619317448, "nmae_sigma": 0.3190912238330077}}

@@ -1,0 +1,53 @@
+=====Setting up data=====
+Dataset name:mnist28
+train_option:synthetic
+augment_option:xgb
+mix_ratio:-1
+n_sample:-1
+Training dataset size: 100096 samples
+Validation dataset size: 6144 samples
+
+=====Setting up parameters for training=====
+num_epochs: 100
+learning_rate: 0.001
+patience: 30
+early_stop_criterion: loss
+=====Setting up trainer=====
+input_size: 784
+model: DNN_MNIST28
+----------------------------------------------------------------
+        Layer (type)               Output Shape         Param #
+================================================================
+           Dropout-1                  [-1, 784]               0
+            Linear-2                  [-1, 512]         401,920
+         LeakyReLU-3                  [-1, 512]               0
+       BatchNorm1d-4                  [-1, 512]           1,024
+           Dropout-5                  [-1, 512]               0
+            Linear-6                 [-1, 1024]         525,312
+         LeakyReLU-7                 [-1, 1024]               0
+       BatchNorm1d-8                 [-1, 1024]           2,048
+           Dropout-9                 [-1, 1024]               0
+           Linear-10                  [-1, 256]         262,400
+        LeakyReLU-11                  [-1, 256]               0
+      BatchNorm1d-12                  [-1, 256]             512
+          Dropout-13                  [-1, 256]               0
+           Linear-14                  [-1, 128]          32,896
+        LeakyReLU-15                  [-1, 128]               0
+      BatchNorm1d-16                  [-1, 128]             256
+          Dropout-17                  [-1, 128]               0
+           Linear-18                   [-1, 10]           1,290
+================================================================
+Total params: 1,227,658
+Trainable params: 1,227,658
+Non-trainable params: 0
+----------------------------------------------------------------
+Input size (MB): 0.00
+Forward/backward pass size (MB): 0.06
+Params size (MB): 4.68
+Estimated Total Size (MB): 4.75
+----------------------------------------------------------------
+=====Setting up output files=====
+weight_dir, weight_file: /home/thuy/Research/minh_data_synth/TabularDA/output/comparison_devf1_20261015_v1/jobs/output__mnist_head_fixed_20261009__mnist28__acc__mnist28_seed43_ctgan_xonly_xgb_synthetic/recovered/, mnist28_seed43_ctgan_xonly_xgb_synthetic.weights.pth
+acc_dir, acc_file: /home/thuy/Research/minh_data_synth/TabularDA/output/comparison_devf1_20261015_v1/jobs/output__mnist_head_fixed_20261009__mnist28__acc__mnist28_seed43_ctgan_xonly_xgb_synthetic/recovered/, mnist28_seed43_ctgan_xonly_xgb_synthetic.epochs.csv
+report_file: mnist28_seed43_ctgan_xonly_xgb_synthetic.report.txt
+RESULT {"dataset": "mnist28", "test_scores": {"accuracy": 0.8855464397852729, "balanced_accuracy": 0.8853486922469307, "f1_macro": 0.8855930378148769, "f1_micro": 0.8855464397852729, "f1_weighted": 0.8858867421976393, "precision_macro": 0.8878495218434604, "precision_micro": 0.8855464397852729, "precision_weighted": 0.888256212937078, "recall_macro": 0.8853486922469307, "recall_micro": 0.8855464397852729, "recall_weighted": 0.8855464397852729}}

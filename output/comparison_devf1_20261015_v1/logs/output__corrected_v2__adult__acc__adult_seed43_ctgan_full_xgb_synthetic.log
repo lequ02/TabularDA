@@ -1,0 +1,64 @@
+=====Setting up data=====
+Dataset name:adult
+train_option:synthetic
+augment_option:compare_xgb
+mix_ratio:-1
+n_sample:-1
+Training dataset size: 100096 samples
+Validation dataset size: 3840 samples
+
+=====Setting up parameters for training=====
+num_epochs: 100
+learning_rate: 0.001
+patience: 30
+early_stop_criterion: loss
+=====Setting up trainer=====
+input_size: 107
+model: DNN_Adult
+----------------------------------------------------------------
+        Layer (type)               Output Shape         Param #
+================================================================
+            Linear-1                  [-1, 128]          13,824
+       BatchNorm1d-2                  [-1, 128]             256
+              ReLU-3                  [-1, 128]               0
+           Dropout-4                  [-1, 128]               0
+            Linear-5                   [-1, 64]           8,256
+       BatchNorm1d-6                   [-1, 64]             128
+              ReLU-7                   [-1, 64]               0
+           Dropout-8                   [-1, 64]               0
+            Linear-9                   [-1, 32]           2,080
+      BatchNorm1d-10                   [-1, 32]              64
+             ReLU-11                   [-1, 32]               0
+          Dropout-12                   [-1, 32]               0
+           Linear-13                   [-1, 16]             528
+      BatchNorm1d-14                   [-1, 16]              32
+             ReLU-15                   [-1, 16]               0
+          Dropout-16                   [-1, 16]               0
+           Linear-17                    [-1, 1]              17
+          Sigmoid-18                    [-1, 1]               0
+================================================================
+Total params: 25,185
+Trainable params: 25,185
+Non-trainable params: 0
+----------------------------------------------------------------
+Input size (MB): 0.00
+Forward/backward pass size (MB): 0.01
+Params size (MB): 0.10
+Estimated Total Size (MB): 0.10
+----------------------------------------------------------------
+=====Setting up output files=====
+weight_dir, weight_file: /home/thuy/Research/minh_data_synth/TabularDA/output/comparison_devf1_20261015_v1/jobs/output__corrected_v2__adult__acc__adult_seed43_ctgan_full_xgb_synthetic/recovered/, adult_seed43_ctgan_full_xgb_synthetic.weights.pth
+acc_dir, acc_file: /home/thuy/Research/minh_data_synth/TabularDA/output/comparison_devf1_20261015_v1/jobs/output__corrected_v2__adult__acc__adult_seed43_ctgan_full_xgb_synthetic/recovered/, adult_seed43_ctgan_full_xgb_synthetic.epochs.csv
+report_file: adult_seed43_ctgan_full_xgb_synthetic.report.txt
+REPLAY epoch=1 history_match=True dev_f1_binary=0.654300168634 elapsed_s=8.74
+REPLAY epoch=2 history_match=True dev_f1_binary=0.660539919586 elapsed_s=8.63
+REPLAY epoch=3 history_match=True dev_f1_binary=0.670871559633 elapsed_s=8.48
+REPLAY epoch=4 history_match=True dev_f1_binary=0.673066064370 elapsed_s=8.71
+REPLAY epoch=5 history_match=True dev_f1_binary=0.678043230944 elapsed_s=8.45
+REPLAY epoch=6 history_match=True dev_f1_binary=0.676350958745 elapsed_s=8.57
+REPLAY epoch=7 history_match=True dev_f1_binary=0.678489702517 elapsed_s=8.56
+REPLAY epoch=8 history_match=True dev_f1_binary=0.681739130435 elapsed_s=9.10
+REPLAY epoch=9 history_match=True dev_f1_binary=0.675218658892 elapsed_s=8.75
+REPLAY epoch=10 history_match=True dev_f1_binary=0.681318681319 elapsed_s=8.66
+REPLAY epoch=11 history_match=True dev_f1_binary=0.684994272623 elapsed_s=8.80
+RESULT {"dataset": "adult", "test_scores": {"accuracy": 0.8525364982669887, "balanced_accuracy": 0.7804646122333215, "f1_macro": 0.7900222012026876, "f1_micro": 0.8525364982669887, "f1_weighted": 0.8498650499612573, "f1_binary": 0.6754507628294036, "pr_auc": 0.745756209985494, "precision_macro": 0.8015691955599715, "precision_micro": 0.8525364982669887, "precision_weighted": 0.8483590047462364, "precision_binary": 0.7119883040935673, "recall_macro": 0.7804646122333215, "recall_micro": 0.8525364982669887, "recall_weighted": 0.8525364982669887, "recall_binary": 0.6424802110817942, "roc_auc": 0.9031397943576327}}

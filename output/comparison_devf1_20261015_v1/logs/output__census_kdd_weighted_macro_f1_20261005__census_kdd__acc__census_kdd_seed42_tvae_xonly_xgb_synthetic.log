@@ -1,0 +1,53 @@
+=====Setting up data=====
+Dataset name:census_kdd
+train_option:synthetic
+augment_option:tvae_xgb
+mix_ratio:-1
+n_sample:-1
+Training dataset size: 100096 samples
+Validation dataset size: 18176 samples
+
+=====Setting up parameters for training=====
+num_epochs: 100
+learning_rate: 0.001
+patience: 30
+early_stop_criterion: f1_macro
+=====Setting up trainer=====
+Weighted Census protocol: {'name': 'census-weighted', 'objective': 'BCEWithLogitsLoss', 'model_output': 'logits', 'pos_weight_rule': 'actual_training_negatives / actual_training_positives', 'pos_weight': 99.80645161290323, 'training_label_counts': {'0': 99008, '1': 992}, 'shuffle': False, 'threshold': 0.5, 'threshold_rule': 'probability > 0.5', 'selection': 'real development f1_macro', 'test_loss_definition': "weighted BCE using this arm's training pos_weight"}
+input_size: 372
+model: DNN_Census
+----------------------------------------------------------------
+        Layer (type)               Output Shape         Param #
+================================================================
+            Linear-1                  [-1, 256]          95,488
+       BatchNorm1d-2                  [-1, 256]             512
+              ReLU-3                  [-1, 256]               0
+           Dropout-4                  [-1, 256]               0
+            Linear-5                  [-1, 128]          32,896
+       BatchNorm1d-6                  [-1, 128]             256
+              ReLU-7                  [-1, 128]               0
+           Dropout-8                  [-1, 128]               0
+            Linear-9                   [-1, 64]           8,256
+      BatchNorm1d-10                   [-1, 64]             128
+             ReLU-11                   [-1, 64]               0
+          Dropout-12                   [-1, 64]               0
+           Linear-13                   [-1, 32]           2,080
+      BatchNorm1d-14                   [-1, 32]              64
+             ReLU-15                   [-1, 32]               0
+          Dropout-16                   [-1, 32]               0
+           Linear-17                    [-1, 1]              33
+================================================================
+Total params: 139,713
+Trainable params: 139,713
+Non-trainable params: 0
+----------------------------------------------------------------
+Input size (MB): 0.00
+Forward/backward pass size (MB): 0.01
+Params size (MB): 0.53
+Estimated Total Size (MB): 0.55
+----------------------------------------------------------------
+=====Setting up output files=====
+weight_dir, weight_file: /home/thuy/Research/minh_data_synth/TabularDA/output/comparison_devf1_20261015_v1/jobs/output__census_kdd_weighted_macro_f1_20261005__census_kdd__acc__census_kdd_seed42_tvae_xonly_xgb_synthetic/recovered/, census_kdd_seed42_tvae_xonly_xgb_synthetic.weights.pth
+acc_dir, acc_file: /home/thuy/Research/minh_data_synth/TabularDA/output/comparison_devf1_20261015_v1/jobs/output__census_kdd_weighted_macro_f1_20261005__census_kdd__acc__census_kdd_seed42_tvae_xonly_xgb_synthetic/recovered/, census_kdd_seed42_tvae_xonly_xgb_synthetic.epochs.csv
+report_file: census_kdd_seed42_tvae_xonly_xgb_synthetic.report.txt
+RESULT {"dataset": "census_kdd", "test_scores": {"accuracy": 0.932374251811404, "balanced_accuracy": 0.7532003971748218, "f1_macro": 0.7303129925137903, "f1_binary": 0.496875, "pr_auc": 0.502666484625216, "precision_binary": 0.4536376604850214, "recall_binary": 0.5492227979274611, "roc_auc": 0.8852194116683814}}

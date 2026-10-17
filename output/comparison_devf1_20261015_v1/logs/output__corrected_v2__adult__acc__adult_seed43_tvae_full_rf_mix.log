@@ -1,0 +1,81 @@
+=====Setting up data=====
+Dataset name:adult
+train_option:mix
+augment_option:tvae_compare_rf
+mix_ratio:-1
+n_sample:-1
+Training dataset size: 134400 samples
+Validation dataset size: 3840 samples
+
+=====Setting up parameters for training=====
+num_epochs: 100
+learning_rate: 0.001
+patience: 30
+early_stop_criterion: loss
+=====Setting up trainer=====
+input_size: 107
+model: DNN_Adult
+----------------------------------------------------------------
+        Layer (type)               Output Shape         Param #
+================================================================
+            Linear-1                  [-1, 128]          13,824
+       BatchNorm1d-2                  [-1, 128]             256
+              ReLU-3                  [-1, 128]               0
+           Dropout-4                  [-1, 128]               0
+            Linear-5                   [-1, 64]           8,256
+       BatchNorm1d-6                   [-1, 64]             128
+              ReLU-7                   [-1, 64]               0
+           Dropout-8                   [-1, 64]               0
+            Linear-9                   [-1, 32]           2,080
+      BatchNorm1d-10                   [-1, 32]              64
+             ReLU-11                   [-1, 32]               0
+          Dropout-12                   [-1, 32]               0
+           Linear-13                   [-1, 16]             528
+      BatchNorm1d-14                   [-1, 16]              32
+             ReLU-15                   [-1, 16]               0
+          Dropout-16                   [-1, 16]               0
+           Linear-17                    [-1, 1]              17
+          Sigmoid-18                    [-1, 1]               0
+================================================================
+Total params: 25,185
+Trainable params: 25,185
+Non-trainable params: 0
+----------------------------------------------------------------
+Input size (MB): 0.00
+Forward/backward pass size (MB): 0.01
+Params size (MB): 0.10
+Estimated Total Size (MB): 0.10
+----------------------------------------------------------------
+=====Setting up output files=====
+weight_dir, weight_file: /home/thuy/Research/minh_data_synth/TabularDA/output/comparison_devf1_20261015_v1/jobs/output__corrected_v2__adult__acc__adult_seed43_tvae_full_rf_mix/recovered/, adult_seed43_tvae_full_rf_mix.weights.pth
+acc_dir, acc_file: /home/thuy/Research/minh_data_synth/TabularDA/output/comparison_devf1_20261015_v1/jobs/output__corrected_v2__adult__acc__adult_seed43_tvae_full_rf_mix/recovered/, adult_seed43_tvae_full_rf_mix.epochs.csv
+report_file: adult_seed43_tvae_full_rf_mix.report.txt
+REPLAY epoch=1 history_match=True dev_f1_binary=0.637500000000 elapsed_s=14.32
+REPLAY epoch=2 history_match=True dev_f1_binary=0.644638403990 elapsed_s=13.50
+REPLAY epoch=3 history_match=True dev_f1_binary=0.647642679901 elapsed_s=13.94
+REPLAY epoch=4 history_match=True dev_f1_binary=0.653357531760 elapsed_s=13.90
+REPLAY epoch=5 history_match=True dev_f1_binary=0.652121212121 elapsed_s=13.94
+REPLAY epoch=6 history_match=True dev_f1_binary=0.663455749548 elapsed_s=14.73
+REPLAY epoch=7 history_match=True dev_f1_binary=0.667464114833 elapsed_s=14.43
+REPLAY epoch=8 history_match=True dev_f1_binary=0.663819402074 elapsed_s=14.24
+REPLAY epoch=9 history_match=True dev_f1_binary=0.666666666667 elapsed_s=13.71
+REPLAY epoch=10 history_match=True dev_f1_binary=0.665054413543 elapsed_s=14.03
+REPLAY epoch=11 history_match=True dev_f1_binary=0.670694864048 elapsed_s=14.26
+REPLAY epoch=12 history_match=True dev_f1_binary=0.665458937198 elapsed_s=13.93
+REPLAY epoch=13 history_match=True dev_f1_binary=0.668260609683 elapsed_s=13.25
+REPLAY epoch=14 history_match=True dev_f1_binary=0.671462829736 elapsed_s=13.98
+REPLAY epoch=15 history_match=True dev_f1_binary=0.663824604141 elapsed_s=13.93
+REPLAY epoch=16 history_match=True dev_f1_binary=0.663420572124 elapsed_s=13.71
+REPLAY epoch=17 history_match=True dev_f1_binary=0.669441141498 elapsed_s=13.89
+REPLAY epoch=18 history_match=True dev_f1_binary=0.664615384615 elapsed_s=14.22
+REPLAY epoch=19 history_match=True dev_f1_binary=0.663803680982 elapsed_s=14.38
+REPLAY epoch=20 history_match=True dev_f1_binary=0.665450121655 elapsed_s=14.50
+REPLAY epoch=21 history_match=True dev_f1_binary=0.653893695921 elapsed_s=13.87
+REPLAY epoch=22 history_match=True dev_f1_binary=0.669069069069 elapsed_s=13.71
+REPLAY epoch=23 history_match=True dev_f1_binary=0.669891172914 elapsed_s=13.20
+REPLAY epoch=24 history_match=True dev_f1_binary=0.670952659264 elapsed_s=13.13
+REPLAY epoch=25 history_match=True dev_f1_binary=0.655880522713 elapsed_s=13.99
+REPLAY epoch=26 history_match=True dev_f1_binary=0.669456066946 elapsed_s=14.36
+REPLAY epoch=27 history_match=True dev_f1_binary=0.662976629766 elapsed_s=13.31
+REPLAY epoch=28 history_match=True dev_f1_binary=0.673076923077 elapsed_s=13.97
+RESULT {"dataset": "adult", "test_scores": {"accuracy": 0.8498056926793404, "balanced_accuracy": 0.7619227754328695, "f1_macro": 0.7789285519438007, "f1_micro": 0.8498056926793404, "f1_weighted": 0.8443101176788849, "f1_binary": 0.6537530266343826, "pr_auc": 0.7467122101012158, "precision_macro": 0.8034113722248465, "precision_micro": 0.8498056926793404, "precision_weighted": 0.843128871901245, "precision_binary": 0.7273706896551724, "recall_macro": 0.7619227754328695, "recall_micro": 0.8498056926793404, "recall_weighted": 0.8498056926793404, "recall_binary": 0.5936675461741425, "roc_auc": 0.9057382371184681}}

@@ -1,0 +1,132 @@
+=====Setting up data=====
+Dataset name:census_kdd
+train_option:synthetic
+augment_option:compare_xgb
+mix_ratio:-1
+n_sample:-1
+Training dataset size: 100096 samples
+Validation dataset size: 18176 samples
+
+=====Setting up parameters for training=====
+num_epochs: 100
+learning_rate: 0.001
+patience: 30
+early_stop_criterion: f1_macro
+=====Setting up trainer=====
+Weighted Census protocol: {'name': 'census-weighted', 'objective': 'BCEWithLogitsLoss', 'model_output': 'logits', 'pos_weight_rule': 'actual_training_negatives / actual_training_positives', 'pos_weight': 28.753049687592977, 'training_label_counts': {'0': 96639, '1': 3361}, 'shuffle': False, 'threshold': 0.5, 'threshold_rule': 'probability > 0.5', 'selection': 'real development f1_macro', 'test_loss_definition': "weighted BCE using this arm's training pos_weight"}
+input_size: 372
+model: DNN_Census
+----------------------------------------------------------------
+        Layer (type)               Output Shape         Param #
+================================================================
+            Linear-1                  [-1, 256]          95,488
+       BatchNorm1d-2                  [-1, 256]             512
+              ReLU-3                  [-1, 256]               0
+           Dropout-4                  [-1, 256]               0
+            Linear-5                  [-1, 128]          32,896
+       BatchNorm1d-6                  [-1, 128]             256
+              ReLU-7                  [-1, 128]               0
+           Dropout-8                  [-1, 128]               0
+            Linear-9                   [-1, 64]           8,256
+      BatchNorm1d-10                   [-1, 64]             128
+             ReLU-11                   [-1, 64]               0
+          Dropout-12                   [-1, 64]               0
+           Linear-13                   [-1, 32]           2,080
+      BatchNorm1d-14                   [-1, 32]              64
+             ReLU-15                   [-1, 32]               0
+          Dropout-16                   [-1, 32]               0
+           Linear-17                    [-1, 1]              33
+================================================================
+Total params: 139,713
+Trainable params: 139,713
+Non-trainable params: 0
+----------------------------------------------------------------
+Input size (MB): 0.00
+Forward/backward pass size (MB): 0.01
+Params size (MB): 0.53
+Estimated Total Size (MB): 0.55
+----------------------------------------------------------------
+=====Setting up output files=====
+weight_dir, weight_file: /home/thuy/Research/minh_data_synth/TabularDA/output/comparison_devf1_20261015_v1/jobs/output__census_kdd_weighted_macro_f1_20261005__census_kdd__acc__census_kdd_seed43_ctgan_full_xgb_synthetic/recovered/, census_kdd_seed43_ctgan_full_xgb_synthetic.weights.pth
+acc_dir, acc_file: /home/thuy/Research/minh_data_synth/TabularDA/output/comparison_devf1_20261015_v1/jobs/output__census_kdd_weighted_macro_f1_20261005__census_kdd__acc__census_kdd_seed43_ctgan_full_xgb_synthetic/recovered/, census_kdd_seed43_ctgan_full_xgb_synthetic.epochs.csv
+report_file: census_kdd_seed43_ctgan_full_xgb_synthetic.report.txt
+REPLAY epoch=1 history_match=True dev_f1_macro=0.649209690417 elapsed_s=9.72
+REPLAY epoch=2 history_match=True dev_f1_macro=0.683575414606 elapsed_s=9.76
+REPLAY epoch=3 history_match=True dev_f1_macro=0.701211570760 elapsed_s=9.51
+REPLAY epoch=4 history_match=True dev_f1_macro=0.703445291536 elapsed_s=10.30
+REPLAY epoch=5 history_match=True dev_f1_macro=0.709686857359 elapsed_s=9.85
+REPLAY epoch=6 history_match=True dev_f1_macro=0.704559553889 elapsed_s=9.88
+REPLAY epoch=7 history_match=True dev_f1_macro=0.711613394364 elapsed_s=10.09
+REPLAY epoch=8 history_match=True dev_f1_macro=0.713372423474 elapsed_s=9.93
+REPLAY epoch=9 history_match=True dev_f1_macro=0.721730803170 elapsed_s=9.71
+REPLAY epoch=10 history_match=True dev_f1_macro=0.723730858812 elapsed_s=9.54
+REPLAY epoch=11 history_match=True dev_f1_macro=0.719709644104 elapsed_s=9.62
+REPLAY epoch=12 history_match=True dev_f1_macro=0.724283099451 elapsed_s=10.46
+REPLAY epoch=13 history_match=True dev_f1_macro=0.735566567711 elapsed_s=9.99
+REPLAY epoch=14 history_match=True dev_f1_macro=0.730637613573 elapsed_s=10.07
+REPLAY epoch=15 history_match=True dev_f1_macro=0.735694632791 elapsed_s=9.60
+REPLAY epoch=16 history_match=True dev_f1_macro=0.732389965993 elapsed_s=9.97
+REPLAY epoch=17 history_match=True dev_f1_macro=0.731743422236 elapsed_s=10.02
+REPLAY epoch=18 history_match=True dev_f1_macro=0.721774835484 elapsed_s=10.18
+REPLAY epoch=19 history_match=True dev_f1_macro=0.727623951196 elapsed_s=10.33
+REPLAY epoch=20 history_match=True dev_f1_macro=0.723071922914 elapsed_s=10.17
+REPLAY epoch=21 history_match=True dev_f1_macro=0.736274926315 elapsed_s=9.37
+REPLAY epoch=22 history_match=True dev_f1_macro=0.732732203484 elapsed_s=9.69
+REPLAY epoch=23 history_match=True dev_f1_macro=0.722673103274 elapsed_s=9.06
+REPLAY epoch=24 history_match=True dev_f1_macro=0.729204033966 elapsed_s=10.05
+REPLAY epoch=25 history_match=True dev_f1_macro=0.733053622011 elapsed_s=9.82
+REPLAY epoch=26 history_match=True dev_f1_macro=0.729225065090 elapsed_s=9.79
+REPLAY epoch=27 history_match=True dev_f1_macro=0.732593495524 elapsed_s=9.82
+REPLAY epoch=28 history_match=True dev_f1_macro=0.731569556000 elapsed_s=10.10
+REPLAY epoch=29 history_match=True dev_f1_macro=0.730320418656 elapsed_s=9.80
+REPLAY epoch=30 history_match=True dev_f1_macro=0.728673641816 elapsed_s=9.83
+REPLAY epoch=31 history_match=True dev_f1_macro=0.738272926695 elapsed_s=9.67
+REPLAY epoch=32 history_match=True dev_f1_macro=0.734962352060 elapsed_s=9.69
+REPLAY epoch=33 history_match=True dev_f1_macro=0.738275023886 elapsed_s=9.86
+REPLAY epoch=34 history_match=True dev_f1_macro=0.732951905126 elapsed_s=9.93
+REPLAY epoch=35 history_match=True dev_f1_macro=0.735791374240 elapsed_s=9.97
+REPLAY epoch=36 history_match=True dev_f1_macro=0.742369838570 elapsed_s=9.48
+REPLAY epoch=37 history_match=True dev_f1_macro=0.736874453079 elapsed_s=10.50
+REPLAY epoch=38 history_match=True dev_f1_macro=0.727177641520 elapsed_s=10.39
+REPLAY epoch=39 history_match=True dev_f1_macro=0.740839023645 elapsed_s=9.80
+REPLAY epoch=40 history_match=True dev_f1_macro=0.742507936408 elapsed_s=9.42
+REPLAY epoch=41 history_match=True dev_f1_macro=0.742042030480 elapsed_s=9.75
+REPLAY epoch=42 history_match=True dev_f1_macro=0.740520277365 elapsed_s=10.10
+REPLAY epoch=43 history_match=True dev_f1_macro=0.745955707433 elapsed_s=10.31
+REPLAY epoch=44 history_match=True dev_f1_macro=0.736253142905 elapsed_s=10.52
+REPLAY epoch=45 history_match=True dev_f1_macro=0.742319451123 elapsed_s=8.25
+REPLAY epoch=46 history_match=True dev_f1_macro=0.740529080512 elapsed_s=8.40
+REPLAY epoch=47 history_match=True dev_f1_macro=0.745687004084 elapsed_s=8.45
+REPLAY epoch=48 history_match=True dev_f1_macro=0.742948291814 elapsed_s=8.71
+REPLAY epoch=49 history_match=True dev_f1_macro=0.729160958866 elapsed_s=8.30
+REPLAY epoch=50 history_match=True dev_f1_macro=0.738722244841 elapsed_s=9.71
+REPLAY epoch=51 history_match=True dev_f1_macro=0.740496215387 elapsed_s=9.95
+REPLAY epoch=52 history_match=True dev_f1_macro=0.748977692432 elapsed_s=9.78
+REPLAY epoch=53 history_match=True dev_f1_macro=0.741911729401 elapsed_s=9.40
+REPLAY epoch=54 history_match=True dev_f1_macro=0.743850705248 elapsed_s=9.84
+REPLAY epoch=55 history_match=True dev_f1_macro=0.740839023645 elapsed_s=10.16
+REPLAY epoch=56 history_match=True dev_f1_macro=0.740144094061 elapsed_s=10.18
+REPLAY epoch=57 history_match=True dev_f1_macro=0.734837159824 elapsed_s=9.75
+REPLAY epoch=58 history_match=True dev_f1_macro=0.739141669710 elapsed_s=9.48
+REPLAY epoch=59 history_match=True dev_f1_macro=0.742171652794 elapsed_s=9.34
+REPLAY epoch=60 history_match=True dev_f1_macro=0.743790853081 elapsed_s=9.99
+REPLAY epoch=61 history_match=True dev_f1_macro=0.748232303863 elapsed_s=9.66
+REPLAY epoch=62 history_match=True dev_f1_macro=0.747064055701 elapsed_s=10.30
+REPLAY epoch=63 history_match=True dev_f1_macro=0.732833807651 elapsed_s=9.46
+REPLAY epoch=64 history_match=True dev_f1_macro=0.746080586066 elapsed_s=9.83
+REPLAY epoch=65 history_match=True dev_f1_macro=0.748859296991 elapsed_s=10.17
+REPLAY epoch=66 history_match=True dev_f1_macro=0.745358344575 elapsed_s=10.21
+REPLAY epoch=67 history_match=True dev_f1_macro=0.741571013086 elapsed_s=9.63
+REPLAY epoch=68 history_match=True dev_f1_macro=0.745245396121 elapsed_s=10.00
+REPLAY epoch=69 history_match=True dev_f1_macro=0.746126323523 elapsed_s=9.29
+REPLAY epoch=70 history_match=True dev_f1_macro=0.745808472660 elapsed_s=10.69
+REPLAY epoch=71 history_match=True dev_f1_macro=0.750096558098 elapsed_s=9.85
+REPLAY epoch=72 history_match=True dev_f1_macro=0.749923341032 elapsed_s=10.15
+REPLAY epoch=73 history_match=True dev_f1_macro=0.740222503890 elapsed_s=9.62
+REPLAY epoch=74 history_match=True dev_f1_macro=0.744287904994 elapsed_s=10.51
+REPLAY epoch=75 history_match=True dev_f1_macro=0.747347485364 elapsed_s=9.86
+REPLAY epoch=76 history_match=True dev_f1_macro=0.746478777239 elapsed_s=9.13
+REPLAY epoch=77 history_match=True dev_f1_macro=0.744693159384 elapsed_s=9.58
+REPLAY epoch=78 history_match=True dev_f1_macro=0.743291102812 elapsed_s=10.35
+REPLAY epoch=79 history_match=True dev_f1_macro=0.750105604974 elapsed_s=10.36
+RESULT {"dataset": "census_kdd", "test_scores": {"accuracy": 0.9359445552871994, "balanced_accuracy": 0.7914455634135715, "f1_macro": 0.7544846783000909, "f1_binary": 0.5434131736526946, "pr_auc": 0.5730242510052118, "precision_binary": 0.4795244385733157, "recall_binary": 0.6269430051813472, "roc_auc": 0.9117170434497823}}
