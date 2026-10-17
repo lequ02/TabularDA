@@ -1,0 +1,81 @@
+=====Setting up data=====
+Dataset name:mnist28
+train_option:synthetic
+augment_option:tabddpm_compare_dnn
+mix_ratio:-1
+n_sample:-1
+Training dataset size: 100096 samples
+Validation dataset size: 6144 samples
+
+=====Setting up parameters for training=====
+num_epochs: 100
+learning_rate: 0.001
+patience: 30
+early_stop_criterion: loss
+=====Setting up trainer=====
+input_size: 784
+model: DNN_MNIST28
+----------------------------------------------------------------
+        Layer (type)               Output Shape         Param #
+================================================================
+           Dropout-1                  [-1, 784]               0
+            Linear-2                  [-1, 512]         401,920
+         LeakyReLU-3                  [-1, 512]               0
+       BatchNorm1d-4                  [-1, 512]           1,024
+           Dropout-5                  [-1, 512]               0
+            Linear-6                 [-1, 1024]         525,312
+         LeakyReLU-7                 [-1, 1024]               0
+       BatchNorm1d-8                 [-1, 1024]           2,048
+           Dropout-9                 [-1, 1024]               0
+           Linear-10                  [-1, 256]         262,400
+        LeakyReLU-11                  [-1, 256]               0
+      BatchNorm1d-12                  [-1, 256]             512
+          Dropout-13                  [-1, 256]               0
+           Linear-14                  [-1, 128]          32,896
+        LeakyReLU-15                  [-1, 128]               0
+      BatchNorm1d-16                  [-1, 128]             256
+          Dropout-17                  [-1, 128]               0
+           Linear-18                   [-1, 10]           1,290
+================================================================
+Total params: 1,227,658
+Trainable params: 1,227,658
+Non-trainable params: 0
+----------------------------------------------------------------
+Input size (MB): 0.00
+Forward/backward pass size (MB): 0.06
+Params size (MB): 4.68
+Estimated Total Size (MB): 4.75
+----------------------------------------------------------------
+=====Setting up output files=====
+weight_dir, weight_file: /home/thuy/Research/minh_data_synth/TabularDA/output/comparison_devf1_20261015_v1/jobs/output__tabddpm_500ep_20261010_v1__mnist28__acc__mnist28_seed43_tabddpm_full_dnn_synthetic/recovered/, mnist28_seed43_tabddpm_full_dnn_synthetic.weights.pth
+acc_dir, acc_file: /home/thuy/Research/minh_data_synth/TabularDA/output/comparison_devf1_20261015_v1/jobs/output__tabddpm_500ep_20261010_v1__mnist28__acc__mnist28_seed43_tabddpm_full_dnn_synthetic/recovered/, mnist28_seed43_tabddpm_full_dnn_synthetic.epochs.csv
+report_file: mnist28_seed43_tabddpm_full_dnn_synthetic.report.txt
+BATCH_FETCH exact_original_batch=True rows=128
+BATCH_FETCH exact_original_batch=True rows=128
+REPLAY epoch=1 history_match=True dev_f1_macro=0.061353974638 elapsed_s=11.51
+REPLAY epoch=2 history_match=True dev_f1_macro=0.062530536725 elapsed_s=11.26
+REPLAY epoch=3 history_match=True dev_f1_macro=0.059606093623 elapsed_s=11.91
+REPLAY epoch=4 history_match=True dev_f1_macro=0.060428725441 elapsed_s=11.72
+REPLAY epoch=5 history_match=True dev_f1_macro=0.059624093463 elapsed_s=11.49
+REPLAY epoch=6 history_match=True dev_f1_macro=0.058085037055 elapsed_s=11.82
+REPLAY epoch=7 history_match=True dev_f1_macro=0.063057837917 elapsed_s=12.67
+REPLAY epoch=8 history_match=True dev_f1_macro=0.061308278979 elapsed_s=11.77
+REPLAY epoch=9 history_match=True dev_f1_macro=0.062192236027 elapsed_s=11.71
+REPLAY epoch=10 history_match=True dev_f1_macro=0.062078890597 elapsed_s=11.88
+REPLAY epoch=11 history_match=True dev_f1_macro=0.061215909609 elapsed_s=12.00
+REPLAY epoch=12 history_match=True dev_f1_macro=0.063341213038 elapsed_s=21.36
+REPLAY epoch=13 history_match=True dev_f1_macro=0.062414764857 elapsed_s=11.96
+REPLAY epoch=14 history_match=True dev_f1_macro=0.063190389601 elapsed_s=11.71
+REPLAY epoch=15 history_match=True dev_f1_macro=0.064550985735 elapsed_s=11.95
+REPLAY epoch=16 history_match=True dev_f1_macro=0.069241471653 elapsed_s=11.94
+REPLAY epoch=17 history_match=True dev_f1_macro=0.070936927242 elapsed_s=11.38
+REPLAY epoch=18 history_match=True dev_f1_macro=0.069874418880 elapsed_s=11.45
+REPLAY epoch=19 history_match=True dev_f1_macro=0.068748913913 elapsed_s=12.00
+REPLAY epoch=20 history_match=True dev_f1_macro=0.074360164555 elapsed_s=11.90
+REPLAY epoch=21 history_match=True dev_f1_macro=0.083847083677 elapsed_s=11.83
+REPLAY epoch=22 history_match=True dev_f1_macro=0.083002576770 elapsed_s=11.85
+REPLAY epoch=23 history_match=True dev_f1_macro=0.083671714546 elapsed_s=11.94
+REPLAY epoch=24 history_match=True dev_f1_macro=0.063767321426 elapsed_s=11.68
+REPLAY epoch=25 history_match=True dev_f1_macro=0.086855368826 elapsed_s=11.56
+BATCH_FETCH exact_original_batch=True rows=128
+RESULT {"dataset": "mnist28", "test_scores": {"accuracy": 0.17036361794793883, "balanced_accuracy": 0.16576883127355393, "f1_macro": 0.08784137162675898, "f1_micro": 0.17036361794793883, "f1_weighted": 0.0899201758013403, "precision_macro": 0.074723035355951, "precision_micro": 0.17036361794793883, "precision_weighted": 0.07636382600434342, "recall_macro": 0.16576883127355393, "recall_micro": 0.17036361794793883, "recall_weighted": 0.17036361794793883}}

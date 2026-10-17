@@ -2,6 +2,23 @@
 
 The remote queue is re-evaluating all **602 distinct source runs** in the synthetic and mix comparison figures. Final plots are generated only after all planned evaluations pass. Consult [live receiver status](client_status.json) for the latest copied status; it updates every five minutes while this computer is running.
 
+## Parallel execution update — October 17
+
+At 1:49 p.m. Chicago, with 446 runs complete, dispatch moved to a parallel scheduler. The active Covertype worker continued uninterrupted; only its old dispatcher was stopped to prevent duplicate launches. The new scheduler retires that dispatcher after its existing worker exits. The three unrelated GPU experiments remain untouched.
+
+- Active session: `comparison-devf1-parallel-20261017`.
+- Command: `bash output/comparison_devf1_20261015_v1/launch_parallel.sh`.
+- Queue log: `parallel_queue.log`; sampled resources: `parallel_telemetry.jsonl`; current workers: `active.json`.
+- Three initial workers, growing to at most five if average GPU utilization remains below 95% and resource reservations fit.
+- New workers use normal CPU priority, one Torch/BLAS CPU thread each, and all available CPU cores for scheduling. They retain the original batch size, training computation, seeds, checkpoint rule, and exact history/checkpoint checks.
+- Starts are staggered by ten seconds. Dataset rotation interleaves MNIST12, MNIST28 and Covertype.
+- RAM reservations use measured dataset/mode peak RSS plus 10% and 0.25 GiB. New workers retain a 6 GiB own-RSS guard and require 8 GiB of system RAM headroom; the original adopted worker retains its earlier 10 GiB system guard until it finishes.
+- Each worker retains its 8% GPU allocator cap. Admission reserves 1.1 GiB per worker and at least 3 GiB free GPU memory. These are memory limits, not GPU compute-utilization limits.
+- Failed jobs are surfaced and are not automatically retried. The scheduler stops launching additional jobs on a failure and preserves the other active workers' results.
+- The completed-report builder and automatic local file receiver remain in use. See `parallel_handover.json` for process identities and source hashes.
+
+The subsequent parallel-worker revision removes per-row CPU batch assembly. The DataLoader iterator and its RNG draws are unchanged; sequential tensor slices are made contiguous and the first batch is checked against the original collation. Original per-epoch history and checkpoint-tensor checks remain mandatory. Existing workers finish with their original implementation; upcoming workers use the new fetcher. The first accelerated worker reproduced its historical development metrics, and five concurrent workers reached a sampled 98% GPU utilization with ample RAM/GPU-memory headroom. The fetcher's source is retained locally in `fast_batch_fetch.py` and remotely in the output namespace.
+
 ## Selection
 
 | Dataset | Checkpoint selected by | Test metrics retained in figures |
@@ -34,7 +51,7 @@ Some older synthetic tables have hashes from the October 13 saved-artifact audit
 
 Adult TabDDPM retains its unresolved historical generator-source caveat. MNIST12 TVAE retains its feature-collision caveat. Alternative checkpoint testing does not clear these caveats. Defective configurations excluded from the retained snapshot remain excluded. Paper references and their differing evaluation protocols remain unchanged.
 
-## Execution
+## Original serial execution (superseded by the parallel scheduler above)
 
 - Server: `thuy@10.24.10.133`; repository `/home/thuy/Research/minh_data_synth/TabularDA`.
 - Environment: `/home/thuy/miniconda3/envs/env`; original package versions checked per run.

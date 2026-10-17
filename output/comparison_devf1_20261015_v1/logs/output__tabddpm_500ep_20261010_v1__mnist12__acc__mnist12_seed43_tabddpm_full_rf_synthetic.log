@@ -1,0 +1,84 @@
+=====Setting up data=====
+Dataset name:mnist12
+train_option:synthetic
+augment_option:tabddpm_compare_rf
+mix_ratio:-1
+n_sample:-1
+Training dataset size: 100096 samples
+Validation dataset size: 6144 samples
+
+=====Setting up parameters for training=====
+num_epochs: 100
+learning_rate: 0.001
+patience: 30
+early_stop_criterion: loss
+=====Setting up trainer=====
+input_size: 144
+model: DNN_MNIST12
+----------------------------------------------------------------
+        Layer (type)               Output Shape         Param #
+================================================================
+           Dropout-1                  [-1, 144]               0
+            Linear-2                 [-1, 1024]         148,480
+         LeakyReLU-3                 [-1, 1024]               0
+       BatchNorm1d-4                 [-1, 1024]           2,048
+           Dropout-5                 [-1, 1024]               0
+            Linear-6                 [-1, 1024]       1,049,600
+         LeakyReLU-7                 [-1, 1024]               0
+       BatchNorm1d-8                 [-1, 1024]           2,048
+           Dropout-9                 [-1, 1024]               0
+           Linear-10                  [-1, 256]         262,400
+        LeakyReLU-11                  [-1, 256]               0
+      BatchNorm1d-12                  [-1, 256]             512
+          Dropout-13                  [-1, 256]               0
+           Linear-14                   [-1, 10]           2,570
+================================================================
+Total params: 1,467,658
+Trainable params: 1,467,658
+Non-trainable params: 0
+----------------------------------------------------------------
+Input size (MB): 0.00
+Forward/backward pass size (MB): 0.07
+Params size (MB): 5.60
+Estimated Total Size (MB): 5.67
+----------------------------------------------------------------
+=====Setting up output files=====
+weight_dir, weight_file: /home/thuy/Research/minh_data_synth/TabularDA/output/comparison_devf1_20261015_v1/jobs/output__tabddpm_500ep_20261010_v1__mnist12__acc__mnist12_seed43_tabddpm_full_rf_synthetic/recovered/, mnist12_seed43_tabddpm_full_rf_synthetic.weights.pth
+acc_dir, acc_file: /home/thuy/Research/minh_data_synth/TabularDA/output/comparison_devf1_20261015_v1/jobs/output__tabddpm_500ep_20261010_v1__mnist12__acc__mnist12_seed43_tabddpm_full_rf_synthetic/recovered/, mnist12_seed43_tabddpm_full_rf_synthetic.epochs.csv
+report_file: mnist12_seed43_tabddpm_full_rf_synthetic.report.txt
+BATCH_FETCH exact_original_batch=True rows=128
+BATCH_FETCH exact_original_batch=True rows=128
+REPLAY epoch=1 history_match=True dev_f1_macro=0.494907804243 elapsed_s=8.39
+REPLAY epoch=2 history_match=True dev_f1_macro=0.532461403845 elapsed_s=8.40
+REPLAY epoch=3 history_match=True dev_f1_macro=0.562695358551 elapsed_s=8.63
+REPLAY epoch=4 history_match=True dev_f1_macro=0.557389103525 elapsed_s=9.00
+REPLAY epoch=5 history_match=True dev_f1_macro=0.572822448504 elapsed_s=8.35
+REPLAY epoch=6 history_match=True dev_f1_macro=0.569854368452 elapsed_s=8.31
+REPLAY epoch=7 history_match=True dev_f1_macro=0.569716435827 elapsed_s=8.00
+REPLAY epoch=8 history_match=True dev_f1_macro=0.581366317395 elapsed_s=8.41
+REPLAY epoch=9 history_match=True dev_f1_macro=0.589938928232 elapsed_s=8.39
+REPLAY epoch=10 history_match=True dev_f1_macro=0.585967459281 elapsed_s=8.23
+REPLAY epoch=11 history_match=True dev_f1_macro=0.589888945544 elapsed_s=8.58
+REPLAY epoch=12 history_match=True dev_f1_macro=0.586149418742 elapsed_s=8.53
+REPLAY epoch=13 history_match=True dev_f1_macro=0.584719935044 elapsed_s=8.52
+REPLAY epoch=14 history_match=True dev_f1_macro=0.589067633038 elapsed_s=8.20
+REPLAY epoch=15 history_match=True dev_f1_macro=0.594710575139 elapsed_s=8.58
+REPLAY epoch=16 history_match=True dev_f1_macro=0.591956969153 elapsed_s=8.43
+REPLAY epoch=17 history_match=True dev_f1_macro=0.593466540385 elapsed_s=8.43
+REPLAY epoch=18 history_match=True dev_f1_macro=0.589251907132 elapsed_s=8.28
+REPLAY epoch=19 history_match=True dev_f1_macro=0.596163158710 elapsed_s=8.31
+REPLAY epoch=20 history_match=True dev_f1_macro=0.594415510833 elapsed_s=8.64
+REPLAY epoch=21 history_match=True dev_f1_macro=0.593781126470 elapsed_s=8.74
+REPLAY epoch=22 history_match=True dev_f1_macro=0.590115354565 elapsed_s=8.81
+REPLAY epoch=23 history_match=True dev_f1_macro=0.594888842200 elapsed_s=8.68
+REPLAY epoch=24 history_match=True dev_f1_macro=0.598811989740 elapsed_s=8.40
+REPLAY epoch=25 history_match=True dev_f1_macro=0.596860253072 elapsed_s=8.49
+REPLAY epoch=26 history_match=True dev_f1_macro=0.598669818887 elapsed_s=8.24
+REPLAY epoch=27 history_match=True dev_f1_macro=0.599543469797 elapsed_s=8.89
+REPLAY epoch=28 history_match=True dev_f1_macro=0.591910736282 elapsed_s=8.80
+REPLAY epoch=29 history_match=True dev_f1_macro=0.598809190317 elapsed_s=9.02
+REPLAY epoch=30 history_match=True dev_f1_macro=0.601469396003 elapsed_s=8.53
+REPLAY epoch=31 history_match=True dev_f1_macro=0.600259587467 elapsed_s=8.68
+REPLAY epoch=32 history_match=True dev_f1_macro=0.604500495478 elapsed_s=8.79
+BATCH_FETCH exact_original_batch=True rows=128
+RESULT {"dataset": "mnist12", "test_scores": {"accuracy": 0.6720348424997468, "balanced_accuracy": 0.6730471210576743, "f1_macro": 0.6088560661943371, "f1_micro": 0.6720348424997468, "f1_weighted": 0.6064044668159914, "precision_macro": 0.5732897818320912, "precision_micro": 0.6720348424997468, "precision_weighted": 0.5700475371651456, "recall_macro": 0.6730471210576743, "recall_micro": 0.6720348424997468, "recall_weighted": 0.6720348424997468}}

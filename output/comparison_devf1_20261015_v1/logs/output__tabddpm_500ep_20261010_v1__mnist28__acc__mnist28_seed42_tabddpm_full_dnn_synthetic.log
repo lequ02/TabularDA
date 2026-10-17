@@ -1,0 +1,83 @@
+=====Setting up data=====
+Dataset name:mnist28
+train_option:synthetic
+augment_option:tabddpm_compare_dnn
+mix_ratio:-1
+n_sample:-1
+Training dataset size: 100096 samples
+Validation dataset size: 6144 samples
+
+=====Setting up parameters for training=====
+num_epochs: 100
+learning_rate: 0.001
+patience: 30
+early_stop_criterion: loss
+=====Setting up trainer=====
+input_size: 784
+model: DNN_MNIST28
+----------------------------------------------------------------
+        Layer (type)               Output Shape         Param #
+================================================================
+           Dropout-1                  [-1, 784]               0
+            Linear-2                  [-1, 512]         401,920
+         LeakyReLU-3                  [-1, 512]               0
+       BatchNorm1d-4                  [-1, 512]           1,024
+           Dropout-5                  [-1, 512]               0
+            Linear-6                 [-1, 1024]         525,312
+         LeakyReLU-7                 [-1, 1024]               0
+       BatchNorm1d-8                 [-1, 1024]           2,048
+           Dropout-9                 [-1, 1024]               0
+           Linear-10                  [-1, 256]         262,400
+        LeakyReLU-11                  [-1, 256]               0
+      BatchNorm1d-12                  [-1, 256]             512
+          Dropout-13                  [-1, 256]               0
+           Linear-14                  [-1, 128]          32,896
+        LeakyReLU-15                  [-1, 128]               0
+      BatchNorm1d-16                  [-1, 128]             256
+          Dropout-17                  [-1, 128]               0
+           Linear-18                   [-1, 10]           1,290
+================================================================
+Total params: 1,227,658
+Trainable params: 1,227,658
+Non-trainable params: 0
+----------------------------------------------------------------
+Input size (MB): 0.00
+Forward/backward pass size (MB): 0.06
+Params size (MB): 4.68
+Estimated Total Size (MB): 4.75
+----------------------------------------------------------------
+=====Setting up output files=====
+weight_dir, weight_file: /home/thuy/Research/minh_data_synth/TabularDA/output/comparison_devf1_20261015_v1/jobs/output__tabddpm_500ep_20261010_v1__mnist28__acc__mnist28_seed42_tabddpm_full_dnn_synthetic/recovered/, mnist28_seed42_tabddpm_full_dnn_synthetic.weights.pth
+acc_dir, acc_file: /home/thuy/Research/minh_data_synth/TabularDA/output/comparison_devf1_20261015_v1/jobs/output__tabddpm_500ep_20261010_v1__mnist28__acc__mnist28_seed42_tabddpm_full_dnn_synthetic/recovered/, mnist28_seed42_tabddpm_full_dnn_synthetic.epochs.csv
+report_file: mnist28_seed42_tabddpm_full_dnn_synthetic.report.txt
+BATCH_FETCH exact_original_batch=True rows=128
+BATCH_FETCH exact_original_batch=True rows=128
+REPLAY epoch=1 history_match=True dev_f1_macro=0.016626139818 elapsed_s=11.67
+REPLAY epoch=2 history_match=True dev_f1_macro=0.016626139818 elapsed_s=11.47
+REPLAY epoch=3 history_match=True dev_f1_macro=0.016626139818 elapsed_s=11.94
+REPLAY epoch=4 history_match=True dev_f1_macro=0.016626139818 elapsed_s=11.25
+/home/thuy/miniconda3/envs/env/lib/python3.10/site-packages/sklearn/metrics/_classification.py:2480: UserWarning: y_pred contains classes not in y_true
+  warnings.warn("y_pred contains classes not in y_true")
+REPLAY epoch=5 history_match=True dev_f1_macro=0.016626139818 elapsed_s=11.85
+REPLAY epoch=6 history_match=True dev_f1_macro=0.024524248337 elapsed_s=12.13
+/home/thuy/miniconda3/envs/env/lib/python3.10/site-packages/sklearn/metrics/_classification.py:2480: UserWarning: y_pred contains classes not in y_true
+  warnings.warn("y_pred contains classes not in y_true")
+REPLAY epoch=7 history_match=True dev_f1_macro=0.034849548555 elapsed_s=11.22
+REPLAY epoch=8 history_match=True dev_f1_macro=0.030859576482 elapsed_s=10.62
+REPLAY epoch=9 history_match=True dev_f1_macro=0.036487391392 elapsed_s=11.55
+REPLAY epoch=10 history_match=True dev_f1_macro=0.046297512523 elapsed_s=11.86
+REPLAY epoch=11 history_match=True dev_f1_macro=0.037699942616 elapsed_s=11.14
+REPLAY epoch=12 history_match=True dev_f1_macro=0.041755531305 elapsed_s=11.05
+REPLAY epoch=13 history_match=True dev_f1_macro=0.033913268725 elapsed_s=11.43
+REPLAY epoch=14 history_match=True dev_f1_macro=0.032790193228 elapsed_s=11.32
+REPLAY epoch=15 history_match=True dev_f1_macro=0.043967427548 elapsed_s=11.75
+REPLAY epoch=16 history_match=True dev_f1_macro=0.017898102926 elapsed_s=11.42
+REPLAY epoch=17 history_match=True dev_f1_macro=0.023496385849 elapsed_s=11.70
+REPLAY epoch=18 history_match=True dev_f1_macro=0.031160123994 elapsed_s=11.31
+REPLAY epoch=19 history_match=True dev_f1_macro=0.035444096269 elapsed_s=11.41
+REPLAY epoch=20 history_match=True dev_f1_macro=0.041128759318 elapsed_s=11.33
+REPLAY epoch=21 history_match=True dev_f1_macro=0.032049477494 elapsed_s=11.40
+REPLAY epoch=22 history_match=True dev_f1_macro=0.023178674944 elapsed_s=11.53
+REPLAY epoch=23 history_match=True dev_f1_macro=0.046544675220 elapsed_s=11.40
+BATCH_FETCH exact_original_batch=True rows=128
+RESULT {"dataset": "mnist28", "test_scores": {"accuracy": 0.14483946115668997, "balanced_accuracy": 0.14040557501768944, "f1_macro": 0.048018972742192925, "f1_micro": 0.14483946115668997, "f1_weighted": 0.04953548403881157, "precision_macro": 0.028962177300076795, "precision_micro": 0.14483946115668997, "precision_weighted": 0.0298768605372221, "recall_macro": 0.14040557501768944, "recall_micro": 0.14483946115668997, "recall_weighted": 0.14483946115668997}}

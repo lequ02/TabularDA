@@ -1,6 +1,6 @@
 # Mix training: development F1 / R² checkpoint selection
 
-Status: 446/602 distinct source runs re-evaluated. Pending cells are blank; these tables are provisional.
+Status: 477/602 distinct source runs re-evaluated. Pending cells are blank; these tables are provisional.
 
 Checkpoint rule: highest real-development binary F1 for Adult; highest macro F1 for Census KDD, Covertype, MNIST12 and MNIST28; highest raw-scale development R² for News and Housing. Ties select the earliest epoch. Selection is restricted to each original completed history; training budgets, splits, thresholds, synthetic tables and losses are preserved.
 
@@ -50,18 +50,18 @@ Paper references are unchanged and use different splits and classifier averages.
 |---|---:|---:|
 | Original data only | 51.98% | 53.19% |
 | CTGAN, generated target | 52.96% | 50.14% |
-| CTGAN full features + RF | 57.99% | Pending |
+| CTGAN full features + RF | 57.99% | 55.27% |
 | CTGAN full features + XGB | 66.10% | 58.83% |
 | CTGAN full features + DNN | 78.25% | 75.18% |
 | CTGAN X-only features + RF | 58.85% | 55.21% |
-| CTGAN X-only features + XGB | Pending | 68.46% |
+| CTGAN X-only features + XGB | 56.01% | 68.46% |
 | CTGAN X-only features + DNN | 76.74% | 75.43% |
 | TVAE, generated target | 48.99% | 49.83% |
-| TVAE full features + RF | Pending | 58.71% |
-| TVAE full features + XGB | Pending | 60.23% |
-| TVAE full features + DNN | Pending | Pending |
-| TVAE X-only features + RF | Pending | 57.10% |
-| TVAE X-only features + XGB | Pending | 57.24% |
+| TVAE full features + RF | 61.18% | 58.71% |
+| TVAE full features + XGB | 62.63% | 60.23% |
+| TVAE full features + DNN | 74.98% | 74.53% |
+| TVAE X-only features + RF | 55.50% | 57.10% |
+| TVAE X-only features + XGB | 56.08% | 57.24% |
 | TVAE X-only features + DNN | Pending | Pending |
 | TabDDPM, generated target | 49.03% | 49.14% |
 | TabDDPM full features + RF | 65.47% | Pending |
@@ -94,12 +94,12 @@ Paper references are unchanged and use different splits and classifier averages.
 | TVAE X-only features + XGB | Pending | Pending |
 | TVAE X-only features + DNN | Pending | Pending |
 | TabDDPM, generated target | Pending | Pending |
-| TabDDPM full features + RF | 80.39% | Pending |
+| TabDDPM full features + RF | 80.39% | 79.27% |
 | TabDDPM full features + XGB | Pending | Pending |
-| TabDDPM full features + DNN | Pending | Pending |
+| TabDDPM full features + DNN | 44.70% | 58.52% |
 | TabDDPM X-only features + RF | Pending | 91.48% |
 | TabDDPM X-only features + XGB | Pending | Pending |
-| TabDDPM X-only features + DNN | Pending | Pending |
+| TabDDPM X-only features + DNN | Pending | 74.43% |
 | Paper CTGAN (reference) | 39.4% | 39.4% |
 | Paper TVAE (reference) | 79.3% | 79.3% |
 | Paper Real (reference) | 88.6% | 88.6% |
@@ -126,7 +126,7 @@ Paper references are unchanged and use different splits and classifier averages.
 | TabDDPM, generated target | 89.22% | Pending |
 | TabDDPM full features + RF | 92.10% | 94.16% |
 | TabDDPM full features + XGB | 93.07% | Pending |
-| TabDDPM full features + DNN | Pending | 80.76% |
+| TabDDPM full features + DNN | 11.80% | 80.76% |
 | TabDDPM X-only features + RF | Pending | Pending |
 | TabDDPM X-only features + XGB | Pending | 34.45% |
 | TabDDPM X-only features + DNN | Pending | Pending |

@@ -61,5 +61,86 @@
     "prepare.py": "c23392b28151e388ab40791546b3334fb89d403dc8b49dce7f93670443f997ee",
     "recovery_queue.py": "9e557321e62a1174657a15064921643f45fca2f8f991fd17123df69faef727d4",
     "recover_one.py": "50af6b8eb4707b4521085b3dc09635b17a68a45a5abf0980c2b563e927bd4058"
+  },
+  "parallel_update": {
+    "handover": {
+      "handover_at_chicago": "2026-10-17T13:49:45.131609-05:00",
+      "legacy_controller": {
+        "pid": 2862265,
+        "state": "S",
+        "start_ticks": 1175856473,
+        "command": [
+          "/home/thuy/miniconda3/envs/env/bin/python",
+          "-u",
+          "recovery_queue.py"
+        ],
+        "state_after_handover": "T"
+      },
+      "active_worker": {
+        "pid": 3581067,
+        "state": "R",
+        "start_ticks": 1193013526,
+        "index": 339,
+        "log": "/home/thuy/Research/minh_data_synth/TabularDA/output/comparison_devf1_20261015_v1/logs/output__corrected_v2__covertype__acc__covertype_seed43_ctgan_full_rf_mix.log",
+        "started_at_chicago": "2026-10-17T13:16:09.505722-05:00",
+        "command": [
+          "/home/thuy/miniconda3/envs/env/bin/python",
+          "-u",
+          "/home/thuy/Research/minh_data_synth/TabularDA/output/comparison_devf1_20261015_v1/recover_one.py",
+          "339"
+        ],
+        "state_after_handover": "R"
+      },
+      "completed_before_handover": {
+        "completed": 446,
+        "planned": 602,
+        "updated_at_chicago": "2026-10-17T13:16:08.708155-05:00"
+      },
+      "preserved_source_sha256": {
+        "recover_one.py": "7a9a3d3287581626f94143f080116b637a46ae0039e0441421e3ca0dd08533b6",
+        "recovery_queue.py": "89e1531630f7c37e7babe041ad27e8303d7c76aaba8583dc6f8cdc1a52c30a5d"
+      },
+      "new_source_sha256": {
+        "parallel_queue.py": "f1d1d5d5dbd9fec0ff96b454c7df28b13f67d74d958c6cc6996a0621065bb303",
+        "parallel_config.json": "aa1638b5cd00730613feb17f1d1665c71a26e8cb6a46ae7d0a3f582df9614af0",
+        "recover_one_parallel.py": "e6a4ff8a65aec1531503b2cc38043e6e75d1dd9acf191a19a2489bb72bef159c"
+      },
+      "other_gpu_experiment_pids": [
+        2898355,
+        2969494,
+        2969463
+      ],
+      "policy": "SIGSTOP dispatcher only; current worker continues; new scheduler retires dispatcher after its worker exits"
+    },
+    "configuration": {
+      "initial_workers": 3,
+      "max_workers": 5,
+      "target_gpu_utilization_percent": 95,
+      "ramp_interval_seconds": 60,
+      "startup_spacing_seconds": 10,
+      "poll_seconds": 5,
+      "minimum_available_ram_gib": 8,
+      "minimum_free_gpu_gib": 3,
+      "reserved_gpu_gib_per_worker": 1.1,
+      "ram_peak_multiplier": 1.1,
+      "ram_peak_padding_gib": 0.25,
+      "dataset_rotation": [
+        "mnist12",
+        "mnist28",
+        "covertype"
+      ]
+    },
+    "session": "comparison-devf1-parallel-20261017",
+    "command": "bash output/comparison_devf1_20261015_v1/launch_parallel.sh",
+    "log": "output/comparison_devf1_20261015_v1/parallel_queue.log",
+    "worker_cpu_niceness": 0,
+    "worker_cpu_affinity": "all available CPUs",
+    "worker_cpu_threads": 1,
+    "bulk_fetch_revision": {
+      "worker_sha256": "f2aae54e465b3e3d1d31ad708d1b570cbb00b939246bf083ff3a83558fed744c",
+      "helper_sha256": "e9bd3f35907710cbd8b4ab1de15106811255253d7bc381b7558936eaec770f54",
+      "helper_path": "output/comparison_devf1_20261015_v1/fast_batch_fetch.py",
+      "semantics": "same DataLoader iterator/RNG, same batch size/order/dtype/contiguous layout; first batch checked against original collation; all historical score and checkpoint checks retained"
+    }
   }
 }
