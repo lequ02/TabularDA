@@ -1,6 +1,6 @@
 # Mix training: development F1 / R² checkpoint selection
 
-Status: 477/602 distinct source runs re-evaluated. Pending cells are blank; these tables are provisional.
+Status: 602/602 distinct source runs re-evaluated. Complete.
 
 Checkpoint rule: highest real-development binary F1 for Adult; highest macro F1 for Census KDD, Covertype, MNIST12 and MNIST28; highest raw-scale development R² for News and Housing. Ties select the earliest epoch. Selection is restricted to each original completed history; training budgets, splits, thresholds, synthetic tables and losses are preserved.
 
@@ -62,11 +62,11 @@ Paper references are unchanged and use different splits and classifier averages.
 | TVAE full features + DNN | 74.98% | 74.53% |
 | TVAE X-only features + RF | 55.50% | 57.10% |
 | TVAE X-only features + XGB | 56.08% | 57.24% |
-| TVAE X-only features + DNN | Pending | Pending |
+| TVAE X-only features + DNN | 73.88% | 75.18% |
 | TabDDPM, generated target | 49.03% | 49.14% |
-| TabDDPM full features + RF | 65.47% | Pending |
-| TabDDPM full features + XGB | 66.27% | Pending |
-| TabDDPM full features + DNN | Pending | 77.21% |
+| TabDDPM full features + RF | 65.47% | 67.59% |
+| TabDDPM full features + XGB | 66.27% | 67.88% |
+| TabDDPM full features + DNN | 75.81% | 77.21% |
 | TabDDPM X-only features + RF | 62.70% | 66.63% |
 | TabDDPM X-only features + XGB | 68.21% | 68.05% |
 | TabDDPM X-only features + DNN | 78.06% | 76.82% |
@@ -78,28 +78,28 @@ Paper references are unchanged and use different splits and classifier averages.
 
 | Configuration | Seed 42 | Seed 43 |
 |---|---:|---:|
-| Original data only | Pending | Pending |
-| CTGAN, generated target | Pending | Pending |
+| Original data only | 95.65% | 95.48% |
+| CTGAN, generated target | 65.65% | 78.13% |
 | CTGAN full features + RF | 92.89% | 93.00% |
-| CTGAN full features + XGB | Pending | Pending |
-| CTGAN full features + DNN | Pending | Pending |
-| CTGAN X-only features + RF | Pending | 92.95% |
-| CTGAN X-only features + XGB | Pending | Pending |
-| CTGAN X-only features + DNN | Pending | Pending |
-| TVAE, generated target | Pending | Pending |
-| TVAE full features + RF | Pending | Pending |
-| TVAE full features + XGB | Pending | Pending |
-| TVAE full features + DNN | Pending | Pending |
-| TVAE X-only features + RF | 94.11% | Pending |
-| TVAE X-only features + XGB | Pending | Pending |
-| TVAE X-only features + DNN | Pending | Pending |
-| TabDDPM, generated target | Pending | Pending |
+| CTGAN full features + XGB | 94.00% | 94.14% |
+| CTGAN full features + DNN | 93.83% | 94.20% |
+| CTGAN X-only features + RF | 92.72% | 92.95% |
+| CTGAN X-only features + XGB | 93.73% | 94.15% |
+| CTGAN X-only features + DNN | 94.19% | 93.88% |
+| TVAE, generated target | 94.39% | 94.41% |
+| TVAE full features + RF | 93.93% | 93.89% |
+| TVAE full features + XGB | 94.98% | 94.89% |
+| TVAE full features + DNN | 94.69% | 94.80% |
+| TVAE X-only features + RF | 94.11% | 93.78% |
+| TVAE X-only features + XGB | 94.85% | 94.92% |
+| TVAE X-only features + DNN | 94.71% | 94.72% |
+| TabDDPM, generated target | 88.35% | 89.32% |
 | TabDDPM full features + RF | 80.39% | 79.27% |
-| TabDDPM full features + XGB | Pending | Pending |
+| TabDDPM full features + XGB | 92.20% | 89.91% |
 | TabDDPM full features + DNN | 44.70% | 58.52% |
-| TabDDPM X-only features + RF | Pending | 91.48% |
-| TabDDPM X-only features + XGB | Pending | Pending |
-| TabDDPM X-only features + DNN | Pending | 74.43% |
+| TabDDPM X-only features + RF | 91.54% | 91.48% |
+| TabDDPM X-only features + XGB | 92.03% | 93.37% |
+| TabDDPM X-only features + DNN | 57.16% | 74.43% |
 | Paper CTGAN (reference) | 39.4% | 39.4% |
 | Paper TVAE (reference) | 79.3% | 79.3% |
 | Paper Real (reference) | 88.6% | 88.6% |
@@ -108,28 +108,28 @@ Paper references are unchanged and use different splits and classifier averages.
 
 | Configuration | Seed 42 | Seed 43 |
 |---|---:|---:|
-| Original data only | Pending | Pending |
+| Original data only | 97.86% | 97.97% |
 | CTGAN, generated target | 90.60% | 94.95% |
-| CTGAN full features + RF | Pending | Pending |
-| CTGAN full features + XGB | Pending | 96.83% |
-| CTGAN full features + DNN | Pending | Pending |
-| CTGAN X-only features + RF | 96.27% | Pending |
-| CTGAN X-only features + XGB | Pending | Pending |
-| CTGAN X-only features + DNN | Pending | Pending |
-| TVAE, generated target | Pending | Pending |
-| TVAE full features + RF | Pending | Pending |
-| TVAE full features + XGB | Pending | 96.78% |
-| TVAE full features + DNN | Pending | Pending |
-| TVAE X-only features + RF | Pending | Pending |
-| TVAE X-only features + XGB | Pending | Pending |
-| TVAE X-only features + DNN | Pending | Pending |
-| TabDDPM, generated target | 89.22% | Pending |
+| CTGAN full features + RF | 95.54% | 95.85% |
+| CTGAN full features + XGB | 96.42% | 96.83% |
+| CTGAN full features + DNN | 95.81% | 96.86% |
+| CTGAN X-only features + RF | 96.27% | 95.28% |
+| CTGAN X-only features + XGB | 96.42% | 96.05% |
+| CTGAN X-only features + DNN | 96.54% | 96.29% |
+| TVAE, generated target | 96.36% | 96.37% |
+| TVAE full features + RF | 96.03% | 95.89% |
+| TVAE full features + XGB | 96.97% | 96.78% |
+| TVAE full features + DNN | 96.70% | 96.69% |
+| TVAE X-only features + RF | 96.01% | 96.04% |
+| TVAE X-only features + XGB | 96.90% | 96.85% |
+| TVAE X-only features + DNN | 96.79% | 96.76% |
+| TabDDPM, generated target | 89.22% | 88.25% |
 | TabDDPM full features + RF | 92.10% | 94.16% |
-| TabDDPM full features + XGB | 93.07% | Pending |
+| TabDDPM full features + XGB | 93.07% | 92.97% |
 | TabDDPM full features + DNN | 11.80% | 80.76% |
-| TabDDPM X-only features + RF | Pending | Pending |
-| TabDDPM X-only features + XGB | Pending | 34.45% |
-| TabDDPM X-only features + DNN | Pending | Pending |
+| TabDDPM X-only features + RF | 94.55% | 92.13% |
+| TabDDPM X-only features + XGB | 93.85% | 34.45% |
+| TabDDPM X-only features + DNN | 69.90% | 28.00% |
 | Paper CTGAN (reference) | 37.1% | 37.1% |
 | Paper TVAE (reference) | 79.4% | 79.4% |
 | Paper Real (reference) | 91.6% | 91.6% |
