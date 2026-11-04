@@ -1,0 +1,79 @@
+{
+  "checked_date": "2026-10-13",
+  "checked_time_chicago_approx": "7:39 p.m.",
+  "datasets": [
+    "adult",
+    "census_kdd",
+    "credit",
+    "covertype",
+    "mnist12",
+    "mnist28",
+    "news",
+    "california_housing"
+  ],
+  "seeds": [42, 43],
+  "generators": ["ctgan", "tvae", "tabddpm"],
+  "training_modes": ["synthetic", "mix"],
+  "expected_downstream_records": 1168,
+  "verified_records": 1070,
+  "absent_records": 98,
+  "invalid_present_records": 0,
+  "by_group": {
+    "real_only": {"verified": 16, "planned": 16, "absent": 0},
+    "ctgan": {"verified": 364, "planned": 384, "absent": 20},
+    "tvae": {"verified": 358, "planned": 384, "absent": 26},
+    "tabddpm": {"verified": 332, "planned": 384, "absent": 52}
+  },
+  "by_generator_dataset": {
+    "ctgan": {
+      "adult": [52, 52],
+      "census_kdd": [40, 52],
+      "credit": [52, 52],
+      "covertype": [52, 52],
+      "mnist12": [52, 52],
+      "mnist28": [52, 52],
+      "news": [36, 36],
+      "california_housing": [28, 36]
+    },
+    "tvae": {
+      "adult": [52, 52],
+      "census_kdd": [34, 52],
+      "credit": [52, 52],
+      "covertype": [52, 52],
+      "mnist12": [52, 52],
+      "mnist28": [52, 52],
+      "news": [36, 36],
+      "california_housing": [28, 36]
+    },
+    "tabddpm": {
+      "adult": [52, 52],
+      "census_kdd": [52, 52],
+      "credit": [0, 52],
+      "covertype": [52, 52],
+      "mnist12": [52, 52],
+      "mnist28": [52, 52],
+      "news": [36, 36],
+      "california_housing": [36, 36]
+    }
+  },
+  "missing_groups": {
+    "ctgan/census_kdd": 12,
+    "ctgan/california_housing": 8,
+    "tvae/census_kdd": 18,
+    "tvae/california_housing": 8,
+    "tabddpm/credit": 52
+  },
+  "completion_check": {
+    "record_identity_fields": ["dataset", "seed", "train_option", "augment_option"],
+    "requires_selected_dev_epoch": true,
+    "requires_referenced_artifacts_present": true,
+    "all_present_records_passed": true,
+    "artifact_hashes_checked_for_every_record": false,
+    "run_state_for_absent_records_determined": false
+  },
+  "report_subset": {
+    "selected_tabddpm_records": "112/112",
+    "broader_matrix_complete": false
+  },
+  "jobs_launched_restarted_or_interrupted": false
+}

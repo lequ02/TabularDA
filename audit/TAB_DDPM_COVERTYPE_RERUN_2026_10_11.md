@@ -87,6 +87,13 @@ updates** with finite loss 0.536899; seed 43 reached baseline epoch 6/100.
 All four experiment workers remained live and main remote source remained
 unchanged. GPU memory was 1,073 MiB used, with 10,092 MiB free.
 
+Update at **5:20 p.m. Chicago**: after the original workers stopped, the
+same numerical fix was deployed to the main remote files following
+[the Census KDD diagnosis](TAB_DDPM_CENSUS_KDD_DIAGNOSIS_2026_10_11.md).
+The two Covertype jobs continue using their unchanged frozen snapshot.
+The status helper checks that snapshot's hashes independently of the main
+source, which now also has the corrected `ab84b26b...` source hash.
+
 ## Following the queues
 
 Worker logs:

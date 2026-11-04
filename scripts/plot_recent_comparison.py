@@ -142,8 +142,18 @@ METRIC_COLORS = {
 def run_path(info, suffix):
     dataset = info["dataset"]
     seed = info.get("seed", 42)
-    scope = TABDDPM_SCOPE if suffix.startswith("tabddpm_") else info["scope"]
+    tabddpm = suffix.startswith("tabddpm_")
+    scope = TABDDPM_SCOPE if tabddpm else info["scope"]
     suffix = "real_original" if suffix == "tabddpm_real_original" else suffix
+    if tabddpm:
+        evidence = json.loads((ROOT / "audit/comparison_tabddpm_snapshot.json").read_text())
+        expected_name = f"{dataset}_seed{seed}_{suffix}.run.json"
+        candidates = [item for item in evidence["selected_records"]
+                      if item["dataset"] == dataset and int(item["seed"]) == seed
+                      and Path(item["path"]).name == expected_name]
+        assert len(candidates) <= 1, (dataset, seed, expected_name)
+        if candidates:
+            return ROOT / candidates[0]["path"]
     return (ROOT / "output" / scope / dataset / "acc"
             / f"{dataset}_seed{seed}_{suffix}.run.json")
 
@@ -161,10 +171,13 @@ def read_run(info, suffix):
             record["selection_metric"]) == (dataset, seed, expected_mode, info.get("selection_metric", "loss"))
     if tabddpm:
         evidence = json.loads((ROOT / "audit/comparison_tabddpm_snapshot.json").read_text())
-        sources = {item["path"]: item["sha256"] for item in evidence["selected_records"]}
-        assert evidence["namespace"] == TABDDPM_SCOPE
-        assert record["source_sha256"] == evidence["source_sha256"]
-        assert hashlib.sha256(path.read_bytes()).hexdigest() == sources[path.relative_to(ROOT).as_posix()]
+        relative = path.relative_to(ROOT).as_posix()
+        sources = {item["path"]: item for item in evidence["selected_records"]}
+        assert relative in sources
+        item = sources[relative]
+        assert record["source_sha256"] == item["source_sha256"]
+        assert record["source_sha256"] in evidence["verified_source_hashes"]
+        assert hashlib.sha256(path.read_bytes()).hexdigest() == item["sha256"]
     if dataset in {"mnist12", "mnist28"} and not tabddpm:
         evidence = json.loads((ROOT / "audit/comparison_rerun_verification_latest.json").read_text())
         assert info["scope"] == MNIST_SCOPE
@@ -349,9 +362,39 @@ def main(train_option="synthetic"):
                            and path.startswith(f"output/{MNIST_SCOPE}/")})
     mnist_verification = json.loads((ROOT / "audit/comparison_rerun_verification_latest.json").read_text())["mnist"]
     tabddpm_snapshot = json.loads((ROOT / "audit/comparison_tabddpm_snapshot.json").read_text())
+    tabddpm_source_paths = {item["path"] for item in tabddpm_snapshot["selected_records"]}
     tabddpm_completed = len({path for paths in record_paths.values() for path in paths.values()
-                             if path.startswith(f"output/{TABDDPM_SCOPE}/")})
+                             if path in tabddpm_source_paths})
     tabddpm_checked_at = datetime.fromisoformat(tabddpm_snapshot["checked_at_chicago"])
+    recovery = tabddpm_snapshot["covertype_recovery"]
+    census_recovery = tabddpm_snapshot["census_recovery"]
+    census_selected = [item for item in tabddpm_snapshot["selected_records"]
+                       if item["dataset"] == "census_kdd"
+                       and item["mode"] in {train_option, "original"}]
+    census_coverage = {
+        seed: sum(str(item["seed"]) == seed for item in census_selected)
+        for seed in ("42", "43")
+    }
+    covertype_selected = [item for item in tabddpm_snapshot["selected_records"]
+                          if item["dataset"] == "covertype"
+                          and item["mode"] in {train_option, "original"}]
+    covertype_coverage = {
+        seed: sum(str(item["seed"]) == seed for item in covertype_selected)
+        for seed in ("42", "43")
+    }
+    covertype_progress = "; ".join(
+        f"seed {seed}: {progress['latest_step']:,}/{progress['planned_steps']:,} updates"
+        for seed, progress in sorted(recovery["generator_progress"].items()))
+    covertype_generators_complete = (
+        len(recovery["generator_progress"]) == 2
+        and all(progress["latest_step"] == progress["planned_steps"]
+                for progress in recovery["generator_progress"].values()))
+    covertype_active_workers = recovery.get("active_worker_seeds", [])
+    census_generators_complete = (
+        len(census_recovery.get("generator_progress", {})) == 2
+        and all(progress["latest_step"] == progress["planned_steps"]
+                for progress in census_recovery["generator_progress"].values()))
+    census_processes_active = bool(census_recovery["active_processes"])
     checked_at = datetime.fromisoformat(snapshot["checked_at"]).astimezone(ZoneInfo("America/Chicago"))
     table_lines = [
         "# Mix pipeline comparison" if train_option == "mix" else "# Synthetic-data pipeline comparison",
@@ -359,7 +402,8 @@ def main(train_option="synthetic"):
         f"Verified CTGAN/TVAE source snapshot: {checked_at.strftime('%B %d, %Y, %I:%M %p')} Chicago; "
         f"TabDDPM snapshot: {tabddpm_checked_at.strftime('%B %d, %Y, %I:%M %p')} Chicago. "
         f"This report contains {completed} distinct completed run records from the selected configurations; "
-        "selected report coverage does not establish completion of the original 816-run matrix.",
+        "selected report coverage does not establish completion of the current 1,168-run downstream matrix; "
+        "see the [full-matrix status](../../audit/FULL_MATRIX_STATUS_2026_10_13.md) for verified coverage.",
         "",
         "Classification scores are percentages; News and Housing display paired, unscaled R² / D² absolute-error scores. "
         "Both are higher-is-better, have a maximum of 1, and can be negative. NMAEσ remains in the CSV. "
@@ -383,10 +427,27 @@ def main(train_option="synthetic"):
         + ("All planned MNIST fits are complete." if mnist_verification["verified_completed"] == mnist_verification["planned_total"]
            else "Remaining full-matrix configurations are pending."),
         f"TabDDPM snapshot: {tabddpm_checked_at.strftime('%B %d, %Y, %I:%M %p')} Chicago. "
-        f"This report includes {tabddpm_completed}/112 selected TabDDPM records from `{TABDDPM_SCOPE}`; "
-        f"the full TabDDPM matrix has {tabddpm_snapshot['verified_completed']}/346 verified completed records. "
-        "Unfinished cells remain blank. Covertype seed 42 generation failed; Census KDD has not started at this snapshot. "
-        "NB/PCA-GMM are excluded from the tables. Fresh real-only baselines appear separately as "
+        f"This report includes {tabddpm_completed}/112 selected TabDDPM records; "
+        f"the original `{TABDDPM_SCOPE}` matrix has {tabddpm_snapshot['verified_completed']}/346 verified completed records. "
+        "Unfinished cells remain blank. In the original namespace, Covertype seed 42 generation failed and Census KDD seed 42 failed at update 13; Census KDD seed 43 had not started. "
+        f"The separate corrected Covertype rerun `{recovery['namespace']}` had {recovery['verified_completed']}/54 verified records and selected coverage of {covertype_coverage['42']}/8 for seed 42 and {covertype_coverage['43']}/8 for seed 43 in this report. "
+        + (f"Both 500-epoch generator fits completed ({covertype_progress}). "
+           if covertype_generators_complete else f"Generator progress was {covertype_progress}. ")
+        + (f"Downstream workers remained active for seeds {', '.join(covertype_active_workers)} at the snapshot; unfinished configurations remain blank. "
+           if covertype_active_workers else "No corrected Covertype downstream worker was active at the snapshot. ")
+        + f"The separate corrected Census KDD rerun `{census_recovery['namespace']}` had {census_recovery['verified_completed']}/54 verified records, "
+        f"including {census_recovery['new_records']} new records and one reused seed-42 real-only baseline. "
+        f"Selected Census coverage is {census_coverage['42']}/8 for seed 42 and {census_coverage['43']}/8 for seed 43; "
+        + ("both 500-epoch generator fits completed and all 54 downstream records were verified. "
+           if census_generators_complete and census_recovery["verified_completed"] == census_recovery["planned_total"]
+           else "Census KDD generation or downstream evaluation remained incomplete at the snapshot. ")
+        + ("A Census KDD worker process was active at the snapshot. " if census_processes_active else "No Census KDD worker process was active at the snapshot. ")
+        + (f"Adult TabDDPM generated-target and relabeled arms come from the posterior-fix rerun `{tabddpm_snapshot['adult_recovery']['namespace']}` "
+           f"({tabddpm_snapshot['adult_recovery']['verified_completed']}/54 verified records, reusing both real-only baselines; verified "
+           f"{datetime.fromisoformat(tabddpm_snapshot['adult_recovery']['checked_at_chicago']).strftime('%B %d, %Y, %I:%M %p')} Chicago); "
+           f"the held pre-fix Adult records in `{TABDDPM_SCOPE}` remain only in earlier reports. "
+           if "adult_recovery" in tabddpm_snapshot else "")
+        + "NB/PCA-GMM are excluded from the tables. Fresh real-only baselines appear separately as "
         "'Real-only (TabDDPM run)' and do not replace earlier baselines. "
         "TabDDPM uses 500 complete epochs, batch 500, 1,000 diffusion timesteps and 100,000 rows per source. "
         "These are unconditional joint/X-only constructions, not a reproduction of native target-conditional TabDDPM. "

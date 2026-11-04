@@ -1,0 +1,40 @@
+\begin{table*}[p]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+\textbf{Method} & \multicolumn{2}{c}{\textbf{Adult}} & \multicolumn{2}{c}{\textbf{Census KDD}} & \multicolumn{1}{c}{\textbf{Covertype}} & \multicolumn{1}{c}{\textbf{MNIST12}} & \multicolumn{1}{c}{\textbf{MNIST28}} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-6}\cmidrule(lr){7-7}\cmidrule(lr){8-8}
+ & Bin.\ F1 & Mac.\ F1 & Bin.\ F1 & Mac.\ F1 & Mac.\ F1 & Acc. & Acc. \\
+\midrule
+Real only & 67.88 & 79.25 & \underline{55.21} & 75.63 & 52.58 & \textbf{95.57} & \textbf{97.92} \\
+\midrule
+CTGAN, generated $Y$ & 63.40 & 76.51 & 47.42 & 71.05 & 46.48 & 54.00 & 57.54 \\
+CTGAN joint + RF & 66.15 & 78.38 & 50.91 & 73.76 & 61.81 & 90.06 & 87.56 \\
+CTGAN joint + XGB & 66.69 & 78.63 & 54.69 & 75.69 & 64.68 & 91.39 & 88.61 \\
+CTGAN joint + DNN & \textbf{69.34} & 79.39 & 54.08 & 75.47 & 72.80 & 91.93 & 92.02 \\
+CTGAN X-only + RF & 66.66 & 78.68 & 52.75 & 74.66 & 62.25 & 88.85 & 88.08 \\
+CTGAN X-only + XGB & 67.38 & 78.95 & 54.24 & 75.45 & 65.07 & 90.42 & 88.91 \\
+CTGAN X-only + DNN & 69.26 & \textbf{79.50} & 54.40 & 75.74 & 71.26 & 90.93 & 92.24 \\
+\addlinespace
+TVAE, generated $Y$ & 61.36 & 75.26 & 47.00 & 71.21 & 47.27 & 92.97 & 94.19 \\
+TVAE joint + RF & 66.14 & 78.29 & 49.64 & 72.90 & 58.09 & 93.06 & 94.76 \\
+TVAE joint + XGB & 67.61 & 78.97 & 52.04 & 74.33 & 58.76 & \underline{94.20} & 96.00 \\
+TVAE joint + DNN & 69.10 & \underline{79.40} & 53.04 & 74.94 & 68.50 & 93.95 & 95.96 \\
+TVAE X-only + RF & 67.20 & 78.90 & 48.53 & 72.21 & 55.43 & 92.81 & 94.87 \\
+TVAE X-only + XGB & 67.81 & 79.18 & 49.92 & 73.13 & 55.31 & 94.11 & \underline{96.05} \\
+TVAE X-only + DNN & \underline{69.31} & 79.33 & 52.85 & 74.79 & 67.18 & 93.73 & 96.00 \\
+\addlinespace
+TabDDPM, generated $Y$ & 66.22$^{\dagger}$ & 78.49$^{\dagger}$ & 46.81 & 70.95 & 52.33 & 73.30 & 43.16 \\
+TabDDPM joint + RF & 67.32$^{\dagger}$ & 79.06$^{\dagger}$ & 50.93 & 74.01 & 67.77 & 66.65 & 57.97 \\
+TabDDPM joint + XGB & 68.32$^{\dagger}$ & 79.56$^{\dagger}$ & 53.82 & 75.56 & 68.10 & 54.04 & 49.96 \\
+TabDDPM joint + DNN & 69.19$^{\dagger}$ & 79.31$^{\dagger}$ & 53.76 & 75.53 & \underline{75.68} & 22.00 & 15.76 \\
+TabDDPM X-only + RF & 66.56$^{\dagger}$ & 78.62$^{\dagger}$ & 52.92 & 74.92 & 65.88 & 75.03 & 36.29 \\
+TabDDPM X-only + XGB & 67.57$^{\dagger}$ & 79.10$^{\dagger}$ & \textbf{55.62} & \textbf{76.36} & 68.92 & 66.21 & 30.64 \\
+TabDDPM X-only + DNN & 69.12$^{\dagger}$ & 79.36$^{\dagger}$ & 54.48 & \underline{75.86} & \textbf{75.88} & 32.28 & 16.49 \\
+\bottomrule
+\end{tabular}
+\caption{Classification, synthetic-only training (validation-best checkpoints; \%). Test means over seeds 42/43; higher is better. Joint: features from the full-table generator with $Y$ replaced by the named labeler; X-only: a separate features-only generator followed by the labeler. Bold/underline: best/second-best distinct displayed value, including real only. $\dagger$: Adult TabDDPM has an unresolved historical generator-source caveat and is excluded from ranking. MNIST12 TVAE retains a documented exact held-out feature-collision caveat; MNIST12 TabDDPM shows a diagnosed generated-input shift that is retained as a result.}
+\label{tab:valbest-synthetic}
+\end{table*}

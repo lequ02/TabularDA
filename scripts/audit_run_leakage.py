@@ -9,6 +9,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from src.commons.log_target import log_target
+
 
 def emit(kind, **values):
     print(json.dumps(dict(kind=kind, **values), default=str), flush=True)
@@ -32,27 +34,34 @@ def fingerprints(path, target, numeric):
     before = path.stat()
     features, full = [], []
     rows = 0
-    for frame in pd.read_csv(path, chunksize=4096, dtype='float64' if numeric else str,
-                             keep_default_na=False):
+    header = pd.read_csv(path, nrows=0).columns
+    dtype = {c: 'float64' if numeric and c != target else str for c in header}
+    for frame in pd.read_csv(path, chunksize=4096, dtype=dtype, keep_default_na=False):
         columns = sorted(c for c in frame if c != target)
+        if numeric:
+            # Numeric targets compare as numbers; text labels (Intrusion) compare as text.
+            values = pd.to_numeric(frame[target], errors='coerce')
+            if values.notna().all():
+                frame[target] = values
         features.append(pd.util.hash_pandas_object(frame[columns], index=False).to_numpy())
         full.append(pd.util.hash_pandas_object(frame[columns + [target]], index=False).to_numpy())
         rows += len(frame)
     after = path.stat()
     if (before.st_size, before.st_mtime_ns) != (after.st_size, after.st_mtime_ns):
         raise ValueError('File changed during audit: ' + str(path))
-    return np.concatenate(features), np.concatenate(full), rows
+    return np.concatenate(features), np.concatenate(full), rows, columns
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('root', type=Path)
     parser.add_argument('--data', action='store_true')
+    parser.add_argument('--scopes', nargs='+', default=['corrected_v2', 'pilot_ctgan_v1'])
     args = parser.parse_args()
     root = args.root.resolve()
     groups = defaultdict(list)
     failures = []
-    for scope in ('corrected_v2', 'pilot_ctgan_v1'):
+    for scope in args.scopes:
         for path in sorted((root / 'output' / scope).rglob('*.run.json')):
             record = json.loads(path.read_text())
             groups[(scope, record['dataset'], record['seed'])].append((path, record))
@@ -78,7 +87,7 @@ def main():
             source_versions[r.get('source_sha256', 'missing')] += 1
             if r['split_manifest']['files'] != first['files'] or r['split_manifest']['splits'] != ids:
                 issues.append(path.name + ': inconsistent split manifest')
-            if r.get('selection_metric') != 'loss' or r.get('selected_dev_epoch') is None:
+            if r.get('selection_metric') not in ('loss', 'f1_macro') or r.get('selected_dev_epoch') is None:
                 issues.append(path.name + ': missing dev checkpoint selection')
             if r.get('synthetic_path'):
                 synthetic[r['synthetic_path']] = r
@@ -86,10 +95,8 @@ def main():
                 train = first['files']['train']['raw']
                 if p.get('training_rows') != train['rows'] or p.get('seed') != seed:
                     issues.append(path.name + ': generator fit identity mismatch')
-                if p.get('training_columns') == train['columns']:
-                    if p.get('fit_table_sha256') != train['sha256']:
-                        issues.append(path.name + ': full generator fit hash mismatch')
-                elif p.get('training_columns') != train['columns'][:-1]:
+                # Fit hashes are reproduced from the training split's serialization in --data mode.
+                if p.get('training_columns') not in (train['columns'], train['columns'][:-1]):
                     issues.append(path.name + ': unexpected generator fit columns')
             prediction_path = mapped(root, r['predictions_path'])
             if prediction_path.exists():
@@ -141,7 +148,10 @@ def main():
                 if not p or p['fit_table_sha256'] in checked_fit:
                     continue
                 checked_fit.add(p['fit_table_sha256'])
-                digest = hashlib.sha256(train_frame[p['training_columns']].to_csv(
+                fit_frame = train_frame[p['training_columns']].copy()
+                if p.get('target_transform') == 'log' and target in fit_frame:
+                    fit_frame[target] = log_target(fit_frame[target])
+                digest = hashlib.sha256(fit_frame.to_csv(
                     index=False, lineterminator='\n').encode()).hexdigest()
                 valid = digest == p['fit_table_sha256']
                 emit('generator_fit', scope=scope, dataset=dataset, seed=seed,
@@ -160,6 +170,10 @@ def main():
                 if (split, 'onehot') not in arrays:
                     continue
                 reference = arrays[(split, 'onehot')]
+                if syn[3] != reference[3]:
+                    # Differing columns would make every hash differ and hide overlap.
+                    failures.append(str(path) + f': feature columns differ from real {split}')
+                    continue
                 overlaps[split] = dict(
                     synthetic_feature_rows=int(np.isin(syn[0], reference[0]).sum()),
                     holdout_feature_rows=int(np.isin(reference[0], syn[0]).sum()),

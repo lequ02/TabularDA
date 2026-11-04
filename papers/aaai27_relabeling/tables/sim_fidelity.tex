@@ -1,0 +1,52 @@
+\begin{table*}[p]
+\centering
+\small
+\setlength{\tabcolsep}{7pt}
+\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+\textbf{Method} & \textbf{Gaussian} & \textbf{Grid} & \textbf{Ring} & \textbf{Asia} & \textbf{Alarm} & \textbf{Child} & \textbf{Insurance} \\
+\midrule
+\multicolumn{8}{@{}l}{\textbf{(a) $L_{\rm syn}$: mean $\log p$ of the training rows under the true distribution}} \\
+\addlinespace[2pt]
+Real only & -3.69 & -1.55 & -3.00 & -2.24 & -10.24 & -12.06 & -12.91 \\
+\midrule
+CTGAN, generated $Y$ & -4.56 & -2.53 & -4.60 & -3.72 & -15.61 & -13.89 & -16.83 \\
+CTGAN joint + RF & -4.01 & -2.12 & -4.05 & -3.52 & -15.10 & -13.46 & -16.69 \\
+CTGAN joint + XGB & -3.99 & -2.10 & -4.03 & -3.52 & -15.07 & -13.44 & -16.68 \\
+CTGAN joint + DNN & -3.98 & -2.09 & -4.01 & -3.52 & -15.08 & -13.45 & -16.69 \\
+CTGAN X-only + RF & -4.03 & -2.03 & -4.09 & -3.46 & -15.24 & -13.27 & -16.84 \\
+CTGAN X-only + XGB & -4.01 & -2.01 & -4.07 & -3.45 & -15.22 & -13.24 & -16.84 \\
+CTGAN X-only + DNN & -4.00 & -2.00 & -4.04 & -3.46 & -15.23 & -13.25 & -16.84 \\
+\addlinespace
+TVAE, generated $Y$ & -3.60 & -1.31 & -3.17 & -2.29 & -11.22 & -12.43 & -14.06 \\
+TVAE joint + RF & -3.36 & -1.19 & -2.90 & -2.02 & -10.95 & -12.13 & -13.97 \\
+TVAE joint + XGB & -3.35 & -1.16 & -2.88 & -2.02 & -10.91 & -12.10 & -13.97 \\
+TVAE joint + DNN & -3.34 & -1.16 & -2.87 & -2.02 & -10.92 & -12.11 & -13.98 \\
+TVAE X-only + RF & -3.05 & -1.58 & -2.88 & -1.99 & -11.01 & -12.37 & -14.03 \\
+TVAE X-only + XGB & -3.04 & -1.55 & -2.86 & -1.99 & -10.97 & -12.33 & -14.03 \\
+TVAE X-only + DNN & -3.02 & -1.54 & -2.86 & -1.99 & -10.98 & -12.34 & -14.04 \\
+\midrule
+\multicolumn{8}{@{}l}{\textbf{(b) $L_{\rm test}$: mean $\log q$ of real test rows, $q$ refitted to the training table}} \\
+\addlinespace[2pt]
+Real only & -3.68 & -1.55 & -3.00 & -2.22 & -10.31 & -12.04 & -12.90 \\
+\midrule
+CTGAN, generated $Y$ & -4.07 & -1.97 & -3.65 & -2.45 & -12.95 & -12.78 & -14.88 \\
+CTGAN joint + RF & -3.94 & -1.99 & -3.56 & -3.23 & -12.73 & -12.69 & -14.77 \\
+CTGAN joint + XGB & -3.98 & -2.05 & -3.59 & -3.29 & -12.82 & -12.71 & -14.77 \\
+CTGAN joint + DNN & -4.02 & -2.20 & -3.66 & -2.96 & -12.70 & -12.70 & -14.77 \\
+CTGAN X-only + RF & -3.95 & -1.95 & -3.54 & -3.23 & -12.69 & -12.66 & -14.86 \\
+CTGAN X-only + XGB & -3.97 & -2.00 & -3.56 & -3.26 & -12.78 & -12.69 & -14.86 \\
+CTGAN X-only + DNN & -3.99 & -2.10 & -3.62 & -2.96 & -12.66 & -12.67 & -14.87 \\
+\addlinespace
+TVAE, generated $Y$ & -3.76 & -1.60 & -3.08 & -2.24 & -10.78 & -12.24 & -13.55 \\
+TVAE joint + RF & -3.84 & -1.70 & -3.17 & -3.09 & -10.87 & -12.20 & -13.54 \\
+TVAE joint + XGB & -3.89 & -1.92 & -3.25 & -3.10 & -11.09 & -12.23 & -13.54 \\
+TVAE joint + DNN & -3.91 & -1.99 & -3.31 & -3.04 & -10.98 & -12.22 & -13.53 \\
+TVAE X-only + RF & -4.21 & -3.67 & -3.22 & -3.09 & -10.82 & -12.23 & -13.41 \\
+TVAE X-only + XGB & -4.25 & -3.85 & -3.31 & -3.10 & -11.07 & -12.26 & -13.41 \\
+TVAE X-only + DNN & -4.29 & -4.15 & -3.37 & -2.98 & -10.92 & -12.25 & -13.40 \\
+\bottomrule
+\end{tabular}
+\caption{Simulated data: fidelity of each training table to the true joint distribution $p$ of $(X, C, Y)$ or of all network nodes. Both are mean log densities, but they answer different questions. $L_{\rm syn}$ asks whether the synthetic rows are plausible under $p$ and rewards rows concentrated in high-density regions even if modes are missed, so values above real only signal concentration rather than better fidelity. $L_{\rm test}$ fits a fixed density family to the table and asks whether it explains real test rows, so it penalizes missing modes and missing target noise. Real only gives the reference value for each task. Means over seeds 42/43; each task has its own log-density scale, so values are not comparable across tasks. Bayesian-network scores use $\log(p+10^{-8})$ on the full joint probability.}
+\label{tab:sim-fidelity}
+\end{table*}

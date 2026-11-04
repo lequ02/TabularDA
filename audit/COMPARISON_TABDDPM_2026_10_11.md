@@ -1,5 +1,30 @@
 # TabDDPM comparison tables
 
+## Latest follow-up refresh — October 11, 2026, 5:50 p.m. Chicago
+
+The report snapshot now includes the latest verified completed records from the original TabDDPM namespace and the completed real-only baseline from the corrected Covertype rerun. The snapshot was checked remotely at 5:50 p.m. Chicago; report validation completed at 6:03 p.m., followed by a live state check at 6:04 p.m.
+
+| Dataset/seed | Selected records per report | Planned |
+|---|---:|---:|
+| Adult 42 / 43 | 8 / 8 | 8 each |
+| Housing 42 / 43 | 8 / 8 | 8 each |
+| Covertype 42 / 43 | 1 / 1 | 8 each |
+| MNIST12 42 / 43 | 8 / 8 | 8 each |
+| MNIST28 42 / 43 | 8 / 8 | 8 each |
+| News 42 / 43 | 8 / 8 | 8 each |
+| Census KDD 42 / 43 | 1 / 0 | 8 each |
+| **Total per report** | **83** | **112** |
+
+The Covertype and Census KDD entries shown above are real-only baselines. MNIST12 seed 43 and the previously pending selected News seed-43 DNN arms are now complete. The original namespace has **240/346** verified run records. Its Covertype seed-42 generator failed at step 70,869 and Census KDD seed 42 failed at step 13; Census KDD seed 43 had not started. These are historical failures in the original namespace.
+
+The separate corrected Covertype namespace, `tabddpm_covertype_500ep_fix_20261011_v1`, had two verified baseline records: seed 42 reuses the previously verified baseline and seed 43 has a fresh baseline. Both full-table and X-only generator fits were still active at the 5:50 p.m. snapshot, at **178,100/514,000** and **149,900/514,000** updates. The live 6:04 p.m. check found both still active at **185,900/514,000** and **157,800/514,000**. No corrected-run generated tables or downstream records had completed, so those report cells remain blank.
+
+Each refreshed report contains **293 distinct completed records**, with **164 TabDDPM metric cells**. The refresh populated fourteen new metric cells, twelve record links, and one D² metadata link per CSV. All previously populated metric cells, source cells, and paper-reference cells remain unchanged. Each CSV retains 49 columns and 26 data rows. The verification checked **714 prior source hashes** and **1,805 artifact hashes**; all 60 distinct selected regression D² sidecars were checked, supplying 32 D² cells per report. Both report figures were visually reviewed. No jobs were launched, restarted, or interrupted.
+
+Latest evidence: [source snapshot](comparison_tabddpm_snapshot.json) and [report validation with artifact hashes](comparison_tabddpm_refresh_2026_10_11_latest.json). The pre-refresh report files and builder are preserved at `.cache/remote_intrusion/comparison_before_latest_20261011_1739/`.
+
+## Earlier snapshot — October 11, 2026, 11:03 a.m. Chicago
+
 Verified snapshot: **October 11, 2026, 11:03:37 a.m. Chicago**. Existing CTGAN/TVAE reports retain their October 10 source records, all of which were checked unchanged on the server during this update.
 
 Both reports add seven TabDDPM construction rows: generated targets, full-table RF/XGB/DNN relabeling, and X-only RF/XGB/DNN labeling. Fresh real-only baselines appear in a separate `Real-only (TabDDPM run)` row, retaining their own provenance. The earlier baseline and every earlier CSV cell are unchanged. TabDDPM records use `tabddpm_500ep_20261010_v1`; CTGAN/TVAE namespaces are preserved. NB/PCA-GMM remain outside these tables.

@@ -1,0 +1,54 @@
+\begin{table*}[p]
+\centering
+\small
+\setlength{\tabcolsep}{7pt}
+\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+\textbf{Method} & \textbf{Gaussian} & \textbf{Grid} & \textbf{Ring} & \textbf{Asia} & \textbf{Alarm} & \textbf{Child} & \textbf{Insurance} \\
+\midrule
+\multicolumn{8}{@{}l}{\textbf{(a) Test accuracy (\%)}} \\
+\addlinespace[2pt]
+Bayes accuracy & 90.00 & 90.00 & 90.00 & 85.32 & 82.13 & 89.09 & 95.46 \\
+\midrule
+Real only & \underline{89.42} & \underline{90.09} & \textbf{89.75} & 85.76 & 80.91 & 87.48 & 94.67 \\
+\midrule
+CTGAN, generated $Y$ & 77.72 & 83.53 & 85.98 & 85.67 & 55.31 & 79.74 & 88.93 \\
+CTGAN joint + RF & \underline{89.42} & 90.01 & 89.54 & 85.67 & 80.55 & \textbf{87.98} & 94.99 \\
+CTGAN joint + XGB & 89.40 & 89.85 & 89.64 & \textbf{85.78} & \textbf{81.63} & 87.88 & \textbf{95.06} \\
+CTGAN joint + DNN & 89.33 & 89.95 & 89.66 & 85.76 & 80.78 & 87.66 & 94.83 \\
+CTGAN X-only + RF & 89.31 & \textbf{90.11} & 89.59 & 85.67 & 80.88 & 87.64 & 94.97 \\
+CTGAN X-only + XGB & 89.31 & 90.03 & 89.55 & \textbf{85.78} & 81.53 & 87.88 & \underline{95.03} \\
+CTGAN X-only + DNN & 89.39 & 89.62 & \underline{89.72} & 85.76 & 80.75 & 87.89 & 95.01 \\
+\addlinespace
+TVAE, generated $Y$ & 86.39 & 89.01 & 89.00 & 85.30 & 77.03 & 85.10 & 91.68 \\
+TVAE joint + RF & \textbf{89.52} & 89.84 & 89.55 & 85.71 & 79.88 & 87.59 & 94.30 \\
+TVAE joint + XGB & 89.10 & 89.96 & 89.69 & \underline{85.77} & \underline{81.62} & 87.77 & 94.08 \\
+TVAE joint + DNN & 89.30 & 89.62 & 89.68 & 85.56 & 80.82 & 87.78 & 94.05 \\
+TVAE X-only + RF & 89.06 & 87.95 & 89.68 & 85.71 & 79.99 & 87.54 & 94.49 \\
+TVAE X-only + XGB & 88.78 & 87.94 & 89.66 & \underline{85.77} & 81.53 & \underline{87.94} & 94.74 \\
+TVAE X-only + DNN & 88.93 & 87.89 & 89.66 & 85.75 & 80.81 & 87.66 & 94.40 \\
+\midrule
+\multicolumn{8}{@{}l}{\textbf{(b) Agreement with the Bayes rule $h^*$ (\%)}} \\
+\addlinespace[2pt]
+Real only & 99.28 & \underline{99.71} & \textbf{99.56} & \underline{99.98} & 95.24 & 95.41 & 97.25 \\
+\midrule
+CTGAN, generated $Y$ & 84.63 & 91.76 & 94.82 & 99.71 & 59.19 & 84.59 & 91.66 \\
+CTGAN joint + RF & 99.29 & 99.58 & 99.30 & 99.88 & 94.71 & 96.05 & \underline{98.12} \\
+CTGAN joint + XGB & \underline{99.30} & 99.39 & 99.44 & \textbf{100.00} & \textbf{97.40} & \underline{96.17} & 97.85 \\
+CTGAN joint + DNN & 99.21 & 99.50 & 99.47 & \underline{99.98} & 94.94 & 95.80 & 97.78 \\
+CTGAN X-only + RF & 99.21 & \textbf{99.77} & 99.39 & 99.89 & 94.62 & 95.87 & \textbf{98.14} \\
+CTGAN X-only + XGB & 99.22 & \underline{99.71} & 99.32 & \textbf{100.00} & 97.02 & 96.09 & 97.95 \\
+CTGAN X-only + DNN & 99.25 & 99.19 & \underline{99.53} & \underline{99.98} & 94.97 & 95.94 & 97.78 \\
+\addlinespace
+TVAE, generated $Y$ & 95.60 & 98.33 & 98.62 & 99.30 & 87.76 & 91.40 & 93.73 \\
+TVAE joint + RF & \textbf{99.39} & 99.43 & 99.33 & 99.91 & 93.57 & 95.75 & 97.31 \\
+TVAE joint + XGB & 98.91 & 99.58 & 99.51 & \textbf{100.00} & \underline{97.20} & 96.14 & 96.99 \\
+TVAE joint + DNN & 99.13 & 99.13 & 99.48 & 99.72 & 95.09 & 95.59 & 96.81 \\
+TVAE X-only + RF & 98.95 & 97.07 & 99.47 & 99.90 & 93.34 & 95.88 & 97.65 \\
+TVAE X-only + XGB & 98.61 & 97.08 & 99.45 & \textbf{100.00} & 97.09 & \textbf{96.61} & 97.84 \\
+TVAE X-only + DNN & 98.75 & 97.00 & 99.44 & \underline{99.98} & 95.72 & 95.93 & 97.36 \\
+\bottomrule
+\end{tabular}
+\caption{Simulated data, synthetic-only training: prediction. Each training table (10,000 rows) trains a fresh downstream DNN that is scored on the same independent 10,000-row original test set; means over seeds 42/43. (a) Accuracy against the observed test targets; the Bayes accuracy is 90\% for the three mixed datasets and the mean maximum oracle posterior for the Bayesian networks. (b) Fraction of test rows on which the DNN predicts the Bayes decision $h^*(x)$. Construction names follow Table~\ref{tab:valbest-synthetic}. Bold/underline: best/second-best displayed value, including real only.}
+\label{tab:sim-prediction}
+\end{table*}

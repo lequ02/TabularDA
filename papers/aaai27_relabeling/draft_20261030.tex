@@ -1,0 +1,501 @@
+% Full prose draft, October 30, 2026 (Chicago).
+% Real-data results: validation-best checkpoints, comparisons/scores_valbest.csv
+% (602 evaluations, completed October 18, 2026); inference: October 19 ANOVA.
+% Exhibits: python papers/aaai27_relabeling/build_valbest_exhibits.py
+\documentclass[letterpaper]{article}
+\usepackage[submission]{aaai2027}
+\usepackage[hyphens]{url}
+\usepackage{graphicx}
+\urlstyle{rm}
+\def\UrlFont{\rm}
+\usepackage{natbib}
+\usepackage{caption}
+\frenchspacing
+\usepackage{booktabs}
+\pdfinfo{/TemplateVersion (2027.1)}
+\setcounter{secnumdepth}{2}
+\title{Target Assignment in Synthetic Tabular Data}
+\author{Anonymous Authors}
+\affiliations{}
+\begin{document}
+\maketitle
+\begin{abstract}
+A synthetic training table needs both features and targets. Deep tabular
+generators usually produce them together, but the target can instead be
+assigned by a predictor trained on the real training data. We study this
+choice as an experimental variable. For CTGAN, TVAE, and TabDDPM, we compare
+three constructions: retaining generated targets, replacing the targets of
+the same generated features with predictions from a real-data labeler, and
+fitting a separate features-only generator before assigning predicted
+targets. Across five classification and two regression tasks, two seeds,
+synthetic-only and real-plus-synthetic training, and RF, XGBoost, and neural
+labelers, predicted targets raise mean macro F1 by 7.4 percentage points in
+synthetic-only training and 4.7 points in mixed training. The gains are
+large for CTGAN, moderate for TVAE, and absent for TabDDPM, and neither
+pooled effect survives multiplicity correction across five tasks. Whether
+the generator sees the target before relabeling makes little measurable
+difference. Seven simulated datasets with known distributions show
+that relabeling consistently improves accuracy and agreement with the Bayes
+rule, yet can worsen a density-refit measure of joint-distribution
+fidelity. Target assignment should therefore be reported as a separate
+design decision, and its predictive benefits should not be read as better
+distributional fidelity.
+\end{abstract}
+
+\section{Introduction}
+Synthetic tabular data are often judged by their \emph{utility}: a model
+trained on synthetic rows is evaluated on held-out real rows. Most
+generators used in this setting, including CTGAN and
+TVAE~\citep{xu2019ctgan} and diffusion models such as
+TabDDPM~\citep{kotelnikov2023tabddpm}, model the features $X$ and the target
+$Y$ jointly. When downstream utility is the goal, however, the target column
+plays a special role: it is the quantity the downstream model must learn,
+and errors in the generated conditional $P(Y\mid X)$ translate directly into
+label noise.
+
+An alternative is to let the generator supply only the features and to
+assign targets with a predictor $h$ trained on the real training set. This
+resembles pseudo-labeling and knowledge distillation~\citep{hinton2015distilling},
+and it is easy to implement. It raises two questions that are usually
+confounded. First, given a fixed set of generated features, do predicted
+targets produce a more useful training table than generated targets?
+Second, once targets are predicted, does it matter whether the generator
+modeled $Y$ when it learned the features? A further question is whether any
+predictive gain reflects a better approximation of the original joint
+distribution, or something different.
+
+We answer these questions empirically. Our contributions are
+(i)~a fixed-feature comparison that keeps each joint generator's feature
+rows unchanged and replaces only the target column, isolating the effect of
+target assignment, for three generator families and three labelers;
+(ii)~a comparison of joint and features-only generation after relabeling,
+which tests whether including $Y$ in generator fitting helps when the
+generated $Y$ is discarded; and (iii)~a simulated benchmark with known distributions that separates agreement with the Bayes
+decision rule from fidelity to the original joint distribution.
+On real data, predicted targets improve the average downstream score, but
+the effect is heterogeneous across tasks and generators and is not
+statistically established at the planned familywise level with five tasks.
+Joint and features-only generation are not distinguishable. On simulated
+data with known distributions, relabeling improves prediction on every task while the
+density-refit score worsens on four of seven.
+
+\section{Related Work}
+% DRAFT: expand after a full literature review; verify novelty claims.
+\paragraph{Tabular generators.} GAN-~\citep{goodfellow2014gan},
+VAE-~\citep{kingma2014vae}, and diffusion-based~\citep{ho2020ddpm} models
+have been adapted to mixed-type tables. CTGAN and TVAE introduce
+mode-specific normalization and conditional sampling~\citep{xu2019ctgan};
+TabDDPM combines Gaussian and multinomial diffusion~\citep{kotelnikov2023tabddpm}.
+These models treat the target as one more column, although TabDDPM's
+original classification protocol conditions on it.
+
+\paragraph{Evaluating synthetic data.} Machine-learning utility, training on
+synthetic and testing on real data, is a standard evaluation for synthetic
+tables~\citep{xu2019ctgan}. \citet{manousakas2023usefulness} examine
+when synthetic tabular data are useful for downstream learning, including
+augmentation of real data; our mixed-training regime follows this
+augmentation view.
+% DRAFT: verify the characterization of Manousakas and Aydore.
+
+\paragraph{Predicted targets.} Assigning labels with a model trained on
+real data is related to distillation~\citep{hinton2015distilling}, where a
+student learns from a teacher's outputs. In our setting the teacher is
+trained only on the real training partition and labels generated
+features. We use hard predictions and point predictions rather than
+soft targets, so the relabeled table does not reproduce stochastic target
+noise.
+
+\section{Target Assignment in Synthetic Tables}
+Let $D=\{(x_i,y_i)\}$ be the real training partition. We compare three
+constructions (Figure~\ref{fig:constructions}). A joint generator $G_{XY}$
+is fitted to $D$ and produces $(\widetilde X,\widetilde Y)$; the
+\emph{generated-target} baseline retains both. \emph{Joint relabeling}
+retains exactly the same $\widetilde X$ and replaces $\widetilde Y$ with
+$h(\widetilde X)$, where $h$ is trained on $D$. \emph{Features-only (X-only)
+relabeling} fits a separate generator $G_X$ to the features alone, samples
+$\widetilde X'$, and assigns $h(\widetilde X')$ with the same labeler.
+
+The first contrast, relabeled minus generated, isolates target assignment:
+for the joint construction, the features are identical, so any difference
+is caused by the targets alone. The second contrast, joint minus X-only,
+holds the labeler fixed and changes only whether the feature generator
+modeled $Y$.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/constructions.pdf}
+\caption{The three synthetic-table constructions. Shaded constructions use
+targets predicted by a labeler $h$ trained on real training data.}
+\label{fig:constructions}
+\end{figure}
+
+\subsection{Learning the Target Predictor}
+We use three labelers: a random forest (RF)~\citep{breiman2001rf},
+gradient-boosted trees (XGB)~\citep{chen2016xgboost}, and a feed-forward
+neural network (DNN). Each is fitted to the real training partition only.
+For classification, $h$ outputs a hard class decision; for regression, it
+outputs a point prediction. Labelers are not selected on test performance;
+all three are reported.
+
+\subsection{Synthetic-only and Mixed Training}
+Each synthetic table is evaluated in two regimes. \emph{Synthetic-only}
+training uses the synthetic rows alone. \emph{Mixed} training concatenates
+all real training rows with all 100,000 synthetic rows; it is not a fixed
+50/50 mixture. A real-only model trained on the real training partition is
+the reference for both regimes.
+
+\section{Experimental Setup}
+\subsection{Real-data Benchmark}
+The benchmark contains five classification tasks (Adult, Census KDD,
+Covertype, MNIST12, and MNIST28) and two regression tasks (News and
+California Housing), each with experiment seeds 42 and 43. Rows are
+partitioned before any fitted preprocessing. Identical feature rows are kept
+in the same partition, the split random state is shared across experiment
+seeds, and a rare-class rule can move a feature group into training, so
+realized partition sizes vary slightly by task. Encodings, scaling,
+generators, and labelers are fitted on training data only.
+
+CTGAN, TVAE, and TabDDPM are trained for 500 epochs with batch size 500, and
+each generator samples 100,000 rows. TabDDPM is run as an unconditional
+joint or features-only model under the same protocol; this is not a
+replication of its original conditional classification benchmark.
+Downstream utility is measured with dataset-specific neural networks
+trained with batch size 128, learning rate $10^{-3}$, at most 100 epochs,
+and patience 30. Scaling and encodings are fitted on real training
+features even for synthetic-only training.
+
+\paragraph{Checkpoint selection.} Each downstream model's checkpoint is the
+earliest epoch with the best real-development score within its completed
+training history: binary F1 for Adult, macro F1 for the other
+classification tasks, and $R^2$ for regression. We report these
+validation-best checkpoints because development loss can disagree sharply
+with the reported F1 on imbalanced tasks. Regression checkpoints are the
+same under both rules. Section~\ref{sec:sensitivity} repeats the analysis
+with loss-selected checkpoints.
+
+In total, each task contributes $2$ seeds $\times\,(1 + 2\times 21)$
+evaluations: one real-only model and 21 synthetic constructions
+($3$ generators $\times\,[1 + 2\times 3]$) in each training regime, or
+602 evaluations overall.
+
+\subsection{Construction of the Simulated Datasets}
+The simulated benchmark separates prediction from recovery of
+the original joint distribution. Each dataset has independent training
+and test draws of 10,000 rows, and each synthetic table has 10,000 rows.
+Experiment seeds are 42 and 43. CTGAN and TVAE use 300 epochs and batch
+size 500. The seven datasets comprise three mixed continuous/categorical
+distributions and four categorical Bayesian networks.
+
+\subsubsection{Gaussian, Grid, and Ring}
+Each row contains two continuous features $X=(X_0,X_1)$, a binary feature
+$C$, and a binary target $Y$. The three datasets differ only in the
+distribution of $X$, and each coordinate of $X$ has mean zero and unit
+variance. Gaussian draws $X\sim\mathcal N(0,I_2)$. Grid and Ring draw a mode
+center $M$, add isotropic noise, and rescale:
+\begin{equation}
+ X=\frac{M+\tau Z}{\sqrt{v+\tau^2}},\qquad Z\sim\mathcal N(0,I_2),\quad \tau=0.2.
+\end{equation}
+For Grid, each coordinate of $M$ is uniform on $\{-4,-2,0,2,4\}$, giving 25
+equally likely modes and $v=8$. For Ring,
+$M=(\cos(\pi K/4),\sin(\pi K/4))$ with $K$ uniform on
+$\{0,\dots,7\}$, giving eight modes on a circle and $v=1/2$; its two
+coordinates are dependent. Here $v$ is the variance of one coordinate of
+$M$, so the scaling is the known population standard deviation.
+
+$C$ and $Y$ follow the same rule in all three datasets. Writing
+$S=2C-1\in\{-1,+1\}$ and $\sigma$ for the logistic function,
+\begin{equation}
+ P(S=s\mid X)=\sigma(2sX_0X_1),
+\end{equation}
+\begin{equation}
+ h^*(X,S)=\mathbf 1\{X_1+(1+3S/4)\,X_0>0\},
+\end{equation}
+\begin{equation}
+ P\big(Y=h^*(X,S)\mid X,S\big)=0.9 .
+\end{equation}
+Thus $S$ is a noisy indicator of whether $X_0$ and $X_1$ share a sign, and
+the Bayes decision boundary is a line through the origin whose slope,
+$-1/4$ or $-7/4$, is selected by $S$ (Figure~\ref{fig:simulated-construction}).
+The observed target flips $h^*$ independently with probability $0.1$, so
+the Bayes accuracy is $0.9$, and for any classifier $h$,
+$P(h\neq Y)=0.1+0.8\,P(h\neq h^*)$. Agreement with $h^*$ therefore measures
+how well a classifier learned the decision rule, without the irreducible
+label noise. Every feature affects the target, and $C$ is independent of each
+coordinate of $X$ alone.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/simulated_construction.pdf}
+\caption{Gaussian, Grid, and Ring, conditioned on the binary feature $C$.
+Points are original-process rows; circles denote $Y=0$ and triangles
+denote $Y=1$. Dashed lines show the Bayes decision boundary. Each dataset
+is illustrated with 2,000 saved rows (seed 7), independent of the
+benchmark's 10,000-row draws with seeds 42 and 43.}
+\label{fig:simulated-construction}
+\end{figure*}
+
+\subsubsection{Categorical Bayesian Networks}
+Asia, Alarm, Child, and Insurance use the packaged graphs and their
+original conditional probability tables. We sample ancestrally from each
+network, designate one node as the target (Table~\ref{tab:simulated-schema}),
+and observe every other node as a feature. State codes are categorical,
+not ordinal. No additional label noise is introduced. Figure~\ref{fig:asia}
+shows Asia as an example. Oracle posteriors are computed by enumerating
+the target states with the other nodes observed. Bayes accuracy is
+estimated by averaging the maximum posterior over independent test features.
+\input{tables/simulated_schema.tex}
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/asia_graph.pdf}
+\caption{The Asia network. The boxed node, \texttt{dysp}, is the target;
+all other nodes are observed features. Arrows and conditional probability
+tables define the original joint distribution used to sample rows.}
+\label{fig:asia}
+\end{figure}
+
+\subsection{Evaluation Metrics}
+Real-data classification tables report binary and macro F1 for Adult and
+Census KDD, macro F1 for Covertype, and accuracy for MNIST12 and MNIST28.
+Statistical contrasts use macro F1 for every classification task.
+Regression tables report $R^2$ and $D^2$ absolute error, where $D^2$ is one
+minus the test MAE divided by the MAE of the constant test-median
+predictor. Both are unscaled, and higher is better.
+
+\paragraph{Simulated-data protocol and metrics.} The simulated benchmark has
+one training regime: each training table (the 10,000 original training
+rows for \emph{real only}, or 10,000 generated or relabeled rows) is used
+alone. A fresh DNN with two 64-unit hidden layers is trained on it and
+evaluated on the same independent 10,000-row original test set. This is the
+analogue of synthetic-only training on real data; there is no mixed regime.
+The main tables use RF, XGB, and DNN labelers, as for real data. For each
+training table $T$ we report four scores. The first two measure prediction; higher is
+better.
+\emph{Accuracy} is measured against the observed test targets.
+\emph{$h^*$ agreement} is the fraction of test rows on which the downstream
+DNN predicts the Bayes decision $h^*(x)$; it removes the irreducible label
+noise from the comparison. The two remaining scores measure fidelity to
+the true joint density $p$ of all columns, from opposite directions:
+\begin{equation}
+ L_{\rm syn}=\frac1{|T|}\sum_{z\in T}\log p(z),
+\end{equation}
+\begin{equation}
+ L_{\rm test}=\frac1{|D_{\rm test}|}\sum_{z\in D_{\rm test}}\log\hat q_T(z).
+\end{equation}
+$L_{\rm syn}$ scores the \emph{synthetic} rows under the \emph{true}
+density: it asks whether they are plausible, and, like precision, it can
+be raised by concentrating rows in high-density regions while missing
+others. $L_{\rm test}$ fits a density $\hat q_T$ from a fixed family to the
+training table and scores \emph{real} test rows under it: like recall, it
+penalizes modes and variation that $T$ lacks. It is a refit proxy, not a
+generator likelihood. The fixed families mirror each true model: Gaussian or
+Gaussian-mixture features, a logistic model for $C$, a flip-rate model for
+$Y$, and, for the networks, the true graph with conditional probability
+tables re-estimated under a Dirichlet$(1/2)$ prior. Network scores use
+$\log(p+10^{-8})$ on the full joint probability, because some rows have
+probability zero.
+
+\paragraph{Statistical analysis.} The independent unit is a dataset. For
+each classification task we average over seeds (which share held-out
+partitions), labelers, and generators with equal weight, then fit a
+two-level repeated-measures ANOVA, $\mathrm{score}\sim\mathrm{dataset}+
+\mathrm{condition}$, giving $F(1,4)$. The relabeled arm averages joint and
+X-only relabeling; generated-target baselines enter once. Holm correction
+covers the four primary tests (two contrasts $\times$ two regimes), and a
+separate Holm family covers the twelve generator-specific tests. With two
+regression tasks, regression tests have $F(1,1)$ and are treated as
+descriptive.
+
+\section{Results on Real Data}
+\input{tables/valbest_synthetic.tex}
+\input{tables/valbest_mix.tex}
+\input{tables/valbest_regression.tex}
+\input{tables/valbest_anova.tex}
+\input{tables/valbest_sensitivity.tex}
+Tables~\ref{tab:valbest-synthetic}--\ref{tab:valbest-regression} report every
+construction, and Figure~\ref{fig:effects} summarizes the relabeling effect
+by task and generator.
+
+\subsection{Does Replacing the Targets Help?}
+Averaged over generators and labelers, predicted targets improve
+synthetic-only macro F1 on all five classification tasks: by 2.3 points on
+Adult, 3.7 on Census KDD, 17.0 on Covertype, 5.4 on MNIST12, and 8.4 on
+MNIST28. The pooled gain is 7.36 points (95\% CI $[0.1, 14.7]$, $p=0.049$),
+which does not survive Holm correction ($p_{\rm Holm}=0.196$;
+Table~\ref{tab:anova}). In mixed training, the pooled gain is 4.73 points
+($p=0.233$); four tasks improve and MNIST28 declines by 4.3 points.
+
+The effect depends strongly on the generator. CTGAN benefits most: its
+generated targets are poor on MNIST12 and MNIST28 (54.0\% and 57.5\%
+synthetic-only accuracy), and relabeling raises them to roughly 88--92\%.
+Its generator-specific gain is 20.6 points in synthetic-only training and
+10.1 in mixed training ($p=0.060$ and $0.064$, unadjusted). TVAE's
+generated targets are already more consistent with its features, and its
+gains are smaller (4.3 and 3.8 points). TabDDPM shows no average benefit
+($-2.8$ and $+0.2$ points). Its Covertype and Census KDD results improve
+with relabeling, but on MNIST12 and MNIST28 most relabeled tables, and
+all DNN-labeled tables, are much worse than its generated-target baseline
+(e.g., 22.0\% versus 73.3\% synthetic-only accuracy for joint DNN
+relabeling on MNIST12). A diagnostic check found that TabDDPM's generated
+pixel distribution differs from the real one while retaining transferable
+digit structure: a model trained on its generated targets reaches 73\% real
+test accuracy, but real-trained labelers disagree with 78--88\% of the
+generated targets and assign many rows to a single digit. Relabeling
+thereby overwrites a useful generated association. A labeler trained on
+real data is only as reliable as the overlap between generated and real
+features.
+
+Covertype stands out. Several relabeled constructions exceed the real-only
+reference by more than 20 macro-F1 points, in both regimes. The
+real-only downstream network reaches 52.6\% macro F1, and the relabeled
+DNN tables reach 67--78\%. We read this as evidence that, on this task,
+training the downstream network on a large table labeled by a strong
+labeler acts as distillation of that labeler, rather than as evidence that
+the synthetic features are better than the real ones.
+% TODO: report the labelers' own test macro F1 on Covertype to support this.
+
+For regression (Table~\ref{tab:valbest-regression}), relabeling improves Housing substantially: generated-target
+$R^2$ ranges from 0.631 (CTGAN) to 0.791 (TabDDPM), and relabeled
+constructions reach 0.75--0.82, all above the real-only reference of 0.512.
+News has essentially no predictable signal under this protocol: every
+construction, including real-only training, has $R^2$ near zero, and
+relabeling does not change that conclusion. With only two regression tasks,
+the $F(1,1)$ tests are uninformative (synthetic-only $\Delta R^2=0.055$,
+$p=0.32$).
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/valbest_effects.pdf}
+\caption{Relabeled minus generated, by task and generator, averaged over
+seeds, RF/XGB/DNN labelers, and both feature sources. Classification uses
+macro F1 (percentage points); regression uses $R^2\times100$. The Adult
+TabDDPM bar carries the generator-source caveat of
+Table~\ref{tab:valbest-synthetic}.}
+\label{fig:effects}
+\end{figure*}
+
+\subsection{Does the Generator Need to Model the Target?}
+Joint and features-only relabeling perform similarly. The pooled
+joint-minus-X-only difference is $+0.46$ macro-F1 points in synthetic-only
+training (95\% CI $[-3.0, 3.9]$) and $+0.15$ in mixed training
+($[-2.6, 2.9]$). Task-level differences change sign: joint generation is
+better on MNIST28 ($+4.6$) and Covertype ($+1.0$) and worse on MNIST12
+($-3.1$), with Adult and Census KDD within 0.2 points. Housing and News
+show differences below 0.002 in $R^2$. The intervals are wide, so these
+results do not establish equivalence; they indicate that any benefit of
+modeling $Y$ during feature generation is small compared with the effect of
+the target assignment itself.
+
+
+\subsection{Sensitivity}
+\label{sec:sensitivity}
+Table~\ref{tab:sensitivity} repeats the primary contrasts with
+loss-selected checkpoints and after excluding the two caveated tasks
+(Adult, because of the TabDDPM caveat, and MNIST12, because of TVAE feature
+collisions). The relabeling gain is stable in sign and size, between 7.4
+and 10.2 points in synthetic-only training and between 4.5 and 5.9 in
+mixed training. The joint-minus-X-only estimate changes sign between
+checkpoint rules and remains small. No contrast passes Holm correction in
+any cohort.
+
+\section{Results on Simulated Data}
+\input{tables/sim_prediction.tex}
+\input{tables/sim_fidelity.tex}
+Tables~\ref{tab:sim-prediction} and~\ref{tab:sim-fidelity} use the same
+layout as the real-data tables. All entries use synthetic-only training
+and a downstream DNN; only the construction of the training table changes.
+
+\subsection{Predictive Utility and Bayes Agreement}
+Generated targets are the weak point of both generators. CTGAN's generated
+tables reach only 55.3\% accuracy on Alarm and 77.7\% on Gaussian, against
+real-only values of 80.9\% and 89.4\%. TVAE's generated targets are better
+but still trail real only on every task. Replacing the targets
+closes nearly all of this gap. With either joint or X-only features and
+any of the three labelers, accuracy is within about one point of real-only
+training on every task except TVAE X-only on Grid (about 88\% against
+90.1\%). Averaged over generators, labelers, and seeds, joint relabeling
+raises accuracy by between 0.2 points (Asia) and 14.7 points (Alarm), and
+$h^*$ agreement by between 0.4 and 22.0 points. Agreement gains exceed
+accuracy gains because for the mixed datasets each point of disagreement
+with $h^*$ costs only 0.8 points of accuracy. On Alarm, Child, and
+Insurance, several relabeled tables agree with $h^*$ more often than
+real-only training does: the labeler, trained on the same 10,000 real rows,
+passes on its estimate of the decision rule without the label noise.
+Accuracy on Asia slightly exceeds the estimated Bayes accuracy because
+both are finite-sample estimates.
+
+\subsection{Joint-distribution Fidelity}
+The fidelity scores tell a different story (Table~\ref{tab:sim-fidelity}).
+Real-only training tables have the highest $L_{\rm test}$ on every task.
+Relabeling raises $L_{\rm syn}$ on every task, by 0.12 to 0.43 nats on
+average for joint relabeling, because hard labels move each row's target
+to its most probable value given the features. For TVAE, relabeled tables
+even exceed the real-only $L_{\rm syn}$ on Gaussian, Grid, Ring, and Asia.
+That is concentration, not better fidelity. $L_{\rm test}$ moves the other
+way on four tasks: joint relabeling lowers it on Gaussian, Grid, Ring, and
+Asia, because a density refitted to noise-free targets assigns low
+probability to real test rows whose target disagrees with $h^*$. It is
+essentially unchanged on Alarm and slightly higher on Child and Insurance. On Asia,
+relabeling barely changes accuracy (0.2 points) yet lowers $L_{\rm test}$ by
+0.77 nats. Figure~\ref{fig:oracle} shows these changes for each generator
+and labeler. A table can therefore be more useful for prediction while
+being a worse sample of the original joint distribution.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.8\textwidth]{figures/oracle_tradeoff.pdf}
+\caption{Simulated data: change in $L_{\rm test}$ (horizontal) against
+change in accuracy (vertical, percentage points) from joint relabeling,
+relative to generated targets. Shape: generator; color: labeler. Each point
+averages two seeds; no trend is fitted.}
+\label{fig:oracle}
+\end{figure*}
+
+\section{Discussion}
+\subsection{When Does Target Replacement Help?}
+Relabeling helps most when the generator's conditional $P(\widetilde Y\mid
+\widetilde X)$ is poor, as for CTGAN on the MNIST tasks and for all
+generators on Covertype, and when the generated features remain within the
+region where the real-trained labeler is reliable. It can hurt when the
+generated features are shifted, as for TabDDPM on MNIST. A practical check
+is therefore not the labeler's real-data accuracy alone, but whether its
+predictions on generated features agree with the generator's own targets
+or with a held-out feature-shift diagnostic. We did not choose labelers by
+test score; DNN labelers are often, but not always, the strongest.
+
+\subsection{Does the Generator Need to Model the Target?}
+After relabeling, joint and features-only generators gave similar utility.
+Practitioners who intend to relabel may therefore fit the generator to $X$
+alone without a measurable loss, at least for the generators and tasks we
+study. Conversely, there is little evidence that fitting the joint model
+yields better feature distributions for downstream prediction.
+
+\section{Limitations}
+The real-data inference has five classification tasks, so power is low and
+task effects are heterogeneous; seeds share real-data partitions and do not
+represent new datasets. MNIST12 and MNIST28 are related tasks. Adult
+TabDDPM results carry an unresolved historical generator-source caveat. The
+MNIST12 TVAE data retain a documented exact held-out feature-collision
+caveat, and MNIST12 TabDDPM retains a diagnosed generated-input shift.
+Validation-best checkpoints are selected within the original training
+histories and were chosen after loss-based selection had been examined; the
+loss-selected analysis gives similar conclusions. TabDDPM is run
+unconditionally, unlike its original classification protocol. Hard
+relabeling does not reproduce target noise, and density-refit scores depend
+on the specified estimators. Credit and the naive-Bayes and PCA/GMM
+labelers are outside the reported, balanced comparison.
+
+\section{Conclusion}
+Target assignment is a separate design decision in synthetic tabular data.
+Replacing generated targets with predictions from a labeler trained on real
+data improved average downstream utility, by large margins for CTGAN and
+modest ones for TVAE, but not for TabDDPM, and the pooled gain was not
+statistically established across five tasks. Whether the generator modeled
+the target mattered little once targets were predicted. On simulated
+data, the same replacement moved predictions closer to the Bayes
+rule while making the synthetic table a less faithful sample of the
+original joint distribution. Evaluations of synthetic data should report
+how targets were assigned and should not treat predictive utility as a
+measure of distributional fidelity.
+
+\bibliography{references}
+\end{document}

@@ -1,0 +1,26 @@
+<!doctype html><meta charset="utf-8"><title>F1 by method and dataset</title><style>body{font:15px/1.5 system-ui,sans-serif;max-width:1050px;margin:36px auto;padding:0 24px;color:#233747}table{border-collapse:collapse;width:100%;margin-bottom:36px}th,td{padding:7px 14px;text-align:right;border-bottom:1px solid #e0e5e9;font-variant-numeric:tabular-nums}th:first-child,td:first-child{text-align:left}thead{background:#eef3f6}.hybrid-start td{border-top:3px solid #344e60}.baseline td:first-child{font-weight:600}h2{margin-top:32px}</style>
+<h1>Compact F1 summary</h1><p>Descriptive summary only: hybrid cells average the scores of RF, XGB and DNN as well as seeds 42/43. This is not a selected labeler or an ensemble. Macro F1 (0–1), arithmetic mean of seeds 42 and 43, using the same validation-best checkpoints as the ANOVA. Hybrids use RF, XGB or DNN to predict targets. Full: generator fitted on (X,Y); X-only: generator fitted on X. Bold indicates the highest score and underline the second-highest distinct score per dataset and training mode, across all displayed synthetic methods. Ranking uses unrounded values; all exact ties share the same rank. Real-only scores are excluded from ranking. Emphasis indicates numerical rank, not statistical significance. News and California Housing are regression tasks, so F1 does not apply. Credit has no validation-best evaluation in this selection. Adult TabDDPM and MNIST12 TVAE retain the documented source/collision caveats.</p>
+<h2>Synthetic-only training</h2><table><thead><tr><th>Method</th><th>Adult</th><th>Census KDD</th><th>Covertype</th><th>MNIST12</th><th>MNIST28</th></tr></thead><tbody>
+<tr><td>Real only</td><td>0.7925</td><td>0.7563</td><td>0.5258</td><td>0.9559</td><td>0.9792</td></tr>
+<tr class=""><td>CTGAN</td><td>0.7651</td><td>0.7105</td><td>0.4648</td><td>0.4861</td><td>0.5506</td></tr>
+<tr class=""><td>TVAE</td><td>0.7526</td><td>0.7121</td><td>0.4727</td><td>0.9298</td><td>0.9421</td></tr>
+<tr class=""><td>TabDDPM</td><td>0.7849</td><td>0.7095</td><td>0.5233</td><td>0.7340</td><td>0.3853</td></tr>
+<tr class="hybrid-start"><td>CTGAN: full (labeler mean)</td><td>0.7880</td><td>0.7497</td><td>0.6643</td><td>0.9118</td><td>0.8937</td></tr>
+<tr class=""><td>TVAE: full (labeler mean)</td><td>0.7889</td><td>0.7405</td><td>0.6178</td><td><strong>0.9375</strong></td><td><u>0.9558</u></td></tr>
+<tr class=""><td>TabDDPM: full (labeler mean)</td><td><strong>0.7931</strong></td><td>0.7503</td><td><strong>0.7052</strong></td><td>0.4154</td><td>0.3496</td></tr>
+<tr class=""><td>CTGAN: X-only (labeler mean)</td><td>0.7904</td><td><u>0.7528</u></td><td>0.6619</td><td>0.9011</td><td>0.8976</td></tr>
+<tr class=""><td>TVAE: X-only (labeler mean)</td><td><u>0.7913</u></td><td>0.7338</td><td>0.5930</td><td><u>0.9357</u></td><td><strong>0.9565</strong></td></tr>
+<tr class=""><td>TabDDPM: X-only (labeler mean)</td><td>0.7902</td><td><strong>0.7571</strong></td><td><u>0.7023</u></td><td>0.5206</td><td>0.2075</td></tr>
+</tbody></table>
+<h2>Mixed training</h2><table><thead><tr><th>Method</th><th>Adult</th><th>Census KDD</th><th>Covertype</th><th>MNIST12</th><th>MNIST28</th></tr></thead><tbody>
+<tr><td>Real only</td><td>0.7925</td><td>0.7563</td><td>0.5258</td><td>0.9559</td><td>0.9792</td></tr>
+<tr class=""><td>CTGAN</td><td>0.7772</td><td>0.6842</td><td>0.5155</td><td>0.6997</td><td>0.9279</td></tr>
+<tr class=""><td>TVAE</td><td>0.7574</td><td>0.7586</td><td>0.4941</td><td>0.9441</td><td>0.9637</td></tr>
+<tr class=""><td>TabDDPM</td><td>0.7807</td><td>0.6916</td><td>0.4908</td><td>0.8883</td><td>0.8825</td></tr>
+<tr class="hybrid-start"><td>CTGAN: full (labeler mean)</td><td>0.7904</td><td><u>0.7691</u></td><td>0.6527</td><td>0.9371</td><td>0.9622</td></tr>
+<tr class=""><td>TVAE: full (labeler mean)</td><td>0.7882</td><td>0.7691</td><td>0.6537</td><td><strong>0.9454</strong></td><td><u>0.9651</u></td></tr>
+<tr class=""><td>TabDDPM: full (labeler mean)</td><td>0.7926</td><td>0.7657</td><td><u>0.7004</u></td><td>0.7214</td><td>0.7634</td></tr>
+<tr class=""><td>CTGAN: X-only (labeler mean)</td><td><strong>0.7939</strong></td><td>0.7685</td><td>0.6512</td><td>0.9362</td><td>0.9614</td></tr>
+<tr class=""><td>TVAE: X-only (labeler mean)</td><td>0.7915</td><td><strong>0.7709</strong></td><td>0.6250</td><td><u>0.9453</u></td><td><strong>0.9657</strong></td></tr>
+<tr class=""><td>TabDDPM: X-only (labeler mean)</td><td><u>0.7928</u></td><td>0.7677</td><td><strong>0.7008</strong></td><td>0.8125</td><td>0.6708</td></tr>
+</tbody></table>

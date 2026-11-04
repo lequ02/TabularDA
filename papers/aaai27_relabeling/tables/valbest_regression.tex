@@ -1,0 +1,42 @@
+\begin{table*}[p]
+\centering
+\small
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{@{}lrrrrrrrr@{}}
+\toprule
+ & \multicolumn{4}{c}{\textbf{Synthetic only}} & \multicolumn{4}{c}{\textbf{Real + synthetic}} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}
+\textbf{Method} & \multicolumn{2}{c}{\textbf{News}} & \multicolumn{2}{c}{\textbf{Housing}} & \multicolumn{2}{c}{\textbf{News}} & \multicolumn{2}{c}{\textbf{Housing}} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
+ & $R^2$ & $D^2$ & $R^2$ & $D^2$ & $R^2$ & $D^2$ & $R^2$ & $D^2$ \\
+\midrule
+Real only & -0.029 & -0.044 & 0.512 & 0.282 & -0.029 & -0.044 & 0.512 & 0.282 \\
+\midrule
+CTGAN, generated $Y$ & -0.019 & \textbf{0.015} & 0.631 & 0.414 & -0.017 & \underline{0.024} & 0.636 & 0.419 \\
+CTGAN joint + RF & -0.003 & -0.006 & 0.790 & 0.599 & -0.002 & 0.010 & 0.786 & 0.591 \\
+CTGAN joint + XGB & -0.007 & 0.007 & 0.817 & \textbf{0.627} & -0.002 & 0.009 & \underline{0.813} & \textbf{0.623} \\
+CTGAN joint + DNN & 0.001 & \underline{0.008} & 0.800 & 0.609 & \underline{0.001} & 0.017 & 0.787 & 0.609 \\
+CTGAN X-only + RF & 0.000 & -0.001 & 0.790 & 0.586 & -0.002 & 0.008 & 0.782 & 0.588 \\
+CTGAN X-only + XGB & 0.000 & -0.010 & 0.819 & 0.621 & \textbf{0.002} & 0.000 & 0.810 & \underline{0.616} \\
+CTGAN X-only + DNN & 0.002 & 0.007 & 0.804 & 0.607 & -0.001 & 0.020 & 0.803 & 0.608 \\
+\addlinespace
+TVAE, generated $Y$ & -0.027 & 0.005 & 0.714 & 0.505 & -0.022 & \textbf{0.036} & 0.700 & 0.503 \\
+TVAE joint + RF & 0.000 & -0.006 & 0.785 & 0.581 & -0.001 & 0.005 & 0.776 & 0.570 \\
+TVAE joint + XGB & -0.002 & -0.011 & \underline{0.821} & \textbf{0.627} & -0.001 & 0.011 & 0.762 & 0.615 \\
+TVAE joint + DNN & \underline{0.008} & -0.028 & 0.746 & 0.594 & \underline{0.001} & 0.011 & 0.798 & 0.605 \\
+TVAE X-only + RF & 0.003 & -0.003 & 0.779 & 0.573 & \underline{0.001} & 0.002 & 0.761 & 0.555 \\
+TVAE X-only + XGB & 0.002 & -0.032 & 0.817 & \underline{0.622} & -0.001 & 0.009 & 0.800 & 0.606 \\
+TVAE X-only + DNN & \textbf{0.010} & -0.021 & 0.758 & 0.606 & \underline{0.001} & 0.009 & 0.787 & 0.601 \\
+\addlinespace
+TabDDPM, generated $Y$ & -0.028 & -0.026 & 0.791 & 0.587 & \textbf{0.002} & -0.074 & 0.787 & 0.573 \\
+TabDDPM joint + RF & 0.001 & -0.009 & 0.793 & 0.589 & -0.002 & 0.003 & 0.789 & 0.582 \\
+TabDDPM joint + XGB & 0.000 & -0.022 & \textbf{0.823} & 0.618 & \underline{0.001} & -0.007 & \textbf{0.816} & 0.613 \\
+TabDDPM joint + DNN & -0.007 & -0.014 & 0.797 & 0.594 & -0.009 & -0.008 & 0.793 & 0.589 \\
+TabDDPM X-only + RF & 0.000 & -0.002 & 0.791 & 0.586 & -0.002 & 0.009 & 0.786 & 0.578 \\
+TabDDPM X-only + XGB & 0.004 & -0.026 & \textbf{0.823} & 0.620 & -0.001 & -0.008 & \textbf{0.816} & 0.609 \\
+TabDDPM X-only + DNN & -0.004 & -0.051 & 0.799 & 0.601 & -0.004 & -0.035 & 0.796 & 0.593 \\
+\bottomrule
+\end{tabular}
+\caption{Regression, both training regimes. Test means over seeds 42/43; higher is better. $D^2$ is absolute-error skill relative to the constant test-median predictor; both metrics are unscaled. Construction names and highlighting follow Table~\ref{tab:valbest-synthetic}.}
+\label{tab:valbest-regression}
+\end{table*}

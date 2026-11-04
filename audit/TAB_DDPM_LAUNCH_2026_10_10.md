@@ -1,5 +1,7 @@
 # TabDDPM experiment launch
 
+The [patch register](TAB_DDPM_PATCHES.md) indexes the implementation changes, their rationale, validation, and subsequent deployment history.
+
 Launched **October 10, 2026, at 10:53:05 p.m. Chicago** on `thuy@10.24.10.133`, in `/home/thuy/Research/minh_data_synth/TabularDA`, using `/home/thuy/miniconda3/envs/env/bin/python`.
 
 Namespace: **`tabddpm_500ep_20261010_v1`** under `data/`, `sdv trained model/`, and `output/`. Only TabDDPM is running; experiment seeds are **42 and 43**. The agreed design is in [the experiment plan](TAB_DDPM_EXPERIMENT_PLAN_2026_10_10.md).
@@ -115,3 +117,11 @@ A one-line categorical-posterior numerical fix is in the main local source and p
 ## Covertype rerun — October 11, 11:51 a.m. Chicago
 
 Seeds 42 and 43 were relaunched in parallel as `tabddpm-covertype-fix42` and `tabddpm-covertype-fix43`, using the corrected frozen source snapshot and namespace `tabddpm_covertype_500ep_fix_20261011_v1`. At 11:52 a.m., seed 42 had reached 100/514,000 generator updates with finite loss, and seed 43 was training its real-only baseline. The verified original seed-42 baseline is reused. Main remote source and workers 3/4 remain unchanged. See [rerun settings, provenance, queues, and logs](TAB_DDPM_COVERTYPE_RERUN_2026_10_11.md).
+
+## Census KDD diagnosis — October 11, 5:20 p.m. Chicago
+
+Census KDD seed 42 failed at generator update 13/163,000 under the original frozen source; its weighted real-only baseline completed, and seed 43 did not start. An exact early-update replay traced the nonfinite posterior to `PEFNTVTY` at t=0. The same one-line Covertype correction makes the identical failed batch's loss and gradients finite and passed short checks for both seeds/sources. With the original workers stopped, the fix was deployed to the main remote files, preserving originals and the active Covertype snapshot jobs. Census KDD has not been relaunched. See [evidence and recovery requirements](TAB_DDPM_CENSUS_KDD_DIAGNOSIS_2026_10_11.md).
+
+## Census KDD rerun — October 11, 6:16 p.m. Chicago
+
+Session `tabddpm-census-kdd-fix` now queues seed 42 then seed 43 in `tabddpm_census_kdd_500ep_fix_20261011_v1`, using the existing corrected frozen source. It retains 500 epochs (163,000 updates per generator fit), batch 500, 100,000 samples, and the Census weighted downstream protocol. The verified seed-42 real-only baseline is reused. At 6:17 p.m., seed 42 had passed the old failure point and reached 100 updates with finite loss; both Covertype workers remained active. See [the rerun handoff](TAB_DDPM_CENSUS_KDD_RERUN_2026_10_11.md).

@@ -1,0 +1,40 @@
+\begin{table*}[p]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+\textbf{Method} & \multicolumn{2}{c}{\textbf{Adult}} & \multicolumn{2}{c}{\textbf{Census KDD}} & \multicolumn{1}{c}{\textbf{Covertype}} & \multicolumn{1}{c}{\textbf{MNIST12}} & \multicolumn{1}{c}{\textbf{MNIST28}} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-6}\cmidrule(lr){7-7}\cmidrule(lr){8-8}
+ & Bin.\ F1 & Mac.\ F1 & Bin.\ F1 & Mac.\ F1 & Mac.\ F1 & Acc. & Acc. \\
+\midrule
+Real only & 67.88 & 79.25 & 55.21 & 75.63 & 52.58 & \textbf{95.57} & \textbf{97.92} \\
+\midrule
+CTGAN, generated $Y$ & 65.51 & 77.72 & 44.69 & 68.42 & 51.55 & 71.89 & 92.77 \\
+CTGAN joint + RF & 66.77 & 78.60 & 56.61 & 76.85 & 56.63 & 92.95 & 95.70 \\
+CTGAN joint + XGB & 67.84 & 79.31 & 56.83 & 76.94 & 62.46 & 94.07 & 96.63 \\
+CTGAN joint + DNN & 69.38 & 79.22 & 56.80 & 76.94 & \underline{76.72} & 94.01 & 96.33 \\
+CTGAN X-only + RF & 67.82 & 79.26 & 55.82 & 76.47 & 57.03 & 92.83 & 95.78 \\
+CTGAN X-only + XGB & 68.50 & \textbf{79.55} & 56.98 & 76.98 & 62.24 & 93.94 & 96.24 \\
+CTGAN X-only + DNN & \underline{69.42} & 79.37 & 56.99 & 77.10 & 76.08 & 94.03 & 96.41 \\
+\addlinespace
+TVAE, generated $Y$ & 61.66 & 75.74 & 55.39 & 75.86 & 49.41 & 94.40 & 96.37 \\
+TVAE joint + RF & 66.00 & 78.28 & 55.63 & 76.24 & 59.94 & 93.91 & 95.96 \\
+TVAE joint + XGB & 67.53 & 79.00 & \textbf{57.80} & \underline{77.40} & 61.43 & \underline{94.93} & \underline{96.88} \\
+TVAE joint + DNN & 68.85 & 79.17 & 57.00 & 77.09 & 74.75 & 94.75 & 96.69 \\
+TVAE X-only + RF & 66.87 & 78.82 & 56.15 & 76.56 & 56.30 & 93.94 & 96.02 \\
+TVAE X-only + XGB & 67.75 & 79.14 & \underline{57.74} & \textbf{77.42} & 56.66 & 94.89 & \underline{96.88} \\
+TVAE X-only + DNN & \textbf{69.46} & \underline{79.50} & 57.36 & 77.30 & 74.53 & 94.72 & 96.77 \\
+\addlinespace
+TabDDPM, generated $Y$ & 65.36$^{\dagger}$ & 78.07$^{\dagger}$ & 45.20 & 69.16 & 49.08 & 88.84 & 88.74 \\
+TabDDPM joint + RF & 66.75$^{\dagger}$ & 78.77$^{\dagger}$ & 55.08 & 76.13 & 66.53 & 79.83 & 93.13 \\
+TabDDPM joint + XGB & 68.63$^{\dagger}$ & 79.71$^{\dagger}$ & 56.95 & 77.07 & 67.08 & 91.06 & 93.02 \\
+TabDDPM joint + DNN & 69.17$^{\dagger}$ & 79.28$^{\dagger}$ & 55.79 & 76.51 & 76.51 & 51.61 & 46.28 \\
+TabDDPM X-only + RF & 67.13$^{\dagger}$ & 78.99$^{\dagger}$ & 55.25 & 76.22 & 64.67 & 91.51 & 93.34 \\
+TabDDPM X-only + XGB & 67.95$^{\dagger}$ & 79.30$^{\dagger}$ & 57.12 & 77.13 & 68.13 & 92.70 & 64.15 \\
+TabDDPM X-only + DNN & 69.27$^{\dagger}$ & 79.53$^{\dagger}$ & 56.56 & 76.97 & \textbf{77.44} & 65.79 & 48.95 \\
+\bottomrule
+\end{tabular}
+\caption{Classification, real + synthetic training (all real training rows plus 100,000 synthetic rows; \%). Checkpoints, notation, highlighting, and caveats follow Table~\ref{tab:valbest-synthetic}.}
+\label{tab:valbest-mix}
+\end{table*}
