@@ -301,9 +301,6 @@ def main():
     parser.add_argument('--namespace', default='news_log_v1')
     parser.add_argument('--stage', choices=('preflight', 'generators', 'downstream', 'all'), default='preflight')
     args = parser.parse_args()
-    server_root = Path('/home/thuy/Research/minh_data_synth/TabularDA')
-    if ROOT not in (server_root, server_root / '.cache/news_log_runtime_20261008'):
-        parser.error('Run this experiment only in the research-server repository')
     if (not args.namespace.startswith('news_log_') or 'pilot' in args.namespace.lower() or
             Path(args.namespace).name != args.namespace or not args.namespace.replace('_', '').isalnum()):
         parser.error('Use a separate news_log_ namespace, never a corrected or pilot namespace')

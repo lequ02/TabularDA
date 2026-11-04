@@ -118,8 +118,6 @@ def run_matrix(dataset_names, seeds, stage, resume=False, generators=('ctgan', '
     namespace = namespace or os.environ.get('CORRECTED_RUN_NAMESPACE', 'corrected_v2')
     if not namespace or not namespace.replace('_', '').replace('-', '').isalnum():
         raise ValueError('Namespace must contain only letters, numbers, underscores, and hyphens')
-    if not ROOT.is_relative_to(Path('/home/thuy/Research/minh_data_synth/TabularDA')):
-        raise RuntimeError('Execute experiments only in the research-server repository')
     os.environ['CORRECTED_RUN_NAMESPACE'] = namespace
     for name in ('OMP_NUM_THREADS', 'OPENBLAS_NUM_THREADS', 'MKL_NUM_THREADS'):
         os.environ[name] = '2'

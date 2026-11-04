@@ -108,7 +108,7 @@ def forbid_network(*args, **kwargs):
 
 
 openml_module.urlopen = forbid_network
-source = fetch_openml(data_id=554, as_frame=False, data_home='/home/thuy/scikit_learn_data')
+source = fetch_openml(data_id=554, as_frame=False)
 source12 = np.empty((len(source.data), 144), dtype=np.uint8)
 for i, row in enumerate(source.data):
     binary = (row.reshape(28, 28) > 0).astype(np.uint8)

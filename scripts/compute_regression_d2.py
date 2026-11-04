@@ -102,9 +102,7 @@ if __name__ == '__main__':
     parser.add_argument('--requests', type=Path, required=True)
     parser.add_argument('--evidence', type=Path, required=True)
     args = parser.parse_args()
-    root = Path('/home/thuy/Research/minh_data_synth/TabularDA')
-    if not root.is_dir():
-        raise RuntimeError('Compute regression scores on the research server only')
+    root = Path(__file__).resolve().parents[1]
     records = compute(root, json.loads(args.requests.read_text()))
     evidence = {'computed_at_chicago': datetime.now(ZoneInfo('America/Chicago')).isoformat(),
                 'script_sha256': sha(Path(__file__)), 'records': records,
