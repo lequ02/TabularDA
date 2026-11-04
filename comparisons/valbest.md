@@ -1,0 +1,20 @@
+# Validation-best checkpoint results
+
+**Historical October 18 version.** The [October 31 refresh](20261031_adult_tabddpm_fix/valbest/README.md)
+replaces the 28 selected Adult TabDDPM evaluations with verified posterior-fix results, selected by
+best development binary F1. Its full scores CSV has 602 evaluations; the other 574 are unchanged.
+The scores and figures linked below preserve the earlier version.
+
+Complete: **602 evaluations** across Adult, Census KDD, Covertype, MNIST12, MNIST28, News and California Housing, seeds 42/43. Finished October 18, 2026, 2:36 a.m. Chicago. These are alternative checkpoints within the original completed training histories, not longer retraining runs. Credit and bonus NB/PCA-GMM arms were outside this run.
+
+- Synthetic: [plot](synthetic_valbest.png), [table](synthetic_valbest.md), [CSV](synthetic_valbest.csv), [change plot](synthetic_valbest_delta.png), [exact changes](synthetic_valbest_delta_points.csv).
+- Mix: [plot](mix_valbest.png), [table](mix_valbest.md), [CSV](mix_valbest.csv), [change plot](mix_valbest_delta.png), [exact changes](mix_valbest_delta_points.csv).
+- [All scores and file paths](scores_valbest.csv), [artifact locations and reuse evidence](valbest_artifacts.csv), [archive verification](valbest_archive.json), [source map](valbest_source_map.json).
+
+Each dataset has `scores_valbest.csv`. New evidence sits beside its original in the existing dataset/full/xonly folders, with `.valbest.result.json`, `.valbest.weights.pth`, `.valbest.predictions.csv` and (for replayed runs) `.valbest.epochs.csv`. Real-only evidence stays at dataset level. **308 checkpoints changed; 294 selected the original epoch.** Unchanged weights reuse the original files based on the saved exact-tensor checks; byte-identical predictions reuse the original CSV. The artifact map records both stored and server hashes where serialization differs. There are no duplicate generator or labeler copies.
+
+Selection is the earliest exact maximum of development binary F1 for Adult, macro F1 for Census/Covertype/MNIST, and R² for News/Housing. MNIST figures still display test accuracy. Census originally used macro F1 with an improvement tolerance, so its changes are not F1-versus-loss comparisons. All regression checkpoints are unchanged; regression deltas are zero apart from floating-point roundoff. Classification differences use percentage points; R² and D² are unscaled. News result records retain test NMAE and its saved test-target normalization; lower NMAE is better.
+
+Original results, histories, splits, source snapshots and figures remain intact. Result JSONs retain their original bytes and remote provenance; `valbest_artifacts.csv` resolves their artifacts to this archive. Paths in comparison CSVs are relative to this folder; paths in score and artifact indexes are relative to the archive root. Earlier Adult pilot evaluations overlap this completed run and are not copied again.
+
+Caveats remain: Adult TabDDPM historical generator-source issue; MNIST12 TVAE feature collisions; shared holdouts across seeds; later input hashes alone do not prove training-time bytes. Exact original checkpoint and replay-history checks are recorded in all results. Eight early records did not save execution-source hashes; this archive does not invent them. Executed worker versions and report builders are in `source/`; their original execution paths are preserved. Bulk row tables remain omitted under the existing cleanup policy, so this is an evidence archive, not a standalone rerunnable experiment.
