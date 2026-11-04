@@ -117,7 +117,7 @@ def probes():
 
 
 def inventory():
-    sources = [p for folder in ('src', 'SDGym-research', 'GLRM', 'pyglrm', 'plots')
+    sources = [p for folder in ('src', 'SDGym-research', 'plots')
                for p in (ROOT / folder).rglob('*.py') if '.ipynb_checkpoints' not in p.parts]
     errors = []
     for p in sources:
@@ -126,7 +126,7 @@ def inventory():
         except SyntaxError as exc:
             errors.append({'file': str(p.relative_to(ROOT)), 'line': exc.lineno, 'error': exc.msg})
     emit('syntax_inventory', python_files=len(sources), errors=errors)
-    notebooks = [p for folder in ('src', 'plots', 'pyglrm') for p in (ROOT / folder).rglob('*.ipynb')
+    notebooks = [p for folder in ('src', 'plots') for p in (ROOT / folder).rglob('*.ipynb')
                  if '.ipynb_checkpoints' not in p.parts]
     emit('notebook_inventory', notebooks=len(notebooks),
          code_cells=sum(sum(c['cell_type'] == 'code' for c in json.loads(p.read_text(encoding='utf-8'))['cells']) for p in notebooks))
